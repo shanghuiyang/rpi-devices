@@ -18,11 +18,13 @@ The data from devices can be pushed to an iot cloud platform for visualizing. rp
 * [WSN](http://www.wsncloud.com/)
     
     visualize the temperature
+	
     ![](images/temp-vis.png)
 * [OneNET](https://open.iot.10086.cn/)
-    
+
     visualize the gps locaitons
-    ![](images/gps.jpeg)
+
+    ![](images/gps-vis.jpeg)
 
 ## Usage
 
