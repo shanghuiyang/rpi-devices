@@ -1,0 +1,50 @@
+{
+    "led": {
+        "pin": 26
+    },
+    "relay": {
+        "pin": 7
+    },
+    "stepmotor": {
+        "in1":  8,
+        "in2": 25,
+        "in3": 24,
+        "in4": 23
+    },
+    "wsn": {
+        "token": "your token",
+        "api":   "http://www.wsncloud.com/api/data/v1/numerical/insert",
+        "devices": {
+            "cpu":               "your cup device id",
+			"memory":            "your memory device id",
+			"heartbeat":         "your heartbeat device id",
+			"temperature":       "your temperature device id",
+            "gps":               "your gps device id"
+        }
+    },
+    "onenet": {
+        "token": "your api key",
+        "api":   "http://api.heclouds.com/devices/{your_divece_id}/datapoints",
+        "devices": {
+            "cpu":               "your cpu datastream id",
+			"memory":            "your memory datastream id",
+			"heartbeat":         "your heartbeat datastream id",
+			"temperature":       "your temperature datastream id",
+            "gps":               "your gps datastream id"
+        }
+    },
+    "email": {
+        "smtp":      "smtp.xxx.xxx",
+        "smtp_port": 587,
+        "pop":       "pop.xxx.xxx",
+        "pop_port":  0,
+        "addr":      "xxx@xxxx.xxx",
+        "password":  "*****"
+    },
+    "emailto": {
+        "list": [
+            "xxxx@xxxxx.xxx",
+		    "xxxx@xxxxx.xxx"
+        ]
+    }
+}
