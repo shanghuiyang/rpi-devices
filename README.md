@@ -84,7 +84,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/pi/devices"
+	"github.com/shanghuiyang/rpi-devices/devices"
 )
 
 const (
@@ -127,7 +127,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/pi/devices"
+	"github.com/shanghuiyang/rpi-devices/devices"
 )
 
 const (
@@ -168,7 +168,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/pi/devices"
+	"github.com/shanghuiyang/rpi-devices/devices"
 )
 
 const (
@@ -207,7 +207,7 @@ package main
 import (
 	"log"
 
-	s "github.com/shanghuiyang/pi/devices"
+	s "github.com/shanghuiyang/rpi-devices/devices"
 )
 
 func main() {
@@ -229,7 +229,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/shanghuiyang/pi/devices"
+	"github.com/shanghuiyang/rpi-devices/devices"
 )
 
 func main() {

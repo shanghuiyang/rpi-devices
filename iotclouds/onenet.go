@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/shanghuiyang/pi/base"
+	"github.com/shanghuiyang/rpi-devices/base"
 )
 
 const (

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shanghuiyang/pi/base"
-	"github.com/shanghuiyang/pi/iotclouds"
+	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/iotclouds"
 	"github.com/tarm/serial"
 )
 

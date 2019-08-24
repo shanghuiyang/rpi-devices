@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/pi/devices"
+	"github.com/shanghuiyang/rpi-devices/devices"
 )
 
 const (

@@ -3,7 +3,7 @@ package iotclouds
 import (
 	"errors"
 
-	"github.com/shanghuiyang/pi/base"
+	"github.com/shanghuiyang/rpi-devices/base"
 )
 
 var (

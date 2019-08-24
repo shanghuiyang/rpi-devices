@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/shanghuiyang/pi/iotclouds"
+	"github.com/shanghuiyang/rpi-devices/iotclouds"
 )
 
 const (

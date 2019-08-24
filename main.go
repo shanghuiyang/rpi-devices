@@ -5,9 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/shanghuiyang/pi/base"
-	"github.com/shanghuiyang/pi/iotclouds"
-	s "github.com/shanghuiyang/pi/devices"
+	"github.com/shanghuiyang/rpi-devices/base"
+	s "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/iotclouds"
 )
 
 var (
