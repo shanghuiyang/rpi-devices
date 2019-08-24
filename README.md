@@ -1,19 +1,16 @@
 ![](images/go-devices.png)
 
-
+# rpi-devices 
 [![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
 
-# rpi-devices
-
-rpi-devices let you drive the devices using a raspberry pi in golang, and push you data onto an iot cloud platform.
+rpi-devices let you drive the devices using a raspberry pi in golang, and push you data onto an iot cloud platform for visualizing.
 
 The following devices had been implemented in current version, and a device interface was designed to let you add new devices easily.
 
 
-  ![](images/led.jpg) ![](images/relay.jpg)  ![](images/step-motor.png)  ![](images/gps.jpg)   ![](images/temp.jpg)
+  ![](images/led.jpg)   ![](images/relay.jpg)   ![](images/step-motor.png)   ![](images/temp.jpg)   ![](images/gps.jpg)
 
-         LED           Relay         Step-Motor         GPS        Temperature
-
+         LED           Relay        Step-Motor     Temperature        GPS
 
 ## Data Visualize
 The data from devices can be pushed to an iot cloud platform for visualizing. rpi-devices designed an interface of iot cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new iot cloud and add it to the framwork easily.
@@ -27,7 +24,7 @@ The data from devices can be pushed to an iot cloud platform for visualizing. rp
 
     visualize the gps locaitons
 
-    ![](images/gps-vis.jpeg)
+	<img src="images/gps.gif" width=50% height=50% align="left">
 
 ## Usage
 
