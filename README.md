@@ -1,6 +1,6 @@
 ![](images/go-devices.png)
 
-#rpi-devices
+# rpi-devices
 
 rpi-devices let you drive the devices using a raspberry pi in golang, and push you data onto an iot cloud platform.
 
@@ -22,7 +22,7 @@ The data from devices can be pushed to an iot cloud platform for visualizing. rp
 * [OneNET](https://open.iot.10086.cn/)
     
     visualize the gps locaitons
-    ![](images/gps-vis.jpeg)
+    ![](images/gps.jpeg)
 
 ## Usage
 
