@@ -1,5 +1,8 @@
 ![](images/go-devices.png)
 
+
+[![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
+
 # rpi-devices
 
 rpi-devices let you drive the devices using a raspberry pi in golang, and push you data onto an iot cloud platform.
