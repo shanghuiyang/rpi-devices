@@ -9,11 +9,11 @@ rpi-devices let you drive the devices using a raspberry pi in golang, and push y
 
 The following devices had been implemented in current version, and a device interface was designed to let you add new devices easily.
 
-* LED
-* Relay
-* Step-Motor
-* GPS
-* Temperature Sensor(DS18B20)
+
+  ![](images/led.jpg) ![](images/relay.jpg)  ![](images/step-motor.png)  ![](images/gps.jpg)   ![](images/temp.jpg)
+
+         LED           Relay         Step-Motor         GPS        Temperature
+
 
 ## Data Visualize
 The data from devices can be pushed to an iot cloud platform for visualizing. rpi-devices designed an interface of iot cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new iot cloud and add it to the framwork easily.
