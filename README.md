@@ -23,8 +23,8 @@ The data from devices can be pushed to an iot cloud platform for visualizing. rp
 * [OneNET](https://open.iot.10086.cn/)
 
     visualize the gps locaitons
-
-	<img src="images/gps.gif" width=50% height=50% align="left">
+	
+	<img src="images/gps.gif" width=30% height=30% />
 
 ## Usage
 
