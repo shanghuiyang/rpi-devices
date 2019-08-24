@@ -8,9 +8,9 @@ rpi-devices let you drive the devices using a raspberry pi in golang, and push y
 The following devices had been implemented in current version, and a device interface was designed to let you add new devices easily.
 
 
-  ![](images/led.jpg)   ![](images/relay.jpg)   ![](images/step-motor.png)   ![](images/temp.jpg)   ![](images/gps.jpg)
+  ![](images/led.jpg)   ![](images/temp.jpg)   ![](images/relay.jpg)   ![](images/step-motor.png)   ![](images/gps.jpg)
 
-         LED           Relay        Step-Motor     Temperature        GPS
+         LED        Temperature        Relay        Step-Motor        GPS
 
 ## Data Visualize
 The data from devices can be pushed to an iot cloud platform for visualizing. rpi-devices designed an interface of iot cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new iot cloud and add it to the framwork easily.
@@ -116,6 +116,27 @@ func main() {
 }
 ```
 
+### Temperature
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/shanghuiyang/rpi-devices/devices"
+)
+
+func main() {
+	t := devices.NewTemperature()
+	c, err := t.GetTemperature()
+	if err != nil {
+		fmt.Printf("failed to get temperature, error: %v", err)
+		return
+	}
+	fmt.Printf("current temperature: %v", c)
+}
+```
+
 ### Relay
 ```go
 package main
@@ -216,26 +237,5 @@ func main() {
 	}
 	log.Printf("%v", pt)
 	g.Close()
-}
-```
-
-### Temperature
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/shanghuiyang/rpi-devices/devices"
-)
-
-func main() {
-	t := devices.NewTemperature()
-	c, err := t.GetTemperature()
-	if err != nil {
-		fmt.Printf("failed to get temperature, error: %v", err)
-		return
-	}
-	fmt.Printf("current temperature: %v", c)
 }
 ```
