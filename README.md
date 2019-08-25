@@ -3,17 +3,17 @@
 # rpi-devices 
 [![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
 
-rpi-devices let you drive the devices using a raspberry pi in golang, and push you data onto an iot cloud platform for visualizing.
+rpi-devices let you drive the devices using a raspberry pi in golang, and push your data onto an IoT cloud platform for visualizing.
 
-The following devices had been implemented in current version, and a device interface was designed to let you add new devices easily.
+The following devices had been implemented in the current version, and a device interface was designed to let you add new devices easily.
 
 
   ![](images/led.jpg)   ![](images/temp.jpg)   ![](images/relay.jpg)   ![](images/step-motor.png)   ![](images/gps.jpg)
 
-         LED        Temperature        Relay        Step-Motor        GPS
+         LED        Temperature        Relay        Step-Motor         GPS
 
 ## Data Visualize
-The data from devices can be pushed to an iot cloud platform for visualizing. rpi-devices designed an interface of iot cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new iot cloud and add it to the framwork easily.
+The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new IoT cloud and add it to the framework easily.
 
 * [WSN](http://www.wsncloud.com/)
     
@@ -22,13 +22,13 @@ The data from devices can be pushed to an iot cloud platform for visualizing. rp
 	<img src="images/temp-vis.png" width=70% height=70% />
 * [OneNET](https://open.iot.10086.cn/)
 
-    visualize the gps locaitons
+    visualize the gps locations
 
 	<img src="images/gps.gif" width=30% height=30% />
 
 ## Usage
 
-It is very easy for cross-compiling and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
+It is very easy to cross-compile and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
 ```shell
 $ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o devices.pi main.go
 ````
