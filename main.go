@@ -6,12 +6,12 @@ import (
 	"syscall"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	s "github.com/shanghuiyang/rpi-devices/devices"
+	dev "github.com/shanghuiyang/rpi-devices/devices"
 	"github.com/shanghuiyang/rpi-devices/iotclouds"
 )
 
 var (
-	devices []s.Device
+	devices []dev.Device
 )
 
 func main() {
@@ -23,14 +23,14 @@ func main() {
 	base.Init(cfg)
 	iotclouds.Init(cfg.OneNet)
 
-	m := s.NewMemory()
-	c := s.NewCPU()
-	h := s.NewHeartBeat()
+	m := dev.NewMemory()
+	c := dev.NewCPU()
+	h := dev.NewHeartBeat()
 
-	l := s.NewLed(cfg.Led.Pin)
-	r := s.NewRelay(cfg.Relay.Pin)
-	t := s.NewTemperature()
-	g := s.NewGPS()
+	l := dev.NewLed(cfg.Led.Pin)
+	r := dev.NewRelay(cfg.Relay.Pin)
+	t := dev.NewTemperature()
+	g := dev.NewGPS()
 	devices = append(devices, m, c, h, l, r, t, g)
 
 	for _, d := range devices {

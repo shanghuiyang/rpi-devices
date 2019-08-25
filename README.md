@@ -225,11 +225,11 @@ package main
 import (
 	"log"
 
-	s "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/devices"
 )
 
 func main() {
-	g := s.NewGPS()
+	g := devices.NewGPS()
 	pt, err := g.Loc()
 	if err != nil {
 		log.Printf("failed, error: %v", err)
