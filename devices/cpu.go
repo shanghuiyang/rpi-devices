@@ -45,7 +45,7 @@ func (c *CPU) Start() {
 	}
 }
 
-// Idle is to get idle cup in %
+// Idle is to get idle cpu in %
 // $ top -n 2 -d 1
 // ---------------------------------------------------------------------------------
 // top - 20:04:01 up 9 min,  2 users,  load average: 0.22, 0.22, 0.18

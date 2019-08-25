@@ -12,7 +12,7 @@ The following devices had been implemented in the current version, and a device 
 
          LED        Temperature        Relay        Step-Motor         GPS
 
-## Data Visualize
+## Visualize Data
 The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new IoT cloud and add it to the framework easily.
 
 * [WSN](http://www.wsncloud.com/)
@@ -35,7 +35,7 @@ $ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o devices.pi main.go
 
 If you aren't sure the cpu info of your raspberry pi, check it out by,
 ```shell
-$ lscup
+$ lscpu
 # those are the cpu info of my raspberry pi 2.
 # ------------------------------------------------------------
 # Architecture:        armv6l

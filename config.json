@@ -15,7 +15,7 @@
         "token": "your token",
         "api":   "http://www.wsncloud.com/api/data/v1/numerical/insert",
         "devices": {
-            "cpu":               "your cup device id",
+            "cpu":               "your cpu device id",
 			"memory":            "your memory device id",
 			"heartbeat":         "your heartbeat device id",
 			"temperature":       "your temperature device id",
