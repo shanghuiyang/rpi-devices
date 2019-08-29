@@ -13,7 +13,7 @@ The following devices had been implemented in the current version, and a device 
          LED        Temperature        Relay        Step-Motor         GPS
 
 ## Visualize Data
-The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. You can implement the interface for new IoT cloud and add it to the framework easily.
+The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. Both of them are free for developers. You can implement the interface for new IoT cloud and add it to the framework easily.
 
 * [WSN](http://www.wsncloud.com/)
     
@@ -60,7 +60,7 @@ And then, deploy the binary to your raspberry pi by,
 ```shell
 $ scp devices.pi pi@192.168.31.57:/home/pi
 ```
-`192.168.31.57` is the ip address of my raspberry pi, you need to replace it with the ip of your raspberry pi.
+`192.168.31.57` is the ip address of my raspberry pi, you need to replace it with yours.
 
 ssh to you raspberry pi, and run the binary.
 ```shell
