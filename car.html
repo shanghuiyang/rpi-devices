@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>remote control for rpi car</title>
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <style type="text/css">
+        #forward {
+            margin-top: 70px;
+            margin-left: 120px;
+            margin-bottom: 3px;
+            padding: 16px 24px;
+        }
+        #left {
+            margin-left: 20px;
+            padding: 16px 24px;
+        }
+        #brake {
+            padding: 16px 24px;
+        }
+        #right {
+            padding: 16px 24px;
+        }
+        #backward {
+            margin-top: 3px;
+            margin-left: 120px;
+            padding: 16px 24px;
+        }
+    </style>
+    <script>
+        $(function(){
+            $("button").click(function(){
+                $.post("http://172.20.10.10:8080",{op: this.id},function(data,status){});
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="container" class="container">
+    <div>
+        <button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:48px"></button>
+    </div>
+    <div >
+        <button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:48px"></button>
+        <button id='brake' class="btn btn-lg btn-warning glyphicon glyphicon-stop" style="font-size:48px"></button>
+        <button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:48px"></button>
+    </div>
+    <div>
+        <button id='backward' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:48px"></button>
+    </div>
+</div>
+</body>
+</html>

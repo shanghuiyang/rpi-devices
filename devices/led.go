@@ -37,8 +37,6 @@ func NewLed(pin uint8) *Led {
 
 // Start ...
 func (l *Led) Start() {
-	defer l.Close()
-
 	log.Printf("[%v]start working", logTagLed)
 	for {
 		op := <-ChLedOp
@@ -83,5 +81,6 @@ func (l *Led) Blink(n uint8) {
 
 // Close ...
 func (l *Led) Close() {
+	close(ChLedOp)
 	rpio.Close()
 }
