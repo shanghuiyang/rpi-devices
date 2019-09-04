@@ -30,25 +30,122 @@
         }
     </style>
     <script>
+        // var url = "http://172.20.10.10:8080"
+        var url = "http://172.20.10.6:8080"
+        // var url = "http://localhost:8080"
         $(function(){
-            $("button").click(function(){
-                $.post("http://172.20.10.10:8080",{op: this.id},function(data,status){});
+        //     $("#forward").click(function(){
+        //         $.post(url,{"op": "forward"},function(data,status){});
+        //     });
+        //     $("#backward").click(function(){
+        //         $.post(url,{"op": "backward"},function(data,status){});
+        //     });
+        //     $("#brake").click(function(){
+        //         $.post(url,{"op": "brake"},function(data,status){});
+        //     });
+
+            // -- functions for ios  -- //
+            // forward
+            $('#forward').bind("touchstart", function(e){
+                document.getElementById("forward").style.color = "yellow";
+                $.post(url,{"op": "forward"},function(data,status){});
+            });
+            $('#forward').bind("touchend", function(e){
+                document.getElementById("forward").style.color = "white";
+            });
+            // backward
+            $('#backward').bind("touchstart", function(e){
+                document.getElementById("backward").style.color = "yellow";
+                $.post(url,{"op": "backward"},function(data,status){});
+            });
+            $('#backward').bind("touchend", function(e){
+                document.getElementById("backward").style.color = "white";
+            });
+            // brake
+            $('#brake').bind("touchstart", function(e){
+                document.getElementById("brake").style.color = "yellow";
+                $.post(url,{"op": "brake"},function(data,status){});
+            });
+            $('#brake').bind("touchend", function(e){
+                document.getElementById("brake").style.color = "white";
+            });
+            // left
+            $('#left').bind("touchstart", function(e){
+                document.getElementById("left").style.color = "yellow";
+                $.post(url,{"op": "left"},function(data,status){});
+            });
+            $('#left').bind("touchend", function(e){
+                document.getElementById("left").style.color = "white";
+                $.post(url,{"op": "forward"},function(data,status){});
+            });
+            // right
+            $('#right').bind("touchstart", function(e){
+                document.getElementById("right").style.color = "yellow";
+                $.post(url,{"op": "right"},function(data,status){});
+            });
+            $('#right').bind("touchend", function(e){
+                document.getElementById("right").style.color = "white";
+                $.post(url,{"op": "forward"},function(data,status){});
             });
         });
+
+        // functions for pc
+        // // forward
+        // function mouseDownForward() {
+        //     document.getElementById("forward").style.color = "yellow";
+        //     $.post(url,{"op": "forward"},function(data,status){});
+        // }
+        // function mouseUpForward() {
+        //     document.getElementById("forward").style.color = "white";
+        // }
+        // // backward
+        // function mouseDownBackward() {
+        //     document.getElementById("backward").style.color = "yellow";
+        //     $.post(url,{"op": "backward"},function(data,status){});
+        // }
+        // function mouseUpBackward() {
+        //     document.getElementById("backward").style.color = "white";
+        // }
+        // // brake
+        // function mouseDownBrake() {
+        //     document.getElementById("brake").style.color = "yellow";
+        //     $.post(url,{"op": "brake"},function(data,status){});
+        // }
+        // function mouseUpBrake() {
+        //     document.getElementById("brake").style.color = "white";
+        // }
+        // // left
+        // function mouseDownLeft() {
+        //     document.getElementById("left").style.color = "yellow";
+        //     $.post(url,{"op": "left"},function(data,status){});
+        // }
+        // function mouseUpLeft() {
+        //     document.getElementById("left").style.color = "white";
+        //     $.post(url,{"op": "forward"},function(data,status){});
+        // }
+        // // right
+        // function mouseDownRight() {
+        //     document.getElementById("right").style.color = "yellow";
+        //     $.post(url,{"op": "right"},function(data,status){});
+        // }
+        // function mouseUpRight() {
+        //     document.getElementById("right").style.color = "white";
+        //     $.post(url,{"op": "forward"},function(data,status){});
+        // }
     </script>
 </head>
 <body>
 <div id="container" class="container">
     <div>
-        <button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:48px"></button>
+        <button id="forward" onmousedown="mouseDownForward()" onmouseup="mouseUpForward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:48px"></button>
     </div>
     <div >
-        <button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:48px"></button>
-        <button id='brake' class="btn btn-lg btn-warning glyphicon glyphicon-stop" style="font-size:48px"></button>
-        <button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:48px"></button>
+        <button id='left' onmousedown="mouseDownLeft()" onmouseup="mouseUpLeft()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:48px"></button>
+        <button id='brake' onmousedown="mouseDownBrake()" onmouseup="mouseUpBrake()" class="btn btn-lg btn-warning glyphicon glyphicon-stop" style="font-size:48px"></button>
+        <button id='right' onmousedown="mouseDownRight()" onmouseup="mouseUpRight()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:48px"></button>
     </div>
     <div>
-        <button id='backward' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:48px"></button>
+        <button id='backward' onmousedown="mouseDownBackward()" onmouseup="mouseUpBackward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:48px"></button>
     </div>
 </div>
 </body>

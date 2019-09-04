@@ -61,7 +61,6 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
-	log.Printf("op request: %v", op)
 	switch op {
 	case "forward":
 		car.Forward()

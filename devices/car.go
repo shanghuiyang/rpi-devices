@@ -33,20 +33,20 @@ func NewCar() *Car {
 	// 	return nil
 	// }
 
-	led := NewLed(pinLed)
-	if led == nil {
-		return nil
-	}
+	// led := NewLed(pinLed)
+	// if led == nil {
+	// 	return nil
+	// }
 	return &Car{
 		// engine: eng,
 		// horn:   buzzer,
-		led: led,
+		// led: led,
 	}
 }
 
 // Start ...
 func (c *Car) Start() error {
-	go c.blink()
+	// go c.blink()
 	return nil
 }
 
@@ -54,7 +54,7 @@ func (c *Car) Start() error {
 func (c *Car) Stop() error {
 	// c.engine.Close()
 	// c.horn.Close()
-	c.led.Close()
+	// c.led.Close()
 	return nil
 }
 
@@ -91,7 +91,6 @@ func (c *Car) Left() error {
 	c.engine.In2.Low()
 	c.engine.In3.High()
 	c.engine.In4.Low()
-	time.Sleep(1 * time.Second)
 	return nil
 }
 
@@ -104,7 +103,6 @@ func (c *Car) Right() error {
 	c.engine.In2.Low()
 	c.engine.In3.Low()
 	c.engine.In4.Low()
-	time.Sleep(1 * time.Second)
 	return nil
 }
 
