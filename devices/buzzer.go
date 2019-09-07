@@ -26,7 +26,7 @@ func NewBuzzer(pin int8) *Buzzer {
 // Whistle ...
 func (b *Buzzer) Whistle() {
 	b.pin.High()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	b.pin.Low()
 }
 

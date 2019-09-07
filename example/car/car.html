@@ -30,8 +30,8 @@
         }
     </style>
     <script>
-        // var url = "http://172.20.10.10:8080"
-        var url = "http://172.20.10.6:8080"
+        var url = "http://172.20.10.10:8080"
+        // var url = "http://172.20.10.6:8080"
         // var url = "http://localhost:8080"
         $(function(){
         //     $("#forward").click(function(){
@@ -86,6 +86,10 @@
             $('#right').bind("touchend", function(e){
                 document.getElementById("right").style.color = "white";
                 $.post(url,{"op": "forward"},function(data,status){});
+            });
+            // honk
+            $('#honk').bind("touchstart", function(e){
+                $.post(url,{"op": "honk"},function(data,status){});
             });
         });
 
@@ -146,6 +150,10 @@
     </div>
     <div>
         <button id='backward' onmousedown="mouseDownBackward()" onmouseup="mouseUpBackward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:48px"></button>
+    </div>
+    <br/><br/><br/><div><br/><br/><br/>
+    <div>
+        <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()" class="btn btn-lg btn-default btn-block glyphicon glyphicon glyphicon-volume-up" style="font-size:48px; color:gray"></button>
     </div>
 </div>
 </body>

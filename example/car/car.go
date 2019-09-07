@@ -28,7 +28,7 @@ func main() {
 
 	go func() {
 		sig := <-quit
-		log.Printf(sig.String() + " received, stopping server")
+		log.Printf("received signal: " + sig.String() + ", stopping server")
 		car.Stop()
 		log.Printf("car server stoped")
 		os.Exit(0)
@@ -72,6 +72,8 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 		car.Right()
 	case "brake":
 		car.Brake()
+	case "honk":
+		car.Honk()
 	default:
 		log.Printf("invalid operation")
 	}
