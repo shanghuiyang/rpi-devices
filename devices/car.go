@@ -135,13 +135,3 @@ func (c *Car) blink() {
 		time.Sleep(1 * time.Second)
 	}
 }
-
-// Blink ...
-// func (c *Car) Blink() {
-// 	for i := 0; i < 3; i++ {
-// 		c.led.On()
-// 		time.Sleep(1 * time.Second)
-// 		c.led.Off()
-// 		time.Sleep(1 * time.Second)
-// 	}
-// }
