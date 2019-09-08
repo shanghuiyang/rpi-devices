@@ -52,6 +52,7 @@
             });
             $('#forward').bind("touchend", function(e){
                 document.getElementById("forward").style.color = "white";
+                $.post(url,{"op": "brake"},function(data,status){});
             });
             // backward
             $('#backward').bind("touchstart", function(e){
@@ -60,6 +61,7 @@
             });
             $('#backward').bind("touchend", function(e){
                 document.getElementById("backward").style.color = "white";
+                $.post(url,{"op": "brake"},function(data,status){});
             });
             // brake
             $('#brake').bind("touchstart", function(e){
@@ -76,7 +78,7 @@
             });
             $('#left').bind("touchend", function(e){
                 document.getElementById("left").style.color = "white";
-                $.post(url,{"op": "forward"},function(data,status){});
+                // $.post(url,{"op": "forward"},function(data,status){});
             });
             // right
             $('#right').bind("touchstart", function(e){
@@ -85,7 +87,7 @@
             });
             $('#right').bind("touchend", function(e){
                 document.getElementById("right").style.color = "white";
-                $.post(url,{"op": "forward"},function(data,status){});
+                // $.post(url,{"op": "forward"},function(data,status){});
             });
             // honk
             $('#honk').bind("touchstart", function(e){

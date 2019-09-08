@@ -68,9 +68,13 @@ func (c *Car) Forward() error {
 	log.Printf("car: forward")
 	c.engine.In1.High()
 	c.engine.In2.Low()
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(70 * time.Millisecond)
 	c.engine.In3.High()
 	c.engine.In4.Low()
+
+	c.engine.In1.Low()
+	time.Sleep(70 * time.Millisecond)
+	c.engine.In1.High()
 	return nil
 }
 
@@ -79,9 +83,13 @@ func (c *Car) Backward() error {
 	log.Printf("car: backward")
 	c.engine.In1.Low()
 	c.engine.In2.High()
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(70 * time.Millisecond)
 	c.engine.In3.Low()
 	c.engine.In4.High()
+
+	c.engine.In2.Low()
+	time.Sleep(70 * time.Millisecond)
+	c.engine.In2.High()
 	return nil
 }
 
@@ -92,6 +100,8 @@ func (c *Car) Left() error {
 	c.engine.In2.Low()
 	c.engine.In3.High()
 	c.engine.In4.Low()
+	time.Sleep(70 * time.Millisecond)
+	c.Brake()
 	return nil
 }
 
@@ -102,6 +112,8 @@ func (c *Car) Right() error {
 	c.engine.In2.Low()
 	c.engine.In3.Low()
 	c.engine.In4.Low()
+	time.Sleep(70 * time.Millisecond)
+	c.Brake()
 	return nil
 }
 
