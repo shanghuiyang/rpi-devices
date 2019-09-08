@@ -1,7 +1,6 @@
 package devices
 
 import (
-	"errors"
 	"log"
 	"time"
 )
@@ -15,15 +14,25 @@ const (
 	pinBuzzer = 10
 )
 
-var (
-	errNoImplement = errors.New("no implement")
+const (
+	chSize         = 8
+	forward  CarOp = "forward"
+	backward CarOp = "backward"
+	left     CarOp = "left"
+	right    CarOp = "right"
+	brake    CarOp = "brake"
+	honk     CarOp = "honk"
 )
+
+// CarOp ...
+type CarOp string
 
 // Car ...
 type Car struct {
 	engine *L298N
 	horn   *Buzzer
 	led    *Led
+	chOp   chan CarOp
 }
 
 // NewCar ...
@@ -46,25 +55,52 @@ func NewCar() *Car {
 		engine: eng,
 		horn:   buzzer,
 		led:    led,
+		chOp:   make(chan CarOp, chSize),
 	}
 }
 
 // Start ...
 func (c *Car) Start() error {
 	go c.blink()
+	go c.start()
 	return nil
+}
+
+// Do ...
+func (c *Car) Do(op CarOp) {
+	c.chOp <- op
 }
 
 // Stop ...
 func (c *Car) Stop() error {
+	close(c.chOp)
 	c.engine.Close()
-	// c.horn.Close()
-	// c.led.Close()
 	return nil
 }
 
+func (c *Car) start() {
+	for op := range c.chOp {
+		switch op {
+		case forward:
+			c.forward()
+		case backward:
+			c.backward()
+		case left:
+			c.left()
+		case right:
+			c.right()
+		case brake:
+			c.brake()
+		case honk:
+			c.honk()
+		default:
+			c.brake()
+		}
+	}
+}
+
 // Forward ...
-func (c *Car) Forward() error {
+func (c *Car) forward() error {
 	log.Printf("car: forward")
 	c.engine.In1.High()
 	c.engine.In2.Low()
@@ -79,7 +115,7 @@ func (c *Car) Forward() error {
 }
 
 // Backward ...
-func (c *Car) Backward() error {
+func (c *Car) backward() error {
 	log.Printf("car: backward")
 	c.engine.In1.Low()
 	c.engine.In2.High()
@@ -94,31 +130,31 @@ func (c *Car) Backward() error {
 }
 
 // Left ...
-func (c *Car) Left() error {
+func (c *Car) left() error {
 	log.Printf("car: left")
 	c.engine.In1.Low()
 	c.engine.In2.Low()
 	c.engine.In3.High()
 	c.engine.In4.Low()
 	time.Sleep(70 * time.Millisecond)
-	c.Brake()
+	c.brake()
 	return nil
 }
 
 // Right ...
-func (c *Car) Right() error {
+func (c *Car) right() error {
 	log.Printf("car: right")
 	c.engine.In1.High()
 	c.engine.In2.Low()
 	c.engine.In3.Low()
 	c.engine.In4.Low()
 	time.Sleep(70 * time.Millisecond)
-	c.Brake()
+	c.brake()
 	return nil
 }
 
 // Brake ...
-func (c *Car) Brake() error {
+func (c *Car) brake() error {
 	log.Printf("car: brake")
 	c.engine.In1.Low()
 	c.engine.In2.Low()
@@ -128,7 +164,7 @@ func (c *Car) Brake() error {
 }
 
 // Honk ...
-func (c *Car) Honk() error {
+func (c *Car) honk() error {
 	log.Printf("car: honk")
 	go func() {
 		for i := 0; i < 5; i++ {

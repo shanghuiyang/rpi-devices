@@ -61,20 +61,5 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
-	switch op {
-	case "forward":
-		car.Forward()
-	case "backward":
-		car.Backward()
-	case "left":
-		car.Left()
-	case "right":
-		car.Right()
-	case "brake":
-		car.Brake()
-	case "honk":
-		car.Honk()
-	default:
-		log.Printf("invalid operation")
-	}
+	car.Do(devices.CarOp(op))
 }
