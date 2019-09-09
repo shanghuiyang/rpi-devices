@@ -22,6 +22,7 @@ const (
 	right    CarOp = "right"
 	brake    CarOp = "brake"
 	honk     CarOp = "honk"
+	blink    CarOp = "blink"
 )
 
 // CarOp ...
@@ -61,8 +62,8 @@ func NewCar() *Car {
 
 // Start ...
 func (c *Car) Start() error {
-	go c.blink()
 	go c.start()
+	c.chOp <- blink
 	return nil
 }
 
@@ -92,14 +93,16 @@ func (c *Car) start() {
 		case brake:
 			c.brake()
 		case honk:
-			c.honk()
+			go c.honk()
+		case blink:
+			go c.blink()
 		default:
 			c.brake()
 		}
 	}
 }
 
-// Forward ...
+// forward ...
 func (c *Car) forward() error {
 	log.Printf("car: forward")
 	c.engine.In1.High()
@@ -114,7 +117,7 @@ func (c *Car) forward() error {
 	return nil
 }
 
-// Backward ...
+// backward ...
 func (c *Car) backward() error {
 	log.Printf("car: backward")
 	c.engine.In1.Low()
@@ -129,7 +132,7 @@ func (c *Car) backward() error {
 	return nil
 }
 
-// Left ...
+// left ...
 func (c *Car) left() error {
 	log.Printf("car: left")
 	c.engine.In1.Low()
@@ -141,7 +144,7 @@ func (c *Car) left() error {
 	return nil
 }
 
-// Right ...
+// right ...
 func (c *Car) right() error {
 	log.Printf("car: right")
 	c.engine.In1.High()
@@ -153,7 +156,7 @@ func (c *Car) right() error {
 	return nil
 }
 
-// Brake ...
+// brake ...
 func (c *Car) brake() error {
 	log.Printf("car: brake")
 	c.engine.In1.Low()
@@ -163,7 +166,7 @@ func (c *Car) brake() error {
 	return nil
 }
 
-// Honk ...
+// honk ...
 func (c *Car) honk() error {
 	log.Printf("car: honk")
 	go func() {
@@ -175,6 +178,7 @@ func (c *Car) honk() error {
 	return nil
 }
 
+// blink ...
 func (c *Car) blink() {
 	for {
 		c.led.On()
