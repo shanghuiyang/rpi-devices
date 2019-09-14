@@ -112,7 +112,7 @@ func (c *Car) forward() error {
 	c.engine.In4.Low()
 
 	c.engine.In1.Low()
-	time.Sleep(70 * time.Millisecond)
+	time.Sleep(93 * time.Millisecond)
 	c.engine.In1.High()
 	return nil
 }
@@ -127,7 +127,7 @@ func (c *Car) backward() error {
 	c.engine.In4.High()
 
 	c.engine.In2.Low()
-	time.Sleep(70 * time.Millisecond)
+	time.Sleep(80 * time.Millisecond)
 	c.engine.In2.High()
 	return nil
 }

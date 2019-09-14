@@ -8,7 +8,7 @@
     <script src="http://code.jquery.com/jquery.js"></script>
     <style type="text/css">
         #forward {
-            margin-top: 70px;
+            margin-top: 5px;
             margin-left: 120px;
             margin-bottom: 3px;
             padding: 16px 24px;
@@ -18,6 +18,9 @@
             padding: 16px 24px;
         }
         #brake {
+            padding: 16px 24px;
+        }
+        #honk {
             padding: 16px 24px;
         }
         #right {
@@ -34,17 +37,6 @@
         // var url = "http://172.20.10.6:8080"
         // var url = "http://localhost:8080"
         $(function(){
-        //     $("#forward").click(function(){
-        //         $.post(url,{"op": "forward"},function(data,status){});
-        //     });
-        //     $("#backward").click(function(){
-        //         $.post(url,{"op": "backward"},function(data,status){});
-        //     });
-        //     $("#brake").click(function(){
-        //         $.post(url,{"op": "brake"},function(data,status){});
-        //     });
-
-            // -- functions for ios  -- //
             // forward
             $('#forward').bind("touchstart", function(e){
                 document.getElementById("forward").style.color = "yellow";
@@ -78,7 +70,6 @@
             });
             $('#left').bind("touchend", function(e){
                 document.getElementById("left").style.color = "white";
-                // $.post(url,{"op": "forward"},function(data,status){});
             });
             // right
             $('#right').bind("touchstart", function(e){
@@ -87,75 +78,29 @@
             });
             $('#right').bind("touchend", function(e){
                 document.getElementById("right").style.color = "white";
-                // $.post(url,{"op": "forward"},function(data,status){});
             });
             // honk
             $('#honk').bind("touchstart", function(e){
                 $.post(url,{"op": "honk"},function(data,status){});
             });
         });
-
-        // functions for pc
-        // // forward
-        // function mouseDownForward() {
-        //     document.getElementById("forward").style.color = "yellow";
-        //     $.post(url,{"op": "forward"},function(data,status){});
-        // }
-        // function mouseUpForward() {
-        //     document.getElementById("forward").style.color = "white";
-        // }
-        // // backward
-        // function mouseDownBackward() {
-        //     document.getElementById("backward").style.color = "yellow";
-        //     $.post(url,{"op": "backward"},function(data,status){});
-        // }
-        // function mouseUpBackward() {
-        //     document.getElementById("backward").style.color = "white";
-        // }
-        // // brake
-        // function mouseDownBrake() {
-        //     document.getElementById("brake").style.color = "yellow";
-        //     $.post(url,{"op": "brake"},function(data,status){});
-        // }
-        // function mouseUpBrake() {
-        //     document.getElementById("brake").style.color = "white";
-        // }
-        // // left
-        // function mouseDownLeft() {
-        //     document.getElementById("left").style.color = "yellow";
-        //     $.post(url,{"op": "left"},function(data,status){});
-        // }
-        // function mouseUpLeft() {
-        //     document.getElementById("left").style.color = "white";
-        //     $.post(url,{"op": "forward"},function(data,status){});
-        // }
-        // // right
-        // function mouseDownRight() {
-        //     document.getElementById("right").style.color = "yellow";
-        //     $.post(url,{"op": "right"},function(data,status){});
-        // }
-        // function mouseUpRight() {
-        //     document.getElementById("right").style.color = "white";
-        //     $.post(url,{"op": "forward"},function(data,status){});
-        // }
     </script>
 </head>
 <body>
 <div id="container" class="container">
+    <div style="margin: 13px">
+        <img id="video" style="-webkit-user-select: none;margin: auto;" src="http://172.20.10.10:8081/">
+    </div>
     <div>
         <button id="forward" onmousedown="mouseDownForward()" onmouseup="mouseUpForward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:48px"></button>
     </div>
     <div >
         <button id='left' onmousedown="mouseDownLeft()" onmouseup="mouseUpLeft()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:48px"></button>
-        <button id='brake' onmousedown="mouseDownBrake()" onmouseup="mouseUpBrake()" class="btn btn-lg btn-warning glyphicon glyphicon-stop" style="font-size:48px"></button>
+        <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()" class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up" style="font-size:45px; color:gray"></button>
         <button id='right' onmousedown="mouseDownRight()" onmouseup="mouseUpRight()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:48px"></button>
     </div>
     <div>
         <button id='backward' onmousedown="mouseDownBackward()" onmouseup="mouseUpBackward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:48px"></button>
-    </div>
-    <br/><br/><br/><div><br/><br/><br/>
-    <div>
-        <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()" class="btn btn-lg btn-default btn-block glyphicon glyphicon glyphicon-volume-up" style="font-size:48px; color:gray"></button>
     </div>
 </div>
 </body>
