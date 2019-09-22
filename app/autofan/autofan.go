@@ -33,19 +33,19 @@ func main() {
 		return
 	}
 
-	f := &fan{
+	f := &autoFan{
 		temperature: t,
 		relay:       r,
 	}
 	f.start()
 }
 
-type fan struct {
+type autoFan struct {
 	temperature *dev.Temperature
 	relay       *dev.Relay
 }
 
-func (f *fan) start() {
+func (f *autoFan) start() {
 	for {
 		time.Sleep(intervalTime)
 		c, err := f.temperature.GetTemperature()
@@ -54,9 +54,17 @@ func (f *fan) start() {
 			continue
 		}
 		if c >= triggerTemperature {
-			f.relay.On()
+			f.on()
 		} else {
-			f.relay.Off()
+			f.off()
 		}
 	}
+}
+
+func (f *autoFan) on() {
+	f.relay.On()
+}
+
+func (f *autoFan) off() {
+	f.relay.Off()
 }
