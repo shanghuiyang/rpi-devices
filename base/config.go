@@ -43,9 +43,8 @@ type WsnConfig struct {
 
 // OneNetConfig ...
 type OneNetConfig struct {
-	Token   string            `json:"token"`
-	API     string            `json:"api"`
-	Devices map[string]string `json:"devices"`
+	Token string `json:"token"`
+	API   string `json:"api"`
 }
 
 // EmailConfig ...

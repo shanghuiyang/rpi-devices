@@ -1,7 +1,6 @@
 package devices
 
 import (
-	"log"
 	"time"
 
 	"github.com/stianeikeland/go-rpio"
@@ -9,11 +8,6 @@ import (
 
 const (
 	logTagLed = "led"
-)
-
-var (
-	// ChLedOp ...
-	ChLedOp = make(chan Operator)
 )
 
 // Led ...
@@ -24,33 +18,12 @@ type Led struct {
 
 // NewLed ...
 func NewLed(pin uint8) *Led {
-	if err := rpio.Open(); err != nil {
-		return nil
-	}
 	l := &Led{
 		pin:  rpio.Pin(pin),
 		isOn: false,
 	}
 	l.pin.Output()
 	return l
-}
-
-// Start ...
-func (l *Led) Start() {
-	log.Printf("[%v]start working", logTagLed)
-	for {
-		op := <-ChLedOp
-		switch op {
-		case Off:
-			l.Off()
-		case On:
-			l.On()
-		case Blink:
-			l.Blink(5)
-		default:
-			// do nothing
-		}
-	}
 }
 
 // On ...
@@ -79,8 +52,19 @@ func (l *Led) Blink(n uint8) {
 	}
 }
 
-// Close ...
-func (l *Led) Close() {
-	close(ChLedOp)
-	rpio.Close()
+// Fade ...
+func (l *Led) Fade(n uint8) {
+	l.pin.Mode(rpio.Pwm)
+	l.pin.Freq(64000)
+	l.pin.DutyCycle(0, 32)
+	for i := uint8(0); i < n; i++ {
+		for j := uint32(0); j < 32; j++ { // increasing brightness
+			l.pin.DutyCycle(j, 32)
+			time.Sleep(time.Second / 32)
+		}
+		for j := uint32(32); j > 0; j-- { // decreasing brightness
+			l.pin.DutyCycle(j, 32)
+			time.Sleep(time.Second / 32)
+		}
+	}
 }

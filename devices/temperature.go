@@ -3,20 +3,8 @@ package devices
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/shanghuiyang/rpi-devices/base"
-	"github.com/shanghuiyang/rpi-devices/iotclouds"
-)
-
-const (
-	logTagTemperature      = "temperature"
-	lowTemperatureWarning  = 18
-	highTemperatureWarning = 30
-	temperatureInterval    = 1 * time.Minute
 )
 
 var (
@@ -30,41 +18,6 @@ type Temperature struct {
 // NewTemperature ...
 func NewTemperature() *Temperature {
 	return &Temperature{}
-}
-
-// Start ...
-func (t *Temperature) Start() {
-	log.Printf("[%v]start working", logTagTemperature)
-	lastMail := time.Now()
-	for {
-		time.Sleep(temperatureInterval)
-		c, err := t.GetTemperature()
-		if err != nil {
-			log.Printf("[%v]failed to get temperature, error: %v", logTagTemperature, err)
-			continue
-		}
-
-		v := &iotclouds.IoTValue{
-			DeviceName: TemperatureDevice,
-			Value:      c,
-		}
-		iotclouds.IotCloud.Push(v)
-		ChLedOp <- Blink
-
-		if c >= 27.3 {
-			ChRelayOp <- On
-		} else {
-			ChRelayOp <- Off
-		}
-
-		if c <= lowTemperatureWarning || c >= highTemperatureWarning {
-			d := time.Now().Sub(lastMail)
-			if d > 15*time.Minute {
-				go SendEmail(c)
-				lastMail = time.Now()
-			}
-		}
-	}
 }
 
 // GetTemperature ...
@@ -89,20 +42,4 @@ func (t *Temperature) GetTemperature() (float32, error) {
 		return 0, fmt.Errorf("bad data")
 	}
 	return float32(c / 1000), nil
-}
-
-// SendEmail ...
-func SendEmail(temperatue float32) {
-	subject := "Low Temperature Warning"
-	if temperatue >= highTemperatureWarning {
-		subject = "High Temperature Warning"
-	}
-
-	info := &base.EmailInfo{
-		To:      base.GetEmailList(),
-		Subject: subject,
-		Body:    fmt.Sprintf("Current Temperature: %v 'C", temperatue),
-	}
-	base.SendEmail(info)
-	ChLedOp <- Blink
 }

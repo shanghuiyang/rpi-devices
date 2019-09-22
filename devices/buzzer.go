@@ -13,9 +13,6 @@ type Buzzer struct {
 
 // NewBuzzer ...
 func NewBuzzer(pin int8) *Buzzer {
-	if err := rpio.Open(); err != nil {
-		return nil
-	}
 	b := &Buzzer{
 		pin: rpio.Pin(pin),
 	}
@@ -28,9 +25,4 @@ func (b *Buzzer) Whistle() {
 	b.pin.High()
 	time.Sleep(50 * time.Millisecond)
 	b.pin.Low()
-}
-
-// Close ...
-func (b *Buzzer) Close() {
-	rpio.Close()
 }

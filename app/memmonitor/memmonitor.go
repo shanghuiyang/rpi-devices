@@ -1,4 +1,4 @@
-package devices
+package main
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/iotclouds"
 )
 
@@ -15,31 +16,40 @@ const (
 	memoryInterval = 10 * time.Minute
 )
 
-// Memory ...
-type Memory struct {
+func main() {
+	oneNetCfg := &base.OneNetConfig{
+		Token: "your token",
+		API:   "http://api.heclouds.com/devices/540381180/datapoints",
+	}
+	cloud := iotclouds.New(oneNetCfg)
+	if cloud == nil {
+		log.Printf("failed to new OneNet iot cloud")
+		return
+	}
+	monitor := &memMonitor{
+		cloud: cloud,
+	}
+	monitor.start()
 }
 
-// NewMemory ...
-func NewMemory() *Memory {
-	return &Memory{}
+type memMonitor struct {
+	cloud iotclouds.IOTCloud
 }
 
-// Start ...
-func (m *Memory) Start() {
-	log.Printf("[%v]start working", logTagMemory)
+func (m *memMonitor) start() {
+	log.Printf("memory monitor start working")
 	for {
 		time.Sleep(memoryInterval)
-		f, err := m.Free()
+		f, err := m.free()
 		if err != nil {
 			log.Printf("[%v]failed to get free memory, error: %v", logTagMemory, err)
 			continue
 		}
 		v := &iotclouds.IoTValue{
-			DeviceName: MemoryDevice,
+			DeviceName: "memory",
 			Value:      f,
 		}
-		iotclouds.IotCloud.Push(v)
-		ChLedOp <- Blink
+		m.cloud.Push(v)
 	}
 }
 
@@ -50,7 +60,7 @@ func (m *Memory) Start() {
 // Mem:          432          50         258           3         123         328
 // Swap:          99           0          99
 // ---------------------------------------------------------------------------------
-func (m *Memory) Free() (float32, error) {
+func (m *memMonitor) free() (float32, error) {
 	cmd := exec.Command("free", "-m")
 	out, err := cmd.CombinedOutput()
 	if err != nil {

@@ -8,10 +8,8 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	"github.com/shanghuiyang/rpi-devices/iotclouds"
 	"github.com/tarm/serial"
 )
 
@@ -28,8 +26,7 @@ var (
 
 // GPS ...
 type GPS struct {
-	port    *serial.Port
-	tracker *base.Tracker
+	port *serial.Port
 }
 
 // NewGPS ...
@@ -39,37 +36,10 @@ func NewGPS() *GPS {
 	if err != nil {
 		return nil
 	}
-	tr := base.NewTracker()
-	if tr == nil {
-		return nil
-	}
 	g := &GPS{
-		port:    p,
-		tracker: tr,
+		port: p,
 	}
 	return g
-}
-
-// Start ...
-func (g *GPS) Start() {
-	defer g.Close()
-
-	log.Printf("[%v]start working", logTagGPS)
-	for {
-		time.Sleep(5 * time.Second)
-		// pt, err := g.MockLocFromCSV()
-		pt, err := g.Loc()
-		if err != nil {
-			log.Printf("[%v]failed to get gps locations: %v", logTagGPS, err)
-			continue
-		}
-		g.tracker.AddPoint(pt)
-		v := &iotclouds.IoTValue{
-			DeviceName: GPSDevice,
-			Value:      pt,
-		}
-		iotclouds.IotCloud.Push(v)
-	}
 }
 
 // Loc ...
@@ -221,5 +191,4 @@ func (g *GPS) MockLocFromCSV() (*base.Point, error) {
 // Close ...
 func (g *GPS) Close() {
 	g.port.Close()
-	g.tracker.Close()
 }

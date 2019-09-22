@@ -28,36 +28,72 @@ const (
 // CarOp ...
 type CarOp string
 
-// Car ...
-type Car struct {
-	engine *L298N
-	horn   *Buzzer
-	led    *Led
-	chOp   chan CarOp
+// Engine ...
+type Engine interface {
+	Forward()
+	Backward()
+	Left()
+	Right()
+	Stop()
 }
 
-// NewCar ...
-func NewCar() *Car {
-	eng := NewL298N(pinIn1, pinIn2, pinIn3, pinIn4)
-	if eng == nil {
-		return nil
-	}
+// Horn ...
+type Horn interface {
+	Whistle()
+}
 
-	buzzer := NewBuzzer(pinBuzzer)
-	if buzzer == nil {
-		return nil
-	}
+// Light ...
+type Light interface {
+	On()
+	Off()
+}
 
-	led := NewLed(pinLed)
-	if led == nil {
-		return nil
-	}
+// CarBuilder ...
+type CarBuilder struct {
+	engine Engine
+	horn   Horn
+	light  Light
+}
+
+// NewCarBuilder ...
+func NewCarBuilder() *CarBuilder {
+	return &CarBuilder{}
+}
+
+// Engine ...
+func (b *CarBuilder) Engine(eng Engine) *CarBuilder {
+	b.engine = eng
+	return b
+}
+
+// Horn ...
+func (b *CarBuilder) Horn(horn Horn) *CarBuilder {
+	b.horn = horn
+	return b
+}
+
+// Light ...
+func (b *CarBuilder) Light(light Light) *CarBuilder {
+	b.light = light
+	return b
+}
+
+// Build ...
+func (b *CarBuilder) Build() *Car {
 	return &Car{
-		engine: eng,
-		horn:   buzzer,
-		led:    led,
+		engine: b.engine,
+		horn:   b.horn,
+		light:  b.light,
 		chOp:   make(chan CarOp, chSize),
 	}
+}
+
+// Car ...
+type Car struct {
+	engine Engine
+	horn   Horn
+	light  Light
+	chOp   chan CarOp
 }
 
 // Start ...
@@ -75,7 +111,7 @@ func (c *Car) Do(op CarOp) {
 // Stop ...
 func (c *Car) Stop() error {
 	close(c.chOp)
-	c.engine.Close()
+	c.engine.Stop()
 	return nil
 }
 
@@ -103,87 +139,62 @@ func (c *Car) start() {
 }
 
 // forward ...
-func (c *Car) forward() error {
+func (c *Car) forward() {
 	log.Printf("car: forward")
-	c.engine.In1.High()
-	c.engine.In2.Low()
-	time.Sleep(70 * time.Millisecond)
-	c.engine.In3.High()
-	c.engine.In4.Low()
-
-	c.engine.In1.Low()
-	time.Sleep(93 * time.Millisecond)
-	c.engine.In1.High()
-	return nil
+	c.engine.Forward()
 }
 
 // backward ...
-func (c *Car) backward() error {
+func (c *Car) backward() {
 	log.Printf("car: backward")
-	c.engine.In1.Low()
-	c.engine.In2.High()
-	time.Sleep(70 * time.Millisecond)
-	c.engine.In3.Low()
-	c.engine.In4.High()
-
-	c.engine.In2.Low()
-	time.Sleep(80 * time.Millisecond)
-	c.engine.In2.High()
-	return nil
+	c.engine.Backward()
 }
 
 // left ...
-func (c *Car) left() error {
+func (c *Car) left() {
 	log.Printf("car: left")
-	c.engine.In1.Low()
-	c.engine.In2.Low()
-	c.engine.In3.High()
-	c.engine.In4.Low()
+	c.engine.Left()
 	time.Sleep(70 * time.Millisecond)
-	c.brake()
-	return nil
+	c.engine.Stop()
 }
 
 // right ...
-func (c *Car) right() error {
+func (c *Car) right() {
 	log.Printf("car: right")
-	c.engine.In1.High()
-	c.engine.In2.Low()
-	c.engine.In3.Low()
-	c.engine.In4.Low()
+	c.engine.Right()
 	time.Sleep(70 * time.Millisecond)
-	c.brake()
-	return nil
+	c.engine.Stop()
 }
 
 // brake ...
-func (c *Car) brake() error {
+func (c *Car) brake() {
 	log.Printf("car: brake")
-	c.engine.In1.Low()
-	c.engine.In2.Low()
-	c.engine.In3.Low()
-	c.engine.In4.Low()
-	return nil
+	c.engine.Stop()
 }
 
 // honk ...
-func (c *Car) honk() error {
+func (c *Car) honk() {
 	log.Printf("car: honk")
+	if c.horn == nil {
+		return
+	}
 	go func() {
 		for i := 0; i < 5; i++ {
 			c.horn.Whistle()
 			time.Sleep(100 * time.Millisecond)
 		}
 	}()
-	return nil
 }
 
 // blink ...
 func (c *Car) blink() {
+	if c.light == nil {
+		return
+	}
 	for {
-		c.led.On()
+		c.light.On()
 		time.Sleep(1 * time.Second)
-		c.led.Off()
+		c.light.Off()
 		time.Sleep(1 * time.Second)
 	}
 }

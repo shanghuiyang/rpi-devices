@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	dev "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -12,8 +13,13 @@ const (
 )
 
 func main() {
-	led := devices.NewLed(p26)
-	go led.Start()
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
+	led := dev.NewLed(p26)
 
 	var op string
 	for {
@@ -24,11 +30,13 @@ func main() {
 		}
 		switch op {
 		case "on":
-			devices.ChLedOp <- devices.On
+			led.On()
 		case "off":
-			devices.ChLedOp <- devices.Off
+			led.Off()
 		case "blink":
-			devices.ChLedOp <- devices.Blink
+			led.Blink(5)
+		case "fade":
+			led.Fade(3)
 		case "q":
 			log.Printf("done\n")
 			return

@@ -9,13 +9,45 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	dev "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/stianeikeland/go-rpio"
 )
 
-var car *devices.Car
+const (
+	pinLed    = 26
+	pinIn1    = 17
+	pinIn2    = 18
+	pinIn3    = 27
+	pinIn4    = 22
+	pinBuzzer = 10
+)
+
+var car *dev.Car
 
 func main() {
-	car = devices.NewCar()
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
+	l298n := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4)
+	if l298n == nil {
+		log.Fatal("failed to new a L298N")
+		return
+	}
+	buzzer := dev.NewBuzzer(pinBuzzer)
+	if buzzer == nil {
+		log.Printf("failed to new a buzzer, will build a car without horns")
+	}
+
+	led := dev.NewLed(pinLed)
+	if led == nil {
+		log.Printf("failed to new a led, will build a car without lights")
+	}
+
+	builder := dev.NewCarBuilder()
+	car = builder.Engine(l298n).Horn(buzzer).Light(led).Build()
 	if car == nil {
 		log.Fatal("failed to new a car")
 		return
@@ -61,5 +93,5 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
-	car.Do(devices.CarOp(op))
+	car.Do(dev.CarOp(op))
 }

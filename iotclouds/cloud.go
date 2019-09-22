@@ -1,8 +1,6 @@
 package iotclouds
 
 import (
-	"errors"
-
 	"github.com/shanghuiyang/rpi-devices/base"
 )
 
@@ -14,8 +12,7 @@ var (
 
 // IOTCloud is the interface of IOT clound
 type IOTCloud interface {
-	Start()
-	Push(v *IoTValue)
+	Push(v *IoTValue) error
 }
 
 // IoTValue ...
@@ -24,17 +21,18 @@ type IoTValue struct {
 	Value      interface{}
 }
 
-// Init ...
-func Init(config interface{}) {
+// New ...
+func New(config interface{}) IOTCloud {
+	var cloud IOTCloud
 	switch config.(type) {
 	case *base.WsnConfig:
 		cfg := config.(*base.WsnConfig)
-		IotCloud = NewWsnClound(cfg)
+		cloud = NewWsnClound(cfg)
 	case *base.OneNetConfig:
 		cfg := config.(*base.OneNetConfig)
-		IotCloud = NewOneNetClound(cfg)
+		cloud = NewOneNetCloud(cfg)
 	default:
-		panic(errors.New("invaild config"))
+		cloud = nil
 	}
-	go IotCloud.Start()
+	return cloud
 }

@@ -3,8 +3,6 @@ package iotclouds
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -17,9 +15,8 @@ const (
 
 // OneNetCloud is the implement of IOTCloud
 type OneNetCloud struct {
-	token   string
-	api     string
-	devices map[string]string // key: device name; value: device id
+	token string
+	api   string
 }
 
 // OneNetData ...
@@ -38,43 +35,20 @@ type Datapoint struct {
 	Value interface{} `json:"value"`
 }
 
-// NewOneNetClound ...
-func NewOneNetClound(cfg *base.OneNetConfig) *OneNetCloud {
+// NewOneNetCloud ...
+func NewOneNetCloud(cfg *base.OneNetConfig) *OneNetCloud {
 	return &OneNetCloud{
-		token:   cfg.Token,
-		api:     cfg.API,
-		devices: cfg.Devices,
+		token: cfg.Token,
+		api:   cfg.API,
 	}
-}
-
-// Start ...
-func (o *OneNetCloud) Start() {
-	log.Printf("[%v]start working", logTagOneNet)
-	for v := range chIoTCloud {
-		go func(v *IoTValue) {
-			if err := o.upload(v); err != nil {
-				log.Printf("[%v]faied to push data to iot cloud, error: %v", logTagOneNet, err)
-			}
-		}(v)
-	}
-	return
 }
 
 // Push ...
-func (o *OneNetCloud) Push(v *IoTValue) {
-	chIoTCloud <- v
-}
-
-// Upload ...
-func (o *OneNetCloud) upload(v *IoTValue) error {
-	deviceID, ok := o.devices[v.DeviceName]
-	if !ok {
-		return fmt.Errorf(`device "%v" not found`, v.DeviceName)
-	}
+func (o *OneNetCloud) Push(v *IoTValue) error {
 	datapoint := OneNetData{
 		Datastreams: []*Datastream{
 			{
-				ID: deviceID,
+				ID: v.DeviceName,
 				Datapoints: []*Datapoint{
 					{
 						Value: v.Value,

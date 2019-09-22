@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	dev "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -15,8 +16,13 @@ const (
 )
 
 func main() {
-	m := devices.NewStepMotor(p8, p25, p24, p23)
-	go m.Start()
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
+	m := dev.NewStepMotor(p8, p25, p24, p23)
 	log.Printf("step motor is ready for service\n")
 
 	var input int
@@ -29,8 +35,7 @@ func main() {
 		if input == 0 {
 			break
 		}
-		op := devices.Operator(input)
-		devices.ChStepMotorOp <- op
+		m.Roll(input)
 	}
 	log.Printf("step motor stop service\n")
 }

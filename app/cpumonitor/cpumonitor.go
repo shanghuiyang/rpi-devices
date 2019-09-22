@@ -1,4 +1,4 @@
-package devices
+package main
 
 import (
 	"fmt"
@@ -7,41 +7,50 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/iotclouds"
 )
 
 const (
-	logTagCPU   = "cpu"
 	cpuInterval = 5 * time.Minute
 )
 
-// CPU ...
-type CPU struct {
+func main() {
+	oneNetCfg := &base.OneNetConfig{
+		Token: "your token",
+		API:   "http://api.heclouds.com/devices/540381180/datapoints",
+	}
+	cloud := iotclouds.New(oneNetCfg)
+	if cloud == nil {
+		log.Printf("failed to new OneNet iot cloud")
+		return
+	}
+	monitor := &cpuMonitor{
+		cloud: cloud,
+	}
+	monitor.start()
 }
 
-// NewCPU ...
-func NewCPU() *CPU {
-	return &CPU{}
+type cpuMonitor struct {
+	cloud iotclouds.IOTCloud
 }
 
 // Start ...
-func (c *CPU) Start() {
-	log.Printf("[%v]start working", logTagCPU)
+func (c *cpuMonitor) start() {
+	log.Printf("cpu monitor start working")
 	for {
 		time.Sleep(cpuInterval)
-		f, err := c.Idle()
+		f, err := c.idle()
 		if err != nil {
-			log.Printf("[%v]failed to get cpu idle, error: %v", logTagCPU, err)
+			log.Printf("failed to get cpu idle, error: %v", err)
 			continue
 		}
 
 		v := &iotclouds.IoTValue{
-			DeviceName: CPUDevice,
+			DeviceName: "cpu",
 			Value:      f,
 		}
-		iotclouds.IotCloud.Push(v)
-		ChLedOp <- Blink
-
+		go c.cloud.Push(v)
 	}
 }
 
@@ -54,7 +63,7 @@ func (c *CPU) Start() {
 // MiB Mem :    432.7 total,    330.8 free,     34.7 used,     67.2 buff/cache
 // MiB Swap:    100.0 total,    100.0 free,      0.0 used.    347.1 avail Mem
 // ---------------------------------------------------------------------------------
-func (c *CPU) Idle() (float32, error) {
+func (c *cpuMonitor) idle() (float32, error) {
 	cmd := exec.Command("top", "-b", "-n", "3", "-d", "3")
 	out, err := cmd.CombinedOutput()
 	if err != nil {

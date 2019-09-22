@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	dev "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -12,9 +13,13 @@ const (
 )
 
 func main() {
-	r := devices.NewRelay(p7)
-	go r.Start()
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
 
+	r := dev.NewRelay(p7)
 	var op string
 	for {
 		fmt.Printf(">>op: ")
@@ -24,9 +29,9 @@ func main() {
 		}
 		switch op {
 		case "on":
-			devices.ChRelayOp <- devices.On
+			r.On()
 		case "off":
-			devices.ChRelayOp <- devices.Off
+			r.Off()
 		case "q":
 			log.Printf("done\n")
 			return

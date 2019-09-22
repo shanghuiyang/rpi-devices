@@ -1,18 +1,7 @@
 package devices
 
 import (
-	"log"
-
 	"github.com/stianeikeland/go-rpio"
-)
-
-const (
-	logTagRelay = "relay"
-)
-
-var (
-	// ChRelayOp ...
-	ChRelayOp = make(chan Operator)
 )
 
 // Relay ...
@@ -23,33 +12,12 @@ type Relay struct {
 
 // NewRelay ...
 func NewRelay(pin uint8) *Relay {
-	if err := rpio.Open(); err != nil {
-		return nil
-	}
 	r := &Relay{
 		pin:  rpio.Pin(pin),
 		isOn: false,
 	}
 	r.pin.Output()
 	return r
-}
-
-// Start ...
-func (r *Relay) Start() {
-	defer r.Close()
-
-	log.Printf("[%v]start working", logTagRelay)
-	for {
-		op := <-ChRelayOp
-		switch op {
-		case Off:
-			r.Off()
-		case On:
-			r.On()
-		default:
-			// do nothing
-		}
-	}
 }
 
 // On ...
@@ -66,9 +34,4 @@ func (r *Relay) Off() {
 		r.pin.Low()
 		r.isOn = false
 	}
-}
-
-// Close ...
-func (r *Relay) Close() {
-	rpio.Close()
 }
