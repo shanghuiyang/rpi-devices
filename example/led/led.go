@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	p26 = 26 // led
+	p12 = 12 // led
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	led := dev.NewLed(p26)
+	led := dev.NewLed(p12)
 
 	var op string
 	for {

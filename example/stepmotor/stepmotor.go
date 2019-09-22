@@ -25,17 +25,17 @@ func main() {
 	m := dev.NewStepMotor(p8, p25, p24, p23)
 	log.Printf("step motor is ready for service\n")
 
-	var input int
+	var angle float32
 	for {
 		fmt.Printf(">>op: ")
-		if n, err := fmt.Scanf("%d", &input); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
+		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
+			log.Printf("invalid angle, error: %v", err)
 			continue
 		}
-		if input == 0 {
+		if angle == 0 {
 			break
 		}
-		m.Roll(input)
+		m.Roll(angle)
 	}
 	log.Printf("step motor stop service\n")
 }

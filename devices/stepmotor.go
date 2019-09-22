@@ -30,8 +30,8 @@ var (
 
 // StepMotor ...
 type StepMotor struct {
-	pins [4]rpio.Pin
-	chOp chan Operator
+	pins     [4]rpio.Pin
+	chAngles chan float32
 }
 
 // NewStepMotor ...
@@ -43,7 +43,7 @@ func NewStepMotor(in1, in2, in3, in4 uint8) *StepMotor {
 			rpio.Pin(in3),
 			rpio.Pin(in4),
 		},
-		chOp: make(chan Operator, 8),
+		chAngles: make(chan float32, 8),
 	}
 	for i := 0; i < 4; i++ {
 		s.pins[i].Output()
@@ -56,13 +56,12 @@ func NewStepMotor(in1, in2, in3, in4 uint8) *StepMotor {
 // Start ...
 func (s *StepMotor) start() {
 	log.Printf("[%v]start working", logTagStepMotor)
-	for op := range s.chOp {
-		angle := int(op)
+	for angle := range s.chAngles {
 		s.roll(angle)
 	}
 }
 
-func (s *StepMotor) roll(angle int) {
+func (s *StepMotor) roll(angle float32) {
 	var matrix [4][4]uint8
 	if angle > 0 {
 		matrix = clockwise
@@ -70,7 +69,7 @@ func (s *StepMotor) roll(angle int) {
 		matrix = anticlockwise
 		angle = angle * (-1)
 	}
-	n := int(float32(angle) / angleEachStep / 8.0)
+	n := int(angle / angleEachStep / 8.0)
 	for i := 0; i < n; i++ {
 		for j := 0; j < 4; j++ {
 			for k := 0; k < 4; k++ {
@@ -86,8 +85,8 @@ func (s *StepMotor) roll(angle int) {
 }
 
 // Roll ...
-func (s *StepMotor) Roll(angle int) {
-	s.chOp <- Operator(angle)
+func (s *StepMotor) Roll(angle float32) {
+	s.chAngles <- angle
 }
 
 // Stop ...

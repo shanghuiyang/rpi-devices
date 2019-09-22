@@ -15,8 +15,8 @@ func main() {
 		log.Printf("failed to new a gps device")
 		return
 	}
-	tr := base.NewTracker()
-	if tr == nil {
+	logger := dev.NewGPSLogger()
+	if logger == nil {
 		log.Printf("failed to new a tracker")
 		return
 	}
@@ -30,9 +30,9 @@ func main() {
 		return
 	}
 	t := &gpsTracker{
-		gps:     gps,
-		tracker: tr,
-		cloud:   cloud,
+		gps:    gps,
+		logger: logger,
+		cloud:  cloud,
 	}
 	defer t.close()
 
@@ -40,9 +40,9 @@ func main() {
 }
 
 type gpsTracker struct {
-	gps     *dev.GPS
-	tracker *base.Tracker
-	cloud   iotclouds.IOTCloud
+	gps    *dev.GPS
+	logger *dev.GPSLogger
+	cloud  iotclouds.IOTCloud
 }
 
 func (t *gpsTracker) start() {
@@ -55,7 +55,7 @@ func (t *gpsTracker) start() {
 			log.Printf("failed to get gps locations: %v", err)
 			continue
 		}
-		t.tracker.AddPoint(pt)
+		t.logger.AddPoint(pt)
 		v := &iotclouds.IoTValue{
 			DeviceName: "gps",
 			Value:      pt,
@@ -66,5 +66,5 @@ func (t *gpsTracker) start() {
 
 func (t *gpsTracker) close() {
 	t.gps.Close()
-	t.tracker.Close()
+	t.logger.Close()
 }

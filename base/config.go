@@ -36,9 +36,8 @@ type StepMotorConfig struct {
 
 // WsnConfig ...
 type WsnConfig struct {
-	Token   string            `json:"token"`
-	API     string            `json:"api"`
-	Devices map[string]string `json:"devices"`
+	Token string `json:"token"`
+	API   string `json:"api"`
 }
 
 // OneNetConfig ...
