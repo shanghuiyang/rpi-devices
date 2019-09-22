@@ -5,6 +5,7 @@ import (
 	"time"
 
 	dev "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -14,6 +15,12 @@ const (
 )
 
 func main() {
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
 	t := dev.NewTemperature()
 	if t == nil {
 		log.Printf("failed to new a temperature device")

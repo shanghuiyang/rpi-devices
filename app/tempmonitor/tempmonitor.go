@@ -9,6 +9,7 @@ import (
 	"github.com/shanghuiyang/rpi-devices/base"
 	dev "github.com/shanghuiyang/rpi-devices/devices"
 	"github.com/shanghuiyang/rpi-devices/iotclouds"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -19,6 +20,12 @@ const (
 )
 
 func main() {
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
 	t := dev.NewTemperature()
 	if t == nil {
 		log.Printf("failed to new temperature device")
@@ -40,13 +47,13 @@ func main() {
 		return
 	}
 
-	tmonitor := tempMonitor{
+	monitor := tempMonitor{
 		temp:  t,
 		cloud: cloud,
 		led:   led,
 	}
 
-	tmonitor.start()
+	monitor.start()
 }
 
 type tempMonitor struct {
