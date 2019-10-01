@@ -6,15 +6,6 @@ import (
 )
 
 const (
-	pinLed    = 26
-	pinIn1    = 17
-	pinIn2    = 18
-	pinIn3    = 27
-	pinIn4    = 22
-	pinBuzzer = 10
-)
-
-const (
 	chSize         = 8
 	forward  CarOp = "forward"
 	backward CarOp = "backward"

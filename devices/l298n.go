@@ -12,15 +12,19 @@ type L298N struct {
 	in2 rpio.Pin
 	in3 rpio.Pin
 	in4 rpio.Pin
+	ena rpio.Pin
+	enb rpio.Pin
 }
 
 // NewL298N ...
-func NewL298N(in1, in2, in3, in4 uint8) *L298N {
+func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l := &L298N{
 		in1: rpio.Pin(in1),
 		in2: rpio.Pin(in2),
 		in3: rpio.Pin(in3),
 		in4: rpio.Pin(in4),
+		ena: rpio.Pin(ena),
+		enb: rpio.Pin(enb),
 	}
 	l.in1.Output()
 	l.in2.Output()
@@ -30,6 +34,14 @@ func NewL298N(in1, in2, in3, in4 uint8) *L298N {
 	l.in2.Low()
 	l.in3.Low()
 	l.in4.Low()
+	l.ena.Pwm()
+	l.enb.Pwm()
+	l.speed(90)
+	// l.ena.Output()
+	// l.enb.Output()
+	// l.ena.High()
+	// l.enb.High()
+
 	return l
 }
 
@@ -42,7 +54,7 @@ func (l *L298N) Forward() {
 	l.in4.Low()
 
 	l.in1.Low()
-	time.Sleep(93 * time.Millisecond)
+	time.Sleep(80 * time.Millisecond)
 	l.in1.High()
 }
 
@@ -65,6 +77,7 @@ func (l *L298N) Left() {
 	l.in2.Low()
 	l.in3.High()
 	l.in4.Low()
+	time.Sleep(100 * time.Millisecond)
 }
 
 // Right ...
@@ -73,6 +86,7 @@ func (l *L298N) Right() {
 	l.in2.Low()
 	l.in3.Low()
 	l.in4.Low()
+	time.Sleep(100 * time.Millisecond)
 }
 
 // Stop ...
@@ -81,4 +95,11 @@ func (l *L298N) Stop() {
 	l.in2.Low()
 	l.in3.Low()
 	l.in4.Low()
+}
+
+func (l *L298N) speed(n uint32) {
+	l.ena.Freq(6400)
+	l.enb.Freq(6400)
+	l.ena.DutyCycle(n, 100)
+	l.enb.DutyCycle(n, 100)
 }

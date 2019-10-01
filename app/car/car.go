@@ -16,9 +16,11 @@ import (
 const (
 	pinLed    = 26
 	pinIn1    = 17
-	pinIn2    = 18
+	pinIn2    = 23
 	pinIn3    = 27
 	pinIn4    = 22
+	pinENA    = 12
+	pinENB    = 13
 	pinBuzzer = 10
 )
 
@@ -31,7 +33,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	l298n := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4)
+	l298n := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if l298n == nil {
 		log.Fatal("failed to new a L298N")
 		return

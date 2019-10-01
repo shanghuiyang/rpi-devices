@@ -23,7 +23,7 @@ if res != 0:
 print('\033[1;32m[success]\033[0m') # highlight in green
 
 print("deploying {}...".format(bin))
-res = os.system('scp {} pi@172.20.10.13:/home/pi'.format(bin))
+res = os.system('scp {} pi@192.168.31.235:/home/pi'.format(bin))
 if res == 0:
     print('\033[1;32m[success]\033[0m') # highlight in green
     exit(0)

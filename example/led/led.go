@@ -37,8 +37,10 @@ func main() {
 			led.Blink(5)
 		case "fade":
 			led.Fade(3)
+		case "test":
+			led.Test()
 		case "q":
-			log.Printf("done\n")
+			log.Printf("quit\n")
 			return
 		default:
 			fmt.Printf("invalid operator, should be: on, off, blink or q\n")
