@@ -36,12 +36,7 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l.in4.Low()
 	l.ena.Pwm()
 	l.enb.Pwm()
-	l.speed(90)
-	// l.ena.Output()
-	// l.enb.Output()
-	// l.ena.High()
-	// l.enb.High()
-
+	l.speed(40)
 	return l
 }
 
@@ -77,7 +72,7 @@ func (l *L298N) Left() {
 	l.in2.Low()
 	l.in3.High()
 	l.in4.Low()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(60 * time.Millisecond)
 }
 
 // Right ...
@@ -86,7 +81,7 @@ func (l *L298N) Right() {
 	l.in2.Low()
 	l.in3.Low()
 	l.in4.Low()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(60 * time.Millisecond)
 }
 
 // Stop ...
@@ -98,8 +93,8 @@ func (l *L298N) Stop() {
 }
 
 func (l *L298N) speed(n uint32) {
-	l.ena.Freq(6400)
-	l.enb.Freq(6400)
+	l.ena.Freq(64000)
+	l.enb.Freq(64000)
 	l.ena.DutyCycle(n, 100)
 	l.enb.DutyCycle(n, 100)
 }
