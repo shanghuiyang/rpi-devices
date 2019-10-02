@@ -37,8 +37,6 @@ func main() {
 			led.Blink(5)
 		case "fade":
 			led.Fade(3)
-		case "test":
-			led.Test()
 		case "q":
 			log.Printf("quit\n")
 			return

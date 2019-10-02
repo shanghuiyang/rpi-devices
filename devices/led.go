@@ -2,7 +2,6 @@ package devices
 
 import (
 	"time"
-	"fmt"
 
 	"github.com/stianeikeland/go-rpio"
 )
@@ -68,30 +67,6 @@ func (l *Led) Fade(n uint8) {
 			time.Sleep(time.Second / 32)
 		}
 	}
-	l.pin.Output()
-	l.pin.Low()
-}
-
-func (l *Led) Test() {
-	l.pin.Pwm()
-	l.pin.Freq(64000)
-
-	fmt.Printf("25%%\n")
-	l.pin.DutyCycle(25, 100)
-	time.Sleep(5*time.Second)
-
-	fmt.Printf("50%%\n")
-	l.pin.DutyCycle(50, 100)
-	time.Sleep(5*time.Second)
-
-	fmt.Printf("75%%\n")
-	l.pin.DutyCycle(75, 100)
-	time.Sleep(5*time.Second)
-
-	fmt.Printf("100%%\n")
-	l.pin.DutyCycle(100, 100)
-	time.Sleep(5*time.Second)
-
 	l.pin.Output()
 	l.pin.Low()
 }
