@@ -27,9 +27,6 @@ func main() {
 			log.Printf("invalid angle, error: %v", err)
 			continue
 		}
-		if angle < 0 {
-			break
-		}
 		sg.Roll(angle)
 	}
 	log.Printf("quit")
