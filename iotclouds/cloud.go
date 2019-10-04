@@ -5,8 +5,6 @@ import (
 )
 
 var (
-	// IotCloud ...
-	IotCloud   IOTCloud
 	chIoTCloud = make(chan *IoTValue, 32)
 )
 
