@@ -14,14 +14,15 @@ import (
 )
 
 const (
-	pinLed    = 26
-	pinIn1    = 17
-	pinIn2    = 23
-	pinIn3    = 27
-	pinIn4    = 22
-	pinENA    = 12
-	pinENB    = 13
-	pinBuzzer = 10
+	pinLed      = 26
+	pinIn1      = 17
+	pinIn2      = 23
+	pinIn3      = 27
+	pinIn4      = 22
+	pinENA      = 12
+	pinENB      = 13
+	pinBuzzer   = 10
+	pinSteering = 18
 )
 
 var car *dev.Car
@@ -48,8 +49,13 @@ func main() {
 		log.Printf("failed to new a led, will build a car without lights")
 	}
 
+	sg := dev.NewSG90(pinSteering)
+	if sg == nil {
+		log.Printf("failed to new a sg90, will build a car without steering")
+	}
+
 	builder := dev.NewCarBuilder()
-	car = builder.Engine(l298n).Horn(buzzer).Light(led).Build()
+	car = builder.Engine(l298n).Horn(buzzer).Light(led).Steering(sg).Build()
 	if car == nil {
 		log.Fatal("failed to new a car")
 		return

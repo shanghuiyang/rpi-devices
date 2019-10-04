@@ -7,11 +7,18 @@
     <link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <script src="http://code.jquery.com/jquery.js"></script>
     <style type="text/css">
+        #camleft {
+            margin-left: 20px;
+            padding: 16px 26px;
+        }
         #forward {
             margin-top: 5px;
-            margin-left: 120px;
+            /* margin-left: 20px; */
             margin-bottom: 3px;
             padding: 16px 24px;
+        }
+        #camright {
+            padding: 16px 26px;
         }
         #left {
             margin-left: 20px;
@@ -82,6 +89,14 @@
             $('#honk').bind("touchstart", function(e){
                 $.post(url,{"op": "honk"},function(data,status){});
             });
+            // camleft
+            $('#camleft').bind("touchstart", function(e){
+                $.post(url,{"op": "steeringleft"},function(data,status){});
+            });
+            // camright
+            $('#camright').bind("touchstart", function(e){
+                $.post(url,{"op": "steeringright"},function(data,status){});
+            });
         });
 
         // functions for pc
@@ -142,11 +157,13 @@
         <!-- <img id="video" height="240" width="320" src="http://172.20.10.13:8081/"> -->
     </div>
     <div>
+        <button id='camleft' onmousedown="mouseDownCamLeft()" onmouseup="mouseUpCamLeft()" class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left" style="font-size:45px; color:lightgray"></button>
         <button id="forward" onmousedown="mouseDownForward()" onmouseup="mouseUpForward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:48px"></button>
+        <button id='camright' onmousedown="mouseDownCamRight()" onmouseup="mouseUpCamRight()" class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right" style="font-size:45px; color:lightgray"></button>
     </div>
     <div >
         <button id='left' onmousedown="mouseDownLeft()" onmouseup="mouseUpLeft()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:48px"></button>
-        <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()" class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up" style="font-size:45px; color:gray"></button>
+        <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()" class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up" style="font-size:48px; color:lightgray"></button>
         <button id='right' onmousedown="mouseDownRight()" onmouseup="mouseUpRight()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:48px"></button>
     </div>
     <div>

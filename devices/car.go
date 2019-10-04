@@ -6,14 +6,16 @@ import (
 )
 
 const (
-	chSize         = 8
-	forward  CarOp = "forward"
-	backward CarOp = "backward"
-	left     CarOp = "left"
-	right    CarOp = "right"
-	brake    CarOp = "brake"
-	honk     CarOp = "honk"
-	blink    CarOp = "blink"
+	chSize              = 8
+	forward       CarOp = "forward"
+	backward      CarOp = "backward"
+	left          CarOp = "left"
+	right         CarOp = "right"
+	brake         CarOp = "brake"
+	honk          CarOp = "honk"
+	blink         CarOp = "blink"
+	steeringleft  CarOp = "steeringleft"
+	steeringright CarOp = "steeringright"
 )
 
 // CarOp ...
@@ -39,11 +41,17 @@ type Light interface {
 	Off()
 }
 
+// Steering ...
+type Steering interface {
+	Roll(angle int)
+}
+
 // CarBuilder ...
 type CarBuilder struct {
-	engine Engine
-	horn   Horn
-	light  Light
+	engine   Engine
+	steering Steering
+	horn     Horn
+	light    Light
 }
 
 // NewCarBuilder ...
@@ -69,27 +77,37 @@ func (b *CarBuilder) Light(light Light) *CarBuilder {
 	return b
 }
 
+// Steering ...
+func (b *CarBuilder) Steering(steering Steering) *CarBuilder {
+	b.steering = steering
+	return b
+}
+
 // Build ...
 func (b *CarBuilder) Build() *Car {
 	return &Car{
-		engine: b.engine,
-		horn:   b.horn,
-		light:  b.light,
-		chOp:   make(chan CarOp, chSize),
+		engine:   b.engine,
+		horn:     b.horn,
+		light:    b.light,
+		steering: b.steering,
+		chOp:     make(chan CarOp, chSize),
 	}
 }
 
 // Car ...
 type Car struct {
-	engine Engine
-	horn   Horn
-	light  Light
-	chOp   chan CarOp
+	engine        Engine
+	horn          Horn
+	light         Light
+	steering      Steering
+	steeringAngle int
+	chOp          chan CarOp
 }
 
 // Start ...
 func (c *Car) Start() error {
 	go c.start()
+	go c.steering.Roll(0)
 	c.chOp <- blink
 	return nil
 }
@@ -123,6 +141,10 @@ func (c *Car) start() {
 			go c.honk()
 		case blink:
 			go c.blink()
+		case steeringleft:
+			go c.steeringLeft()
+		case steeringright:
+			go c.steeringRight()
 		default:
 			c.brake()
 		}
@@ -188,4 +210,24 @@ func (c *Car) blink() {
 		c.light.Off()
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func (c *Car) steeringLeft() {
+	angle := c.steeringAngle - 15
+	if angle < -90 {
+		angle = -90
+	}
+	c.steeringAngle = angle
+	log.Printf("car: steering %v", angle)
+	c.steering.Roll(angle)
+}
+
+func (c *Car) steeringRight() {
+	angle := c.steeringAngle + 15
+	if angle > 90 {
+		angle = 90
+	}
+	c.steeringAngle = angle
+	log.Printf("car: steering %v", angle)
+	c.steering.Roll(angle)
 }
