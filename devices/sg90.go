@@ -1,6 +1,8 @@
 package devices
 
 import (
+	"time"
+
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -16,7 +18,7 @@ func NewSG90(pin uint8) *SG90 {
 	}
 	s.pin.Pwm()
 	s.pin.Freq(50)
-	s.Roll(0)
+	s.pin.DutyCycle(0, 100)
 	return s
 }
 
@@ -40,4 +42,6 @@ func (s *SG90) Roll(angle int) {
 	}
 	duty := uint32(10.0 - float32(angle)/15.0)
 	s.pin.DutyCycle(duty, 100)
+	time.Sleep(300 * time.Millisecond)
+	s.pin.DutyCycle(0, 100)
 }
