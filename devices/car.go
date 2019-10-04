@@ -16,6 +16,7 @@ const (
 	blink         CarOp = "blink"
 	steeringleft  CarOp = "steeringleft"
 	steeringright CarOp = "steeringright"
+	steeringreset CarOp = "steeringreset"
 )
 
 // CarOp ...
@@ -145,6 +146,8 @@ func (c *Car) start() {
 			go c.steeringLeft()
 		case steeringright:
 			go c.steeringRight()
+		case steeringreset:
+			go c.steeringReset()
 		default:
 			c.brake()
 		}
@@ -230,4 +233,10 @@ func (c *Car) steeringRight() {
 	c.steeringAngle = angle
 	log.Printf("car: steering %v", angle)
 	c.steering.Roll(angle)
+}
+
+func (c *Car) steeringReset() {
+	c.steeringAngle = 0
+	log.Printf("car: steering %v", 0)
+	c.steering.Roll(0)
 }
