@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,32 +13,39 @@
             margin-left: 40px;
             padding: 10px 26px;
         }
+
         #camreset {
             padding: 10px 26px;
         }
+
         #camright {
             padding: 10px 26px;
         }
+
         #forward {
             margin-top: 5px;
             margin-left: 130px;
             margin-bottom: 3px;
             padding: 16px 24px;
         }
-       
+
         #left {
             margin-left: 45px;
             padding: 16px 24px;
         }
+
         #brake {
             padding: 16px 24px;
         }
+
         #honk {
             padding: 16px 24px;
         }
+
         #right {
             padding: 16px 24px;
         }
+
         #backward {
             margin-top: 3px;
             margin-left: 130px;
@@ -47,79 +55,79 @@
     <script>
         var url = "http://192.168.31.235:8080"
         // var url = "http://172.20.10.13:8080"
-        $(function(){
+        $(function () {
             // forward
-            $('#forward').bind("touchstart", function(e){
+            $('#forward').bind("touchstart", function (e) {
                 document.getElementById("forward").style.color = "yellow";
-                $.post(url,{"op": "forward"},function(data,status){});
+                $.post(url, { "op": "forward" }, function (data, status) { });
             });
-            $('#forward').bind("touchend", function(e){
+            $('#forward').bind("touchend", function (e) {
                 document.getElementById("forward").style.color = "white";
-                $.post(url,{"op": "brake"},function(data,status){});
+                $.post(url, { "op": "brake" }, function (data, status) { });
             });
             // backward
-            $('#backward').bind("touchstart", function(e){
+            $('#backward').bind("touchstart", function (e) {
                 document.getElementById("backward").style.color = "yellow";
-                $.post(url,{"op": "backward"},function(data,status){});
+                $.post(url, { "op": "backward" }, function (data, status) { });
             });
-            $('#backward').bind("touchend", function(e){
+            $('#backward').bind("touchend", function (e) {
                 document.getElementById("backward").style.color = "white";
-                $.post(url,{"op": "brake"},function(data,status){});
+                $.post(url, { "op": "brake" }, function (data, status) { });
             });
             // brake
-            $('#brake').bind("touchstart", function(e){
+            $('#brake').bind("touchstart", function (e) {
                 document.getElementById("brake").style.color = "yellow";
-                $.post(url,{"op": "brake"},function(data,status){});
+                $.post(url, { "op": "brake" }, function (data, status) { });
             });
-            $('#brake').bind("touchend", function(e){
+            $('#brake').bind("touchend", function (e) {
                 document.getElementById("brake").style.color = "white";
             });
             // left
-            $('#left').bind("touchstart", function(e){
+            $('#left').bind("touchstart", function (e) {
                 document.getElementById("left").style.color = "yellow";
-                $.post(url,{"op": "left"},function(data,status){});
+                $.post(url, { "op": "left" }, function (data, status) { });
             });
-            $('#left').bind("touchend", function(e){
+            $('#left').bind("touchend", function (e) {
                 document.getElementById("left").style.color = "white";
             });
             // right
-            $('#right').bind("touchstart", function(e){
+            $('#right').bind("touchstart", function (e) {
                 document.getElementById("right").style.color = "yellow";
-                $.post(url,{"op": "right"},function(data,status){});
+                $.post(url, { "op": "right" }, function (data, status) { });
             });
-            $('#right').bind("touchend", function(e){
+            $('#right').bind("touchend", function (e) {
                 document.getElementById("right").style.color = "white";
             });
             // honk
-            $('#honk').bind("touchstart", function(e){
-                $.post(url,{"op": "honk"},function(data,status){});
+            $('#honk').bind("touchstart", function (e) {
+                $.post(url, { "op": "honk" }, function (data, status) { });
                 document.getElementById("honk").style.color = "yellow";
             });
-            $('#honk').bind("touchend", function(e){
+            $('#honk').bind("touchend", function (e) {
                 document.getElementById("honk").style.color = "lightgray";
             });
             // camleft
-            $('#camleft').bind("touchstart", function(e){
-                $.post(url,{"op": "steeringleft"},function(data,status){});
+            $('#camleft').bind("touchstart", function (e) {
+                $.post(url, { "op": "steeringleft" }, function (data, status) { });
                 document.getElementById("camleft").style.color = "yellow";
             });
-            $('#camleft').bind("touchend", function(e){
+            $('#camleft').bind("touchend", function (e) {
                 document.getElementById("camleft").style.color = "lightgray";
             });
             // camreset
-            $('#camreset').bind("touchstart", function(e){
-                $.post(url,{"op": "steeringreset"},function(data,status){});
+            $('#camreset').bind("touchstart", function (e) {
+                $.post(url, { "op": "steeringreset" }, function (data, status) { });
                 document.getElementById("camreset").style.color = "yellow";
             });
-            $('#camreset').bind("touchend", function(e){
+            $('#camreset').bind("touchend", function (e) {
                 document.getElementById("camreset").style.color = "lightgray";
             });
             // camright
-            $('#camright').bind("touchstart", function(e){
-                $.post(url,{"op": "steeringright"},function(data,status){});
+            $('#camright').bind("touchstart", function (e) {
+                $.post(url, { "op": "steeringright" }, function (data, status) { });
                 document.getElementById("camright").style.color = "yellow";
             });
-            $('#camright').bind("touchend", function(e){
+            $('#camright').bind("touchend", function (e) {
                 document.getElementById("camright").style.color = "lightgray";
             });
         });
@@ -175,32 +183,47 @@
         // }
     </script>
 </head>
+
 <body>
-<div id="container" class="container">
-    <div style="margin: 13px">
-        <img id="video" height="240" width="320" src="http://192.168.31.235:8081/">
-        <!-- <img id="video" height="240" width="320" src="http://172.20.10.13:8081/"> -->
+    <div id="container" class="container">
+        <div style="margin: 13px">
+            <img id="video" height="240" width="320" src="http://192.168.31.235:8081/">
+            <!-- <img id="video" height="240" width="320" src="http://172.20.10.13:8081/"> -->
+        </div>
+        <div>
+            <button id='camleft' onmousedown="mouseDownCamLeft()" onmouseup="mouseUpCamLeft()"
+                class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
+                style="font-size:32px; color:lightgray"></button>
+            <button id='camreset' onmousedown="mouseDownCamReset()" onmouseup="mouseUpCamReset()"
+                class="btn btn-lg glyphicon glyphicon glyphicon-camera"
+                style="font-size:32px; color:lightgray"></button>
+            <button id='camright' onmousedown="mouseDownCamRight()" onmouseup="mouseUpCamRight()"
+                class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right"
+                style="font-size:32px; color:lightgray"></button>
+        </div>
+        <div>
+            <button id="forward" onmousedown="mouseDownForward()" onmouseup="mouseUpForward()"
+                class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:32px"></button>
+        </div>
+        <div>
+            <button id='left' onmousedown="mouseDownLeft()" onmouseup="mouseUpLeft()"
+                class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:32px"></button>
+            <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()"
+                class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up"
+                style="font-size:32px; color:lightgray"></button>
+            <button id='right' onmousedown="mouseDownRight()" onmouseup="mouseUpRight()"
+                class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:32px"></button>
+        </div>
+        <div>
+            <button id='backward' onmousedown="mouseDownBackward()" onmouseup="mouseUpBackward()"
+                class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:32px"></button>
+        </div>
+        <br /><br /><br />
+        <div>
+            <button id='brake' onmousedown="mouseDownBrake()" onmouseup="mouseUpBrake()"
+                class="btn btn-lg btn-warning btn-block glyphicon glyphicon-stop" style="font-size:32px"></button>
+        </div>
     </div>
-    <div>
-        <button id='camleft' onmousedown="mouseDownCamLeft()" onmouseup="mouseUpCamLeft()" class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left" style="font-size:32px; color:lightgray"></button>
-        <button id='camreset' onmousedown="mouseDownCamReset()" onmouseup="mouseUpCamReset()" class="btn btn-lg glyphicon glyphicon glyphicon-camera" style="font-size:32px; color:lightgray"></button>
-        <button id='camright' onmousedown="mouseDownCamRight()" onmouseup="mouseUpCamRight()" class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right" style="font-size:32px; color:lightgray"></button>
-    </div>
-    <div>
-        <button id="forward" onmousedown="mouseDownForward()" onmouseup="mouseUpForward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up" style="font-size:32px"></button>
-    </div>
-    <div >
-        <button id='left' onmousedown="mouseDownLeft()" onmouseup="mouseUpLeft()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left" style="font-size:32px"></button>
-        <button id='honk' onmousedown="mouseDownHonk()" onmouseup="mouseUpHonk()" class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up" style="font-size:32px; color:lightgray"></button>
-        <button id='right' onmousedown="mouseDownRight()" onmouseup="mouseUpRight()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:32px"></button>
-    </div>
-    <div>
-        <button id='backward' onmousedown="mouseDownBackward()" onmouseup="mouseUpBackward()" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:32px"></button>
-    </div>
-    <br/><br/><br/>
-    <div>
-        <button id='brake' onmousedown="mouseDownBrake()" onmouseup="mouseUpBrake()" class="btn btn-lg btn-warning btn-block glyphicon glyphicon-stop" style="font-size:32px"></button>
-    </div>
-</div>
 </body>
+
 </html>

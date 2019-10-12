@@ -36,7 +36,7 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l.in4.Low()
 	l.ena.Pwm()
 	l.enb.Pwm()
-	l.speed(40)
+	l.speed(30)
 	return l
 }
 
@@ -44,12 +44,12 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 func (l *L298N) Forward() {
 	l.in1.High()
 	l.in2.Low()
-	time.Sleep(70 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	l.in3.High()
 	l.in4.Low()
 
 	l.in1.Low()
-	time.Sleep(80 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	l.in1.High()
 }
 
@@ -57,12 +57,12 @@ func (l *L298N) Forward() {
 func (l *L298N) Backward() {
 	l.in1.Low()
 	l.in2.High()
-	time.Sleep(70 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	l.in3.Low()
 	l.in4.High()
 
 	l.in2.Low()
-	time.Sleep(80 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	l.in2.High()
 }
 
@@ -72,7 +72,6 @@ func (l *L298N) Left() {
 	l.in2.Low()
 	l.in3.High()
 	l.in4.Low()
-	time.Sleep(60 * time.Millisecond)
 }
 
 // Right ...
@@ -81,7 +80,6 @@ func (l *L298N) Right() {
 	l.in2.Low()
 	l.in3.Low()
 	l.in4.Low()
-	time.Sleep(60 * time.Millisecond)
 }
 
 // Stop ...

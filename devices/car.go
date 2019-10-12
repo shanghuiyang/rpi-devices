@@ -170,7 +170,7 @@ func (c *Car) backward() {
 func (c *Car) left() {
 	log.Printf("car: left")
 	c.engine.Left()
-	time.Sleep(70 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	c.engine.Stop()
 }
 
@@ -178,7 +178,7 @@ func (c *Car) left() {
 func (c *Car) right() {
 	log.Printf("car: right")
 	c.engine.Right()
-	time.Sleep(70 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	c.engine.Stop()
 }
 

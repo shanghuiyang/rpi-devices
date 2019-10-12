@@ -19,8 +19,8 @@ const (
 	pinIn2      = 23
 	pinIn3      = 27
 	pinIn4      = 22
-	pinENA      = 12
-	pinENB      = 13
+	pinENA      = 13
+	pinENB      = 19
 	pinBuzzer   = 10
 	pinSteering = 18
 )
