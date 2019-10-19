@@ -6,24 +6,25 @@ import (
 )
 
 const (
-	chSize              = 8
-	forward       CarOp = "forward"
-	backward      CarOp = "backward"
-	left          CarOp = "left"
-	right         CarOp = "right"
-	brake         CarOp = "brake"
-	honk          CarOp = "honk"
-	blink         CarOp = "blink"
-	steeringleft  CarOp = "steeringleft"
-	steeringright CarOp = "steeringright"
-	steeringreset CarOp = "steeringreset"
+	chSize         = 8
+	forward  CarOp = "forward"
+	backward CarOp = "backward"
+	left     CarOp = "left"
+	right    CarOp = "right"
+	brake    CarOp = "brake"
+	honk     CarOp = "honk"
+	blink    CarOp = "blink"
+	camleft  CarOp = "camleft"
+	camright CarOp = "camright"
+	camahead CarOp = "camahead"
+	light    CarOp = "light"
 )
 
 // CarOp ...
 type CarOp string
 
-// Engine ...
-type Engine interface {
+// IEngine ...
+type IEngine interface {
 	Forward()
 	Backward()
 	Left()
@@ -31,28 +32,35 @@ type Engine interface {
 	Stop()
 }
 
-// Horn ...
-type Horn interface {
+// IHorn ...
+type IHorn interface {
 	Whistle()
 }
 
-// Light ...
-type Light interface {
-	On()
-	Off()
+// ILed ...
+type ILed interface {
+	Blink()
 }
 
-// Steering ...
-type Steering interface {
-	Roll(angle int)
+// ILight ...
+type ILight interface {
+	On()
+	Off()
+	IsOn() bool
+}
+
+// ICamera ...
+type ICamera interface {
+	Turn(angle int)
 }
 
 // CarBuilder ...
 type CarBuilder struct {
-	engine   Engine
-	steering Steering
-	horn     Horn
-	light    Light
+	engine IEngine
+	camera ICamera
+	horn   IHorn
+	led    ILed
+	light  ILight
 }
 
 // NewCarBuilder ...
@@ -61,55 +69,63 @@ func NewCarBuilder() *CarBuilder {
 }
 
 // Engine ...
-func (b *CarBuilder) Engine(eng Engine) *CarBuilder {
+func (b *CarBuilder) Engine(eng IEngine) *CarBuilder {
 	b.engine = eng
 	return b
 }
 
 // Horn ...
-func (b *CarBuilder) Horn(horn Horn) *CarBuilder {
+func (b *CarBuilder) Horn(horn IHorn) *CarBuilder {
 	b.horn = horn
 	return b
 }
 
+// Led ...
+func (b *CarBuilder) Led(led ILed) *CarBuilder {
+	b.led = led
+	return b
+}
+
 // Light ...
-func (b *CarBuilder) Light(light Light) *CarBuilder {
+func (b *CarBuilder) Light(light ILight) *CarBuilder {
 	b.light = light
 	return b
 }
 
-// Steering ...
-func (b *CarBuilder) Steering(steering Steering) *CarBuilder {
-	b.steering = steering
+// Camera ...
+func (b *CarBuilder) Camera(camera ICamera) *CarBuilder {
+	b.camera = camera
 	return b
 }
 
 // Build ...
 func (b *CarBuilder) Build() *Car {
 	return &Car{
-		engine:   b.engine,
-		horn:     b.horn,
-		light:    b.light,
-		steering: b.steering,
-		chOp:     make(chan CarOp, chSize),
+		engine: b.engine,
+		horn:   b.horn,
+		led:    b.led,
+		light:  b.light,
+		camera: b.camera,
+		chOp:   make(chan CarOp, chSize),
 	}
 }
 
 // Car ...
 type Car struct {
-	engine        Engine
-	horn          Horn
-	light         Light
-	steering      Steering
-	steeringAngle int
-	chOp          chan CarOp
+	engine      IEngine
+	horn        IHorn
+	led         ILed
+	light       ILight
+	camera      ICamera
+	cameraAngle int
+	chOp        chan CarOp
 }
 
 // Start ...
 func (c *Car) Start() error {
 	go c.start()
-	go c.steering.Roll(0)
-	c.chOp <- blink
+	go c.camera.Turn(0)
+	go c.led.Blink()
 	return nil
 }
 
@@ -140,14 +156,14 @@ func (c *Car) start() {
 			c.brake()
 		case honk:
 			go c.honk()
-		case blink:
-			go c.blink()
-		case steeringleft:
-			go c.steeringLeft()
-		case steeringright:
-			go c.steeringRight()
-		case steeringreset:
-			go c.steeringReset()
+		case camleft:
+			go c.camLeft()
+		case camright:
+			go c.camRight()
+		case camahead:
+			go c.camAhead()
+		case light:
+			go c.lightOnOrOff()
 		default:
 			c.brake()
 		}
@@ -202,41 +218,36 @@ func (c *Car) honk() {
 	}()
 }
 
-// blink ...
-func (c *Car) blink() {
-	if c.light == nil {
-		return
-	}
-	for {
-		c.light.On()
-		time.Sleep(1 * time.Second)
-		c.light.Off()
-		time.Sleep(1 * time.Second)
-	}
-}
-
-func (c *Car) steeringLeft() {
-	angle := c.steeringAngle - 15
+func (c *Car) camLeft() {
+	angle := c.cameraAngle - 15
 	if angle < -90 {
 		angle = -90
 	}
-	c.steeringAngle = angle
-	log.Printf("car: steering %v", angle)
-	c.steering.Roll(angle)
+	c.cameraAngle = angle
+	log.Printf("camera %v", angle)
+	c.camera.Turn(angle)
 }
 
-func (c *Car) steeringRight() {
-	angle := c.steeringAngle + 15
+func (c *Car) camRight() {
+	angle := c.cameraAngle + 15
 	if angle > 90 {
 		angle = 90
 	}
-	c.steeringAngle = angle
-	log.Printf("car: steering %v", angle)
-	c.steering.Roll(angle)
+	c.cameraAngle = angle
+	log.Printf("camera %v", angle)
+	c.camera.Turn(angle)
 }
 
-func (c *Car) steeringReset() {
-	c.steeringAngle = 0
-	log.Printf("car: steering %v", 0)
-	c.steering.Roll(0)
+func (c *Car) camAhead() {
+	c.cameraAngle = 0
+	log.Printf("camera %v", 0)
+	c.camera.Turn(0)
+}
+
+func (c *Car) lightOnOrOff() {
+	if c.light.IsOn() {
+		c.light.Off()
+	} else {
+		c.light.On()
+	}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	p12 = 12 // led
+	p12 = 16 // led
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 		case "off":
 			led.Off()
 		case "blink":
-			led.Blink(5)
+			led.BlinkN(5, 100)
 		case "fade":
 			led.Fade(3)
 		case "q":

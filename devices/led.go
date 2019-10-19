@@ -43,12 +43,22 @@ func (l *Led) Off() {
 }
 
 // Blink ...
-func (l *Led) Blink(n uint8) {
-	for i := uint8(0); i < n; i++ {
+func (l *Led) Blink() {
+	for {
 		l.On()
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		l.Off()
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// BlinkN is let led blink n time, interval Millisecond each time
+func (l *Led) BlinkN(n int, interval int) {
+	for i := 0; i < n; i++ {
+		l.On()
+		time.Sleep(time.Duration(interval) * time.Millisecond)
+		l.Off()
+		time.Sleep(time.Duration(interval) * time.Millisecond)
 	}
 }
 
@@ -69,4 +79,9 @@ func (l *Led) Fade(n uint8) {
 	}
 	l.pin.Output()
 	l.pin.Low()
+}
+
+// IsOn ...
+func (l *Led) IsOn() bool {
+	return l.isOn
 }

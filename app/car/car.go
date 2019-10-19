@@ -14,15 +14,16 @@ import (
 )
 
 const (
-	pinLed      = 26
-	pinIn1      = 17
-	pinIn2      = 23
-	pinIn3      = 27
-	pinIn4      = 22
-	pinENA      = 13
-	pinENB      = 19
-	pinBuzzer   = 10
-	pinSteering = 18
+	pinLed   = 26
+	pinLight = 16
+	pinIn1   = 17
+	pinIn2   = 23
+	pinIn3   = 27
+	pinIn4   = 22
+	pinENA   = 13
+	pinENB   = 19
+	pinBzr   = 10
+	pinSG    = 18
 )
 
 var car *dev.Car
@@ -39,23 +40,32 @@ func main() {
 		log.Fatal("failed to new a L298N")
 		return
 	}
-	buzzer := dev.NewBuzzer(pinBuzzer)
+	buzzer := dev.NewBuzzer(pinBzr)
 	if buzzer == nil {
 		log.Printf("failed to new a buzzer, will build a car without horns")
 	}
 
 	led := dev.NewLed(pinLed)
 	if led == nil {
-		log.Printf("failed to new a led, will build a car without lights")
+		log.Printf("failed to new a led, will build a car without sign lights")
 	}
 
-	sg := dev.NewSG90(pinSteering)
+	light := dev.NewLed(pinLight)
+	if light == nil {
+		log.Printf("failed to new a light, will build a car without lights")
+	}
+
+	sg := dev.NewSG90(pinSG)
 	if sg == nil {
-		log.Printf("failed to new a sg90, will build a car without steering")
+		log.Printf("failed to new a sg90, will build a camera without steering")
+	}
+	cam := dev.NewCamera(sg)
+	if cam == nil {
+		log.Printf("failed to new a sg90, will build a car without camera")
 	}
 
 	builder := dev.NewCarBuilder()
-	car = builder.Engine(l298n).Horn(buzzer).Light(led).Steering(sg).Build()
+	car = builder.Engine(l298n).Horn(buzzer).Led(led).Light(light).Camera(cam).Build()
 	if car == nil {
 		log.Fatal("failed to new a car")
 		return

@@ -46,9 +46,13 @@
             padding: 16px 24px;
         }
 
-        #backward {
+        #light {
             margin-top: 3px;
-            margin-left: 130px;
+            margin-left: 40px;
+            padding: 10px 26px;
+        }
+
+        #backward {
             padding: 16px 24px;
         }
     </style>
@@ -129,6 +133,14 @@
             });
             $('#camright').bind("touchend", function (e) {
                 document.getElementById("camright").style.color = "lightgray";
+            });
+            // light
+            $('#light').bind("touchstart", function (e) {
+                $.post(url, { "op": "lighton" }, function (data, status) { });
+                document.getElementById("lighton").style.color = "yellow";
+            });
+            $('#light').bind("touchend", function (e) {
+                document.getElementById("lighton").style.color = "lightgray";
             });
         });
 
@@ -215,6 +227,8 @@
                 class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right" style="font-size:32px"></button>
         </div>
         <div>
+            <button id='light' onmousedown="mouseDownLight()" onmouseup="mouseUpLight()"
+                class="btn btn-lg glyphicon glyphicon glyphicon-flash" style="font-size:32px; color:lightgray"></button>
             <button id='backward' onmousedown="mouseDownBackward()" onmouseup="mouseUpBackward()"
                 class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down" style="font-size:32px"></button>
         </div>
