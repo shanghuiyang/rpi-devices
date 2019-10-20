@@ -1,4 +1,4 @@
-package gpstracker
+package main
 
 import (
 	"log"

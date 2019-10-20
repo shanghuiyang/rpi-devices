@@ -6,22 +6,22 @@
 *.dylib
 *.mac
 *.pi
-main
-autofan
-car
-cpumonitor
-gpstracker
-heartbeat
-memmonitor
-tempmonitor
-gps
-led
-relay
-stepmotor
-temperature
+/main
+/autofan
+/car
+/cpumonitor
+/gpstracker
+/heartbeat
+/memmonitor
+/tempmonitor
+/gps
+/led
+/relay
+/stepmotor
+/temperature
 
 # Test binary, build with `go test -c`
-*.test
+# *.test
 /tmp
 
 # Output of the go coverage tool, specifically when used with LiteIDE
