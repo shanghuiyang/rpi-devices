@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	pinLed   = 26
+	pinLed   = 4
 	pinLight = 16
 	pinIn1   = 17
 	pinIn2   = 23
