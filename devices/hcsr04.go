@@ -8,7 +8,6 @@ import (
 
 const (
 	timeout = 3600
-	repeat  = 1
 )
 
 // HCSR04 ...
@@ -29,13 +28,12 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 	return h
 }
 
-// Dist is measure the distance in cm
+// Dist is to measure the distance in cm
 func (h *HCSR04) Dist() float64 {
 	h.trig.Low()
-	h.delay(200)
+	h.delay(100)
 	h.trig.High()
 	h.delay(15)
-	h.echo.Low()
 
 	for n := 0; n < timeout && h.echo.Read() != rpio.High; n++ {
 		h.delay(1)
@@ -45,8 +43,7 @@ func (h *HCSR04) Dist() float64 {
 	for n := 0; n < timeout && h.echo.Read() != rpio.Low; n++ {
 		h.delay(1)
 	}
-	end := time.Now()
-	return end.Sub(start).Seconds() * 34300.0 / 2.0
+	return time.Now().Sub(start).Seconds() * 34300.0 / 2.0
 }
 
 // delay is to dalay us microsecond
