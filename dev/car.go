@@ -208,7 +208,7 @@ func (c *Car) camLeft() {
 		angle = -90
 	}
 	c.camAngle = angle
-	log.Printf("camera %v", angle)
+	log.Printf("camera: %v", angle)
 	c.camera.Turn(angle)
 }
 
@@ -218,7 +218,7 @@ func (c *Car) camRight() {
 		angle = 90
 	}
 	c.camAngle = angle
-	log.Printf("camera %v", angle)
+	log.Printf("camera: %v", angle)
 	if c.camera == nil {
 		return
 	}
@@ -227,7 +227,7 @@ func (c *Car) camRight() {
 
 func (c *Car) camAhead() {
 	c.camAngle = 0
-	log.Printf("camera %v", 0)
+	log.Printf("camera: %v", 0)
 	if c.camera == nil {
 		return
 	}
