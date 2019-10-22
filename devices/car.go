@@ -256,7 +256,7 @@ func (c *Car) autoDriveOn() {
 			c.chOp <- backward
 			c.delay(500)
 		case d < 30:
-			for i := 0; i < 20; i++ {
+			for i := 0; i < 13; i++ {
 				c.chOp <- left
 				c.delay(500)
 			}
