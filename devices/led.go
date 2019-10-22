@@ -12,15 +12,13 @@ const (
 
 // Led ...
 type Led struct {
-	pin  rpio.Pin
-	isOn bool
+	pin rpio.Pin
 }
 
 // NewLed ...
 func NewLed(pin uint8) *Led {
 	l := &Led{
-		pin:  rpio.Pin(pin),
-		isOn: false,
+		pin: rpio.Pin(pin),
 	}
 	l.pin.Output()
 	return l
@@ -28,18 +26,12 @@ func NewLed(pin uint8) *Led {
 
 // On ...
 func (l *Led) On() {
-	if !l.isOn {
-		l.pin.High()
-		l.isOn = true
-	}
+	l.pin.High()
 }
 
 // Off ...
 func (l *Led) Off() {
-	if l.isOn {
-		l.pin.Low()
-		l.isOn = false
-	}
+	l.pin.Low()
 }
 
 // Blink ...
@@ -79,9 +71,4 @@ func (l *Led) Fade(n uint8) {
 	}
 	l.pin.Output()
 	l.pin.Low()
-}
-
-// IsOn ...
-func (l *Led) IsOn() bool {
-	return l.isOn
 }

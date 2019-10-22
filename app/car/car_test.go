@@ -8,8 +8,6 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	builder := dev.NewCarBuilder()
-	assert.NotNil(t, builder)
-	car = builder.Build()
+	car := dev.NewCar()
 	assert.NotNil(t, car)
 }

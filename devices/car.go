@@ -24,121 +24,79 @@ const (
 	autodriveoff CarOp = "autodriveoff"
 )
 
-// CarOp ...
-type CarOp string
+type (
+	// CarOp ...
+	CarOp string
+	// Option ...
+	Option func(c *Car)
+)
 
-// IEngine ...
-type IEngine interface {
-	Forward()
-	Backward()
-	Left()
-	Right()
-	Stop()
+// WithEngine ...
+func WithEngine(engine *L298N) Option {
+	return func(c *Car) {
+		c.engine = engine
+	}
 }
 
-// IHorn ...
-type IHorn interface {
-	Whistle()
+// WithDist ...
+func WithDist(dist *HCSR04) Option {
+	return func(c *Car) {
+		c.dist = dist
+	}
 }
 
-// ILed ...
-type ILed interface {
-	Blink()
+// WithHorn ...
+func WithHorn(horn *Buzzer) Option {
+	return func(c *Car) {
+		c.horn = horn
+	}
 }
 
-// ILight ...
-type ILight interface {
-	On()
-	Off()
+// WithLed ...
+func WithLed(led *Led) Option {
+	return func(c *Car) {
+		c.led = led
+	}
 }
 
-// ICamera ...
-type ICamera interface {
-	Turn(angle int)
+// WithLight ...
+func WithLight(light *Led) Option {
+	return func(c *Car) {
+		c.light = light
+	}
 }
 
-// IDistance ...
-type IDistance interface {
-	Dist() float64
-}
-
-// CarBuilder ...
-type CarBuilder struct {
-	engine IEngine
-	dist   IDistance
-	camera ICamera
-	horn   IHorn
-	led    ILed
-	light  ILight
-}
-
-// NewCarBuilder ...
-func NewCarBuilder() *CarBuilder {
-	return &CarBuilder{}
-}
-
-// Engine ...
-func (b *CarBuilder) Engine(eng IEngine) *CarBuilder {
-	b.engine = eng
-	return b
-}
-
-// Distance ...
-func (b *CarBuilder) Distance(dist IDistance) *CarBuilder {
-	b.dist = dist
-	return b
-}
-
-// Horn ...
-func (b *CarBuilder) Horn(horn IHorn) *CarBuilder {
-	b.horn = horn
-	return b
-}
-
-// Led ...
-func (b *CarBuilder) Led(led ILed) *CarBuilder {
-	b.led = led
-	return b
-}
-
-// Light ...
-func (b *CarBuilder) Light(light ILight) *CarBuilder {
-	b.light = light
-	return b
-}
-
-// Camera ...
-func (b *CarBuilder) Camera(camera ICamera) *CarBuilder {
-	b.camera = camera
-	return b
-}
-
-// Build ...
-func (b *CarBuilder) Build() *Car {
-	return &Car{
-		engine:      b.engine,
-		dist:        b.dist,
-		horn:        b.horn,
-		led:         b.led,
-		light:       b.light,
-		camera:      b.camera,
-		cameraAngle: 0,
-		autodrive:   false,
-		chOp:        make(chan CarOp, chSize),
+// WithCamera ...
+func WithCamera(cam *Camera) Option {
+	return func(c *Car) {
+		c.camera = cam
 	}
 }
 
 // Car ...
 type Car struct {
-	engine      IEngine
-	dist        IDistance
-	horn        IHorn
-	led         ILed
-	light       ILight
-	camera      ICamera
-	cameraAngle int
-	autodrive   bool
-	chOp        chan CarOp
+	engine    *L298N
+	dist      *HCSR04
+	horn      *Buzzer
+	led       *Led
+	light     *Led
+	camera    *Camera
+	camAngle  int
+	autodrive bool
+	chOp      chan CarOp
+}
+
+// NewCar ...
+func NewCar(opts ...Option) *Car {
+	car := &Car{
+		camAngle:  0,
+		autodrive: false,
+		chOp:      make(chan CarOp, chSize),
+	}
+	for _, opt := range opts {
+		opt(car)
+	}
+	return car
 }
 
 // Start ...
@@ -245,21 +203,21 @@ func (c *Car) honk() {
 }
 
 func (c *Car) camLeft() {
-	angle := c.cameraAngle - 15
+	angle := c.camAngle - 15
 	if angle < -90 {
 		angle = -90
 	}
-	c.cameraAngle = angle
+	c.camAngle = angle
 	log.Printf("camera %v", angle)
 	c.camera.Turn(angle)
 }
 
 func (c *Car) camRight() {
-	angle := c.cameraAngle + 15
+	angle := c.camAngle + 15
 	if angle > 90 {
 		angle = 90
 	}
-	c.cameraAngle = angle
+	c.camAngle = angle
 	log.Printf("camera %v", angle)
 	if c.camera == nil {
 		return
@@ -268,7 +226,7 @@ func (c *Car) camRight() {
 }
 
 func (c *Car) camAhead() {
-	c.cameraAngle = 0
+	c.camAngle = 0
 	log.Printf("camera %v", 0)
 	if c.camera == nil {
 		return
@@ -280,8 +238,11 @@ func (c *Car) autoDriveOn() {
 	if c.dist == nil {
 		return
 	}
-	// make a warning before into auto-drive mode
-	for i := 0; i < 5 && c.horn != nil; i++ {
+	c.dist.Dist()
+
+	// make a warning before running into auto-drive mode
+	for i := 0; i <= 5 && c.horn != nil; i++ {
+		log.Printf("auto drive: %v", 5-i)
 		c.horn.Whistle()
 		c.delay(1000)
 	}
@@ -289,21 +250,32 @@ func (c *Car) autoDriveOn() {
 	c.autodrive = true
 	for c.autodrive {
 		d := c.dist.Dist()
+		log.Printf("dist: %.0f cm", d)
 		switch {
-		case d > 100:
-			c.chOp <- forward
-			c.delay(2000)
-		case d > 50:
-			c.chOp <- forward
-			c.delay(1000)
-		case d > 20:
-			c.chOp <- forward
+		case d < 10:
+			c.chOp <- backward
 			c.delay(500)
+		case d < 30:
+			for i := 0; i < 20; i++ {
+				c.chOp <- left
+				c.delay(500)
+			}
 		default:
-			c.chOp <- left
-			c.delay(100)
+			t := 500
+			if d > 200 {
+				t = 2500
+			} else if d > 100 {
+				t = 2000
+			} else if d > 60 {
+				t = 1000
+			}
+			c.chOp <- forward
+			c.delay(t)
 		}
+		c.chOp <- stop
+		c.delay(1000)
 	}
+	c.chOp <- stop
 }
 
 func (c *Car) autoDriveOff() {

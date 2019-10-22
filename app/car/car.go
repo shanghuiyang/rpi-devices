@@ -39,7 +39,7 @@ func main() {
 
 	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
-		log.Fatal("failed to new a L298N")
+		log.Fatal("failed to new a L298N as engine, a car can't without any engine")
 		return
 	}
 
@@ -48,8 +48,8 @@ func main() {
 		log.Printf("failed to new a HCSR04, will build a car without ultrasonic sensor")
 	}
 
-	buzzer := dev.NewBuzzer(pinBzr)
-	if buzzer == nil {
+	horn := dev.NewBuzzer(pinBzr)
+	if horn == nil {
 		log.Printf("failed to new a buzzer, will build a car without horns")
 	}
 
@@ -72,8 +72,14 @@ func main() {
 		log.Printf("failed to new a camera, will build a car without cameras")
 	}
 
-	builder := dev.NewCarBuilder()
-	car = builder.Engine(eng).Distance(dist).Horn(buzzer).Led(led).Light(light).Camera(cam).Build()
+	car = dev.NewCar(
+		dev.WithEngine(eng),
+		dev.WithDist(dist),
+		dev.WithHorn(horn),
+		dev.WithLed(led),
+		dev.WithLight(light),
+		dev.WithCamera(cam),
+	)
 	if car == nil {
 		log.Fatal("failed to new a car")
 		return
