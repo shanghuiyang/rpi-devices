@@ -1,4 +1,4 @@
-![](images/go-devices.png)
+![](img/go-devices.png)
 
 # rpi-devices 
 [![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
@@ -8,7 +8,7 @@ rpi-devices let you drive the devices using a raspberry pi in golang, and push y
 The following devices had been implemented in the current version, and a device interface was designed to let you add new devices easily.
 
 
-  ![](images/led.jpg)   ![](images/temp.jpg)   ![](images/relay.jpg)   ![](images/step-motor.png)   ![](images/gps.jpg)
+  ![](img/led.jpg)   ![](img/temp.jpg)   ![](img/relay.jpg)   ![](img/step-motor.png)   ![](img/gps.jpg)
 
          LED        Temperature        Relay        Step-Motor         GPS
 
@@ -19,12 +19,12 @@ The data from devices can be pushed to an IoT cloud platform for visualizing. rp
     
     visualize the temperature
 	
-	<img src="images/temp-vis.png" width=70% height=70% />
+	<img src="img/temp-vis.png" width=70% height=70% />
 * [OneNET](https://open.iot.10086.cn/)
 
     visualize the gps locations
 
-	<img src="images/gps.gif" width=30% height=30% />
+	<img src="img/gps.gif" width=30% height=30% />
 
 ## Usage
 
