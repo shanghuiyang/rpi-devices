@@ -20,8 +20,8 @@ func NewBuzzer(pin int8) *Buzzer {
 	return b
 }
 
-// Whistle ...
-func (b *Buzzer) Whistle() {
+// Sound ...
+func (b *Buzzer) Sound() {
 	b.pin.High()
 	time.Sleep(50 * time.Millisecond)
 	b.pin.Low()

@@ -196,7 +196,7 @@ func (c *Car) honk() {
 	}
 	go func() {
 		for i := 0; i < 5; i++ {
-			c.horn.Whistle()
+			c.horn.Sound()
 			c.delay(100)
 		}
 	}()
@@ -243,7 +243,7 @@ func (c *Car) autoDriveOn() {
 	// make a warning before running into auto-drive mode
 	for i := 0; i <= 5 && c.horn != nil; i++ {
 		log.Printf("auto drive: %v", 5-i)
-		c.horn.Whistle()
+		c.horn.Sound()
 		c.delay(1000)
 	}
 	// start auto-drive
