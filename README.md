@@ -82,15 +82,21 @@ import (
 	"log"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
-	p26 = 26
+	p12 = 16 // led
 )
 
 func main() {
-	led := dev.NewLed(p26)
-	go led.Start()
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
+	led := dev.NewLed(p12)
 
 	var op string
 	for {
@@ -101,13 +107,15 @@ func main() {
 		}
 		switch op {
 		case "on":
-			dev.ChLedOp <- dev.On
+			led.On()
 		case "off":
-			dev.ChLedOp <- dev.Off
+			led.Off()
 		case "blink":
-			dev.ChLedOp <- dev.Blink
+			led.BlinkN(5, 100)
+		case "fade":
+			led.Fade(3)
 		case "q":
-			log.Printf("done\n")
+			log.Printf("quit\n")
 			return
 		default:
 			fmt.Printf("invalid operator, should be: on, off, blink or q\n")
@@ -146,16 +154,21 @@ import (
 	"log"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
-	p7 = 7
+	p7 = 7 // relay
 )
 
 func main() {
-	r := dev.NewRelay(p7)
-	go r.Start()
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
 
+	r := dev.NewRelay(p7)
 	var op string
 	for {
 		fmt.Printf(">>op: ")
@@ -165,9 +178,9 @@ func main() {
 		}
 		switch op {
 		case "on":
-			dev.ChRelayOp <- dev.On
+			r.On()
 		case "off":
-			dev.ChRelayOp <- dev.Off
+			r.Off()
 		case "q":
 			log.Printf("done\n")
 			return
@@ -187,6 +200,7 @@ import (
 	"log"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -197,22 +211,26 @@ const (
 )
 
 func main() {
+	if err := rpio.Open(); err != nil {
+		log.Fatalf("failed to open rpio, error: %v", err)
+		return
+	}
+	defer rpio.Close()
+
 	m := dev.NewStepMotor(p8, p25, p24, p23)
-	go m.Start()
 	log.Printf("step motor is ready for service\n")
 
-	var input int
+	var angle float32
 	for {
 		fmt.Printf(">>op: ")
-		if n, err := fmt.Scanf("%d", &input); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
+		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
+			log.Printf("invalid angle, error: %v", err)
 			continue
 		}
-		if input == 0 {
+		if angle == 0 {
 			break
 		}
-		op := dev.Operator(input)
-		dev.ChStepMotorOp <- op
+		m.Roll(angle)
 	}
 	log.Printf("step motor stop service\n")
 }
@@ -237,5 +255,34 @@ func main() {
 	}
 	log.Printf("%v", pt)
 	g.Close()
+}
+```
+
+### Distance
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/stianeikeland/go-rpio"
+)
+
+const (
+	pinTrig = 21
+	pinEcho = 26
+)
+
+func main() {
+
+	if err := rpio.Open(); err != nil {
+		return
+	}
+	h := dev.NewHCSR04(pinTrig, pinEcho)
+	d := h.Dist()
+	fmt.Printf("d: %v\n", d)
+
+	rpio.Close()
 }
 ```
