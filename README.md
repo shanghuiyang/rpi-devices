@@ -81,7 +81,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 const (
@@ -89,7 +89,7 @@ const (
 )
 
 func main() {
-	led := devices.NewLed(p26)
+	led := dev.NewLed(p26)
 	go led.Start()
 
 	var op string
@@ -101,11 +101,11 @@ func main() {
 		}
 		switch op {
 		case "on":
-			devices.ChLedOp <- devices.On
+			dev.ChLedOp <- dev.On
 		case "off":
-			devices.ChLedOp <- devices.Off
+			dev.ChLedOp <- dev.Off
 		case "blink":
-			devices.ChLedOp <- devices.Blink
+			dev.ChLedOp <- dev.Blink
 		case "q":
 			log.Printf("done\n")
 			return
@@ -123,11 +123,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 func main() {
-	t := devices.NewTemperature()
+	t := dev.NewTemperature()
 	c, err := t.GetTemperature()
 	if err != nil {
 		fmt.Printf("failed to get temperature, error: %v", err)
@@ -145,7 +145,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 const (
@@ -153,7 +153,7 @@ const (
 )
 
 func main() {
-	r := devices.NewRelay(p7)
+	r := dev.NewRelay(p7)
 	go r.Start()
 
 	var op string
@@ -165,9 +165,9 @@ func main() {
 		}
 		switch op {
 		case "on":
-			devices.ChRelayOp <- devices.On
+			dev.ChRelayOp <- dev.On
 		case "off":
-			devices.ChRelayOp <- devices.Off
+			dev.ChRelayOp <- dev.Off
 		case "q":
 			log.Printf("done\n")
 			return
@@ -186,7 +186,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 const (
@@ -197,7 +197,7 @@ const (
 )
 
 func main() {
-	m := devices.NewStepMotor(p8, p25, p24, p23)
+	m := dev.NewStepMotor(p8, p25, p24, p23)
 	go m.Start()
 	log.Printf("step motor is ready for service\n")
 
@@ -211,8 +211,8 @@ func main() {
 		if input == 0 {
 			break
 		}
-		op := devices.Operator(input)
-		devices.ChStepMotorOp <- op
+		op := dev.Operator(input)
+		dev.ChStepMotorOp <- op
 	}
 	log.Printf("step motor stop service\n")
 }
@@ -225,11 +225,11 @@ package main
 import (
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 func main() {
-	g := devices.NewGPS()
+	g := dev.NewGPS()
 	pt, err := g.Loc()
 	if err != nil {
 		log.Printf("failed, error: %v", err)

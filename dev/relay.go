@@ -1,4 +1,4 @@
-package devices
+package dev
 
 import (
 	"github.com/stianeikeland/go-rpio"

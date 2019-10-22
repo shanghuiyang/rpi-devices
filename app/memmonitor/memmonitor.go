@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	"github.com/shanghuiyang/rpi-devices/iotclouds"
+	"github.com/shanghuiyang/rpi-devices/iot"
 )
 
 const (
@@ -21,7 +21,7 @@ func main() {
 		Token: "your token",
 		API:   "http://api.heclouds.com/devices/540381180/datapoints",
 	}
-	cloud := iotclouds.New(oneNetCfg)
+	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
 		log.Printf("failed to new OneNet iot cloud")
 		return
@@ -33,7 +33,7 @@ func main() {
 }
 
 type memMonitor struct {
-	cloud iotclouds.IOTCloud
+	cloud iot.Cloud
 }
 
 func (m *memMonitor) start() {
@@ -45,7 +45,7 @@ func (m *memMonitor) start() {
 			log.Printf("[%v]failed to get free memory, error: %v", logTagMemory, err)
 			continue
 		}
-		v := &iotclouds.IoTValue{
+		v := &iot.Value{
 			DeviceName: "memory",
 			Value:      f,
 		}

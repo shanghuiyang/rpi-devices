@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	dev "github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
 

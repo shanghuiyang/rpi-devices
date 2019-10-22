@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	dev "github.com/shanghuiyang/rpi-devices/devices"
-	"github.com/shanghuiyang/rpi-devices/iotclouds"
+	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/iot"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 		Token: "your token",
 		API:   "http://api.heclouds.com/devices/540381180/datapoints",
 	}
-	cloud := iotclouds.New(oneNetCfg)
+	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
 		log.Printf("failed to new OneNet iot cloud")
 		return
@@ -42,7 +42,7 @@ func main() {
 type gpsTracker struct {
 	gps    *dev.GPS
 	logger *dev.GPSLogger
-	cloud  iotclouds.IOTCloud
+	cloud  iot.Cloud
 }
 
 func (t *gpsTracker) start() {
@@ -56,7 +56,7 @@ func (t *gpsTracker) start() {
 			continue
 		}
 		t.logger.AddPoint(pt)
-		v := &iotclouds.IoTValue{
+		v := &iot.Value{
 			DeviceName: "gps",
 			Value:      pt,
 		}

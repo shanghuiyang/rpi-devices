@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 func main() {
-	g := devices.NewGPS()
+	g := dev.NewGPS()
 	pt, err := g.Loc()
 	if err != nil {
 		log.Printf("failed, error: %v", err)

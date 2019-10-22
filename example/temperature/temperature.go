@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/shanghuiyang/rpi-devices/devices"
+	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 func main() {
-	t := devices.NewTemperature()
+	t := dev.NewTemperature()
 	c, err := t.GetTemperature()
 	if err != nil {
 		fmt.Printf("failed to get temperature, error: %v", err)

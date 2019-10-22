@@ -1,4 +1,4 @@
-package iotclouds
+package iot
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ const (
 	logTagOneNet = "onenet"
 )
 
-// OneNetCloud is the implement of IOTCloud
+// OneNetCloud is the implement of Cloud
 type OneNetCloud struct {
 	token string
 	api   string
@@ -44,7 +44,7 @@ func NewOneNetCloud(cfg *base.OneNetConfig) *OneNetCloud {
 }
 
 // Push ...
-func (o *OneNetCloud) Push(v *IoTValue) error {
+func (o *OneNetCloud) Push(v *Value) error {
 	datapoint := OneNetData{
 		Datastreams: []*Datastream{
 			{

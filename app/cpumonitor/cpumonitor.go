@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	"github.com/shanghuiyang/rpi-devices/iotclouds"
+	"github.com/shanghuiyang/rpi-devices/iot"
 )
 
 const (
@@ -20,7 +20,7 @@ func main() {
 		Token: "your token",
 		API:   "http://api.heclouds.com/devices/540381180/datapoints",
 	}
-	cloud := iotclouds.New(oneNetCfg)
+	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
 		log.Printf("failed to new OneNet iot cloud")
 		return
@@ -32,7 +32,7 @@ func main() {
 }
 
 type cpuMonitor struct {
-	cloud iotclouds.IOTCloud
+	cloud iot.Cloud
 }
 
 // Start ...
@@ -46,7 +46,7 @@ func (c *cpuMonitor) start() {
 			continue
 		}
 
-		v := &iotclouds.IoTValue{
+		v := &iot.Value{
 			DeviceName: "cpu",
 			Value:      f,
 		}

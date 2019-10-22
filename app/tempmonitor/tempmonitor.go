@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	dev "github.com/shanghuiyang/rpi-devices/devices"
-	"github.com/shanghuiyang/rpi-devices/iotclouds"
+	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -41,7 +41,7 @@ func main() {
 		Token: "your token",
 		API:   "http://api.heclouds.com/devices/540381180/datapoints",
 	}
-	cloud := iotclouds.New(oneNetCfg)
+	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
 		log.Printf("failed to new OneNet iot cloud")
 		return
@@ -59,7 +59,7 @@ func main() {
 type tempMonitor struct {
 	temp  *dev.Temperature
 	led   *dev.Led
-	cloud iotclouds.IOTCloud
+	cloud iot.Cloud
 }
 
 func (m *tempMonitor) start() {
@@ -71,7 +71,7 @@ func (m *tempMonitor) start() {
 			continue
 		}
 
-		v := &iotclouds.IoTValue{
+		v := &iot.Value{
 			DeviceName: "temperature",
 			Value:      c,
 		}

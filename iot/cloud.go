@@ -1,27 +1,23 @@
-package iotclouds
+package iot
 
 import (
 	"github.com/shanghuiyang/rpi-devices/base"
 )
 
-var (
-	chIoTCloud = make(chan *IoTValue, 32)
-)
-
-// IOTCloud is the interface of IOT clound
-type IOTCloud interface {
-	Push(v *IoTValue) error
+// Cloud is the interface of IOT clound
+type Cloud interface {
+	Push(v *Value) error
 }
 
-// IoTValue ...
-type IoTValue struct {
+// Value ...
+type Value struct {
 	DeviceName string
 	Value      interface{}
 }
 
-// New ...
-func New(config interface{}) IOTCloud {
-	var cloud IOTCloud
+// NewCloud ...
+func NewCloud(config interface{}) Cloud {
+	var cloud Cloud
 	switch config.(type) {
 	case *base.WsnConfig:
 		cfg := config.(*base.WsnConfig)

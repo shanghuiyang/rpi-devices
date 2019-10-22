@@ -1,4 +1,4 @@
-package iotclouds
+package iot
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ const (
 	logTagWsn = "wsn"
 )
 
-// WsnCloud is the implement of IOTCloud
+// WsnCloud is the implement of Cloud
 type WsnCloud struct {
 	token string
 	api   string
@@ -28,7 +28,7 @@ func NewWsnClound(cfg *base.WsnConfig) *WsnCloud {
 }
 
 // Push ...
-func (w *WsnCloud) Push(v *IoTValue) error {
+func (w *WsnCloud) Push(v *Value) error {
 	var formData url.Values
 	api := w.api
 	if v.DeviceName == "gps" {
