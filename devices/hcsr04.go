@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	timeout = 3600
+	voiceSpeed = float64(34300.0)
+	timeout    = 3600
 )
 
 // HCSR04 ...
@@ -43,7 +44,7 @@ func (h *HCSR04) Dist() float64 {
 	for n := 0; n < timeout && h.echo.Read() != rpio.Low; n++ {
 		h.delay(1)
 	}
-	return time.Now().Sub(start).Seconds() * 34300.0 / 2.0
+	return time.Now().Sub(start).Seconds() * voiceSpeed / 2.0
 }
 
 // delay is to dalay us microsecond

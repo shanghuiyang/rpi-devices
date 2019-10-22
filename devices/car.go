@@ -6,18 +6,21 @@ import (
 )
 
 const (
-	chSize         = 8
-	forward  CarOp = "forward"
-	backward CarOp = "backward"
-	left     CarOp = "left"
-	right    CarOp = "right"
-	brake    CarOp = "brake"
-	honk     CarOp = "honk"
-	blink    CarOp = "blink"
-	camleft  CarOp = "camleft"
-	camright CarOp = "camright"
-	camahead CarOp = "camahead"
-	light    CarOp = "light"
+	chSize             = 8
+	forward      CarOp = "forward"
+	backward     CarOp = "backward"
+	left         CarOp = "left"
+	right        CarOp = "right"
+	stop         CarOp = "stop"
+	honk         CarOp = "honk"
+	blink        CarOp = "blink"
+	camleft      CarOp = "camleft"
+	camright     CarOp = "camright"
+	camahead     CarOp = "camahead"
+	lighton      CarOp = "lighton"
+	lightoff     CarOp = "lightoff"
+	autodriveon  CarOp = "autodriveon"
+	autodriveoff CarOp = "autodriveoff"
 )
 
 // CarOp ...
@@ -46,7 +49,6 @@ type ILed interface {
 type ILight interface {
 	On()
 	Off()
-	IsOn() bool
 }
 
 // ICamera ...
@@ -54,9 +56,15 @@ type ICamera interface {
 	Turn(angle int)
 }
 
+// IDistance ...
+type IDistance interface {
+	Dist() float64
+}
+
 // CarBuilder ...
 type CarBuilder struct {
 	engine IEngine
+	dist   IDistance
 	camera ICamera
 	horn   IHorn
 	led    ILed
@@ -71,6 +79,12 @@ func NewCarBuilder() *CarBuilder {
 // Engine ...
 func (b *CarBuilder) Engine(eng IEngine) *CarBuilder {
 	b.engine = eng
+	return b
+}
+
+// Distance ...
+func (b *CarBuilder) Distance(dist IDistance) *CarBuilder {
+	b.dist = dist
 	return b
 }
 
@@ -101,23 +115,28 @@ func (b *CarBuilder) Camera(camera ICamera) *CarBuilder {
 // Build ...
 func (b *CarBuilder) Build() *Car {
 	return &Car{
-		engine: b.engine,
-		horn:   b.horn,
-		led:    b.led,
-		light:  b.light,
-		camera: b.camera,
-		chOp:   make(chan CarOp, chSize),
+		engine:      b.engine,
+		dist:        b.dist,
+		horn:        b.horn,
+		led:         b.led,
+		light:       b.light,
+		camera:      b.camera,
+		cameraAngle: 0,
+		autodrive:   false,
+		chOp:        make(chan CarOp, chSize),
 	}
 }
 
 // Car ...
 type Car struct {
 	engine      IEngine
+	dist        IDistance
 	horn        IHorn
 	led         ILed
 	light       ILight
 	camera      ICamera
 	cameraAngle int
+	autodrive   bool
 	chOp        chan CarOp
 }
 
@@ -152,8 +171,8 @@ func (c *Car) start() {
 			c.left()
 		case right:
 			c.right()
-		case brake:
-			c.brake()
+		case stop:
+			c.stop()
 		case honk:
 			go c.honk()
 		case camleft:
@@ -162,10 +181,16 @@ func (c *Car) start() {
 			go c.camRight()
 		case camahead:
 			go c.camAhead()
-		case light:
-			go c.lightOnOrOff()
+		case lighton:
+			go c.light.On()
+		case lightoff:
+			go c.light.Off()
+		case autodriveon:
+			go c.autoDriveOn()
+		case autodriveoff:
+			go c.autoDriveOff()
 		default:
-			c.brake()
+			c.stop()
 		}
 	}
 }
@@ -186,7 +211,7 @@ func (c *Car) backward() {
 func (c *Car) left() {
 	log.Printf("car: left")
 	c.engine.Left()
-	time.Sleep(150 * time.Millisecond)
+	c.delay(150)
 	c.engine.Stop()
 }
 
@@ -194,13 +219,13 @@ func (c *Car) left() {
 func (c *Car) right() {
 	log.Printf("car: right")
 	c.engine.Right()
-	time.Sleep(150 * time.Millisecond)
+	c.delay(150)
 	c.engine.Stop()
 }
 
-// brake ...
-func (c *Car) brake() {
-	log.Printf("car: brake")
+// stop ...
+func (c *Car) stop() {
+	log.Printf("car: stop")
 	c.engine.Stop()
 }
 
@@ -213,7 +238,7 @@ func (c *Car) honk() {
 	go func() {
 		for i := 0; i < 5; i++ {
 			c.horn.Whistle()
-			time.Sleep(100 * time.Millisecond)
+			c.delay(100)
 		}
 	}()
 }
@@ -235,19 +260,55 @@ func (c *Car) camRight() {
 	}
 	c.cameraAngle = angle
 	log.Printf("camera %v", angle)
+	if c.camera == nil {
+		return
+	}
 	c.camera.Turn(angle)
 }
 
 func (c *Car) camAhead() {
 	c.cameraAngle = 0
 	log.Printf("camera %v", 0)
+	if c.camera == nil {
+		return
+	}
 	c.camera.Turn(0)
 }
 
-func (c *Car) lightOnOrOff() {
-	if c.light.IsOn() {
-		c.light.Off()
-	} else {
-		c.light.On()
+func (c *Car) autoDriveOn() {
+	if c.dist == nil {
+		return
 	}
+	// make a warning before into auto-drive mode
+	for i := 0; i < 5 && c.horn != nil; i++ {
+		c.horn.Whistle()
+		c.delay(1000)
+	}
+	// start auto-drive
+	c.autodrive = true
+	for c.autodrive {
+		d := c.dist.Dist()
+		switch {
+		case d > 100:
+			c.chOp <- forward
+			c.delay(2000)
+		case d > 50:
+			c.chOp <- forward
+			c.delay(1000)
+		case d > 20:
+			c.chOp <- forward
+			c.delay(500)
+		default:
+			c.chOp <- left
+			c.delay(100)
+		}
+	}
+}
+
+func (c *Car) autoDriveOff() {
+	c.autodrive = false
+}
+
+func (c *Car) delay(ms int) {
+	time.Sleep(time.Duration(ms) * time.Millisecond)
 }

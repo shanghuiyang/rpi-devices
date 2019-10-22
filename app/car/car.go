@@ -24,6 +24,8 @@ const (
 	pinENB   = 19
 	pinBzr   = 10
 	pinSG    = 18
+	pinTrig  = 21
+	pinEcho  = 26
 )
 
 var car *dev.Car
@@ -35,11 +37,17 @@ func main() {
 	}
 	defer rpio.Close()
 
-	l298n := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
-	if l298n == nil {
+	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
+	if eng == nil {
 		log.Fatal("failed to new a L298N")
 		return
 	}
+
+	dist := dev.NewHCSR04(pinTrig, pinEcho)
+	if dist == nil {
+		log.Printf("failed to new a HCSR04, will build a car without ultrasonic sensor")
+	}
+
 	buzzer := dev.NewBuzzer(pinBzr)
 	if buzzer == nil {
 		log.Printf("failed to new a buzzer, will build a car without horns")
@@ -47,7 +55,7 @@ func main() {
 
 	led := dev.NewLed(pinLed)
 	if led == nil {
-		log.Printf("failed to new a led, will build a car without sign lights")
+		log.Printf("failed to new a led, will build a car without leds")
 	}
 
 	light := dev.NewLed(pinLight)
@@ -55,17 +63,17 @@ func main() {
 		log.Printf("failed to new a light, will build a car without lights")
 	}
 
-	sg := dev.NewSG90(pinSG)
-	if sg == nil {
-		log.Printf("failed to new a sg90, will build a camera without steering")
+	steer := dev.NewSG90(pinSG)
+	if steer == nil {
+		log.Printf("failed to new a sg90, will build a camera without steerings")
 	}
-	cam := dev.NewCamera(sg)
+	cam := dev.NewCamera(steer)
 	if cam == nil {
-		log.Printf("failed to new a sg90, will build a car without camera")
+		log.Printf("failed to new a camera, will build a car without cameras")
 	}
 
 	builder := dev.NewCarBuilder()
-	car = builder.Engine(l298n).Horn(buzzer).Led(led).Light(light).Camera(cam).Build()
+	car = builder.Engine(eng).Distance(dist).Horn(buzzer).Led(led).Light(light).Camera(cam).Build()
 	if car == nil {
 		log.Fatal("failed to new a car")
 		return
