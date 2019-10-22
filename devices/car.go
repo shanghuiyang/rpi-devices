@@ -5,8 +5,9 @@ import (
 	"time"
 )
 
+const chSize = 8
+
 const (
-	chSize             = 8
 	forward      CarOp = "forward"
 	backward     CarOp = "backward"
 	left         CarOp = "left"
