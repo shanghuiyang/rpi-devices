@@ -31,7 +31,7 @@ func NewWsnClound(cfg *base.WsnConfig) *WsnCloud {
 func (w *WsnCloud) Push(v *Value) error {
 	var formData url.Values
 	api := w.api
-	if v.DeviceName == "gps" {
+	if v.Device == "gps" {
 		api = strings.Replace(w.api, "numerical", "gps", -1)
 		pt, ok := v.Value.(*base.Point)
 		if !ok {
@@ -39,7 +39,7 @@ func (w *WsnCloud) Push(v *Value) error {
 		}
 		formData = url.Values{
 			"ak":    {w.token},
-			"id":    {v.DeviceName},
+			"id":    {v.Device},
 			"lat":   {fmt.Sprintf("%v", pt.Lat)},
 			"lng":   {fmt.Sprintf("%v", pt.Lon)},
 			"speed": {"30"},
@@ -47,7 +47,7 @@ func (w *WsnCloud) Push(v *Value) error {
 	} else {
 		formData = url.Values{
 			"ak":    {w.token},
-			"id":    {v.DeviceName},
+			"id":    {v.Device},
 			"value": {fmt.Sprintf("%v", v.Value)},
 		}
 	}

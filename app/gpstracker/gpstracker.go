@@ -57,8 +57,8 @@ func (t *gpsTracker) start() {
 		}
 		t.logger.AddPoint(pt)
 		v := &iot.Value{
-			DeviceName: "gps",
-			Value:      pt,
+			Device: "gps",
+			Value:  pt,
 		}
 		go t.cloud.Push(v)
 	}

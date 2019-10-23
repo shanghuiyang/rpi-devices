@@ -47,8 +47,8 @@ func (c *cpuMonitor) start() {
 		}
 
 		v := &iot.Value{
-			DeviceName: "cpu",
-			Value:      f,
+			Device: "cpu",
+			Value:  f,
 		}
 		go c.cloud.Push(v)
 	}

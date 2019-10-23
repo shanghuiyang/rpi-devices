@@ -48,7 +48,7 @@ func (o *OneNetCloud) Push(v *Value) error {
 	datapoint := OneNetData{
 		Datastreams: []*Datastream{
 			{
-				ID: v.DeviceName,
+				ID: v.Device,
 				Datapoints: []*Datapoint{
 					{
 						Value: v.Value,

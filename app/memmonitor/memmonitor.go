@@ -46,8 +46,8 @@ func (m *memMonitor) start() {
 			continue
 		}
 		v := &iot.Value{
-			DeviceName: "memory",
-			Value:      f,
+			Device: "memory",
+			Value:  f,
 		}
 		m.cloud.Push(v)
 	}

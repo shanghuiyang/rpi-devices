@@ -40,8 +40,8 @@ func (h *heartBeat) start() {
 		time.Sleep(heartBeatInterval)
 		b = (b*b - 1) * (b*b - 1)
 		v := &iot.Value{
-			DeviceName: "heartbeat",
-			Value:      b,
+			Device: "heartbeat",
+			Value:  b,
 		}
 		h.cloud.Push(v)
 	}

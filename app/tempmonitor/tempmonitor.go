@@ -72,8 +72,8 @@ func (m *tempMonitor) start() {
 		}
 
 		v := &iot.Value{
-			DeviceName: "temperature",
-			Value:      c,
+			Device: "temperature",
+			Value:  c,
 		}
 		go m.cloud.Push(v)
 		go m.led.BlinkN(5, 500)

@@ -11,8 +11,8 @@ type Cloud interface {
 
 // Value ...
 type Value struct {
-	DeviceName string
-	Value      interface{}
+	Device string
+	Value  interface{}
 }
 
 // NewCloud ...
