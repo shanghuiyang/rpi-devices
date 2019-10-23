@@ -3,11 +3,11 @@
 import sys
 import os
 
-file = 'main.go'
-bin = 'devices.pi'
+file = 'app/car/car.go'
+bin = 'car.stg'
 for i in range(1, len(sys.argv)):
-    if sys.argv[i] == "-test":
-        bin = 'test.pi'
+    if sys.argv[i] == "-prd":
+        bin = 'car'
     if sys.argv[i] == '-f':
         file = sys.argv[i+1]
     if sys.argv[i] == '-o':

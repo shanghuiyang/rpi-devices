@@ -6,6 +6,7 @@
 *.dylib
 *.mac
 *.pi
+*.stg
 /main
 /autofan
 /car

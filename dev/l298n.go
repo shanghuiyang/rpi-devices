@@ -36,7 +36,7 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l.in4.Low()
 	l.ena.Pwm()
 	l.enb.Pwm()
-	l.speed(30)
+	l.speed(25)
 	return l
 }
 

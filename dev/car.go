@@ -170,7 +170,7 @@ func (c *Car) backward() {
 func (c *Car) left() {
 	log.Printf("car: left")
 	c.engine.Left()
-	c.delay(150)
+	c.delay(200)
 	c.engine.Stop()
 }
 
@@ -178,7 +178,7 @@ func (c *Car) left() {
 func (c *Car) right() {
 	log.Printf("car: right")
 	c.engine.Right()
-	c.delay(150)
+	c.delay(200)
 	c.engine.Stop()
 }
 
@@ -238,42 +238,44 @@ func (c *Car) autoDriveOn() {
 	if c.dist == nil {
 		return
 	}
+	// need to warm-up the distance sensor first
 	c.dist.Dist()
 
 	// make a warning before running into auto-drive mode
-	for i := 0; i <= 5 && c.horn != nil; i++ {
-		log.Printf("auto drive: %v", 5-i)
+	for i := 4; i >= 0 && c.horn != nil; i-- {
+		log.Printf("auto drive: %v", i)
 		c.horn.Sound()
 		c.delay(1000)
 	}
 	// start auto-drive
 	c.autodrive = true
+	fwd := false
 	for c.autodrive {
 		d := c.dist.Dist()
 		log.Printf("dist: %.0f cm", d)
-		switch {
-		case d < 10:
+
+		// backward
+		if d < 20 {
 			c.chOp <- backward
-			c.delay(500)
-		case d < 30:
-			for i := 0; i < 13; i++ {
+			c.delay(200)
+			fwd = false
+			continue
+		}
+		// turn left
+		if d < 40 {
+			for i := 0; i < 8; i++ {
 				c.chOp <- left
 				c.delay(500)
 			}
-		default:
-			t := 500
-			if d > 200 {
-				t = 2500
-			} else if d > 100 {
-				t = 2000
-			} else if d > 60 {
-				t = 1000
-			}
-			c.chOp <- forward
-			c.delay(t)
+			fwd = false
+			continue
 		}
-		c.chOp <- stop
-		c.delay(1000)
+		// forward
+		if !fwd {
+			c.chOp <- forward
+			fwd = true
+		}
+		c.delay(200)
 	}
 	c.chOp <- stop
 }
