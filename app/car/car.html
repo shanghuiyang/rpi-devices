@@ -139,12 +139,12 @@
                     $.post(url, { "op": "lightoff" }, function (data, status) { });
                 }
             })
-            // auto-dirve
-            $('#autodrive').change(function () {
+            // self-drive
+            $('#selfdrive').change(function () {
                 if ($(this).prop('checked')) {
-                    $.post(url, { "op": "autodriveon" }, function (data, status) { });
+                    $.post(url, { "op": "selfdriveon" }, function (data, status) { });
                 } else {
-                    $.post(url, { "op": "autodriveoff" }, function (data, status) { });
+                    $.post(url, { "op": "selfdriveoff" }, function (data, status) { });
                 }
             })
         });
@@ -185,8 +185,8 @@
         <div>
             <input id="light" type="checkbox" uncheckbox data-toggle="toggle" data-on="Light" data-off="Light"
                 data-onstyle="warning" data-width="100" data-height="45">
-            <input id="autodrive" type="checkbox" uncheckbox data-toggle="toggle" data-on="Auto Drive"
-                data-off="Auto Drive" data-onstyle="warning" data-width="100" data-height="45">
+            <input id="selfdrive" type="checkbox" uncheckbox data-toggle="toggle" data-on="Self-Drive"
+                data-off="Self-Drive" data-onstyle="warning" data-width="100" data-height="45">
         </div>
         <br />
     </div>

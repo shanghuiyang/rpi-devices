@@ -20,8 +20,8 @@ const (
 	camahead     CarOp = "camahead"
 	lighton      CarOp = "lighton"
 	lightoff     CarOp = "lightoff"
-	autodriveon  CarOp = "autodriveon"
-	autodriveoff CarOp = "autodriveoff"
+	selfdriveon  CarOp = "selfdriveon"
+	selfdriveoff CarOp = "selfdriveoff"
 )
 
 type (
@@ -82,7 +82,7 @@ type Car struct {
 	light     *Led
 	camera    *Camera
 	camAngle  int
-	autodrive bool
+	selfdrive bool
 	chOp      chan CarOp
 }
 
@@ -90,7 +90,7 @@ type Car struct {
 func NewCar(opts ...Option) *Car {
 	car := &Car{
 		camAngle:  0,
-		autodrive: false,
+		selfdrive: false,
 		chOp:      make(chan CarOp, chSize),
 	}
 	for _, opt := range opts {
@@ -144,10 +144,10 @@ func (c *Car) start() {
 			go c.light.On()
 		case lightoff:
 			go c.light.Off()
-		case autodriveon:
-			go c.autoDriveOn()
-		case autodriveoff:
-			go c.autoDriveOff()
+		case selfdriveon:
+			go c.selfDriveOn()
+		case selfdriveoff:
+			go c.selfDriveOff()
 		default:
 			c.stop()
 		}
@@ -234,23 +234,23 @@ func (c *Car) camAhead() {
 	c.camera.Turn(0)
 }
 
-func (c *Car) autoDriveOn() {
+func (c *Car) selfDriveOn() {
 	if c.dist == nil {
 		return
 	}
 	// need to warm-up the distance sensor first
 	c.dist.Dist()
 
-	// make a warning before running into auto-drive mode
+	// make a warning before running into self-driving mode
 	for i := 4; i >= 0 && c.horn != nil; i-- {
-		log.Printf("auto drive: %v", i)
+		log.Printf("self-drive: %v", i)
 		c.horn.Sound()
 		c.delay(1000)
 	}
-	// start auto-drive
-	c.autodrive = true
+	// start self-drive
+	c.selfdrive = true
 	fwd := false
-	for c.autodrive {
+	for c.selfdrive {
 		d := c.dist.Dist()
 		log.Printf("dist: %.0f cm", d)
 
@@ -263,7 +263,7 @@ func (c *Car) autoDriveOn() {
 		}
 		// turn left
 		if d < 40 {
-			for i := 0; i < 8; i++ {
+			for i := 0; i < 10; i++ {
 				c.chOp <- left
 				c.delay(500)
 			}
@@ -280,8 +280,8 @@ func (c *Car) autoDriveOn() {
 	c.chOp <- stop
 }
 
-func (c *Car) autoDriveOff() {
-	c.autodrive = false
+func (c *Car) selfDriveOff() {
+	c.selfdrive = false
 }
 
 func (c *Car) delay(ms int) {

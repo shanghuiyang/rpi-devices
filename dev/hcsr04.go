@@ -1,3 +1,27 @@
+/*
+HC-SR04 is an ultrasonic sensor
+which can measure the distance to the an object like a box.
+
+Spec:
+  - power supply:	+5V DC
+  - range:			2 - 450cm
+  - resolution:		0.3cm
+	 ___________________________
+    |                           |
+    |          HC-SR04          |
+    |                           |
+    |___________________________|
+         |     |     |     |
+        vcc  trig   echo  gnd
+
+Pins:
+  - vcc:	5v
+  - trig:	trigger(input)
+  - echo:	echo(output)
+  - gnd:	gnd
+
+*/
+
 package dev
 
 import (
