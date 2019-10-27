@@ -5,11 +5,11 @@ and the led will turn off after 35 seconds.
 
 voice detector:
  - vcc: phys.1/3.3v
- - out: phys.3/BMC.2
+ - out: phys.3/BCM.2
  - gnd: phys.9/GND
 
  led:
-  - positive: phys.36/BMC.16
+  - positive: phys.36/BCM.16
   - negative: phys.34/GND
 
 -----------------------------------------------------------------------
@@ -23,7 +23,7 @@ voice detector:
             |  |  |
           gnd out vcc
             |  |  |           +-----------+
-            |  |  +-----------+ * 1     o |
+            |  |  +-----------+ * 1   2 o |
             +--|--------------+ * 3     o |
                |              | o       o |
                |              | o       o |         \ | | /
@@ -42,7 +42,7 @@ voice detector:
                               | o    34 * +-----------+ |
                               | o    36 * +-------------+
                               | o       o |
-                              | o       o |
+                              | o 39 40 o |
                               +-----------+
 
 -----------------------------------------------------------------------
