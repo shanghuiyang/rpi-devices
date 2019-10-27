@@ -35,6 +35,7 @@ func main() {
 	l := &autoLight{
 		voice: v,
 		light: light,
+		ch:    make(chan bool, 32),
 	}
 	l.start()
 }
@@ -42,14 +43,17 @@ func main() {
 type autoLight struct {
 	voice *dev.VoiceDetector
 	light *dev.Led
+	ch    chan bool
 }
 
 func (a *autoLight) start() {
-	lastTrig := time.Now()
+	go a.listen()
+
+	a.light.Off()
 	isLightOn := false
-	for {
-		time.Sleep(200 * time.Millisecond)
-		if a.voice.Detected() {
+	lastTrig := time.Now()
+	for b := range a.ch {
+		if b {
 			log.Printf("detected a voice")
 			if !isLightOn {
 				a.light.On()
@@ -63,5 +67,12 @@ func (a *autoLight) start() {
 			a.light.Off()
 			isLightOn = false
 		}
+	}
+}
+
+func (a *autoLight) listen() {
+	for {
+		a.ch <- a.voice.Detected()
+		time.Sleep(10 * time.Millisecond)
 	}
 }
