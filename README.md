@@ -298,3 +298,6 @@ func main() {
 
 ### [Auto-Light](/app/autolight/README.md)
 <img src="img/auto-light.gif" width=80% height=80% />
+
+## Auto-Fan
+<img src="img/auto-fan.gif" width=40% height=40% />
