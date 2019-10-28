@@ -14,12 +14,12 @@ voice detector:
 
 -----------------------------------------------------------------------
 
-          +---------+
+          o---------o
           |         |
           | voice   |
           | detector|
           |         |
-          +-+--+--+-+
+          o-+--+--+-o
             |  |  |
           gnd out vcc
             |  |  |           +-----------+
@@ -32,7 +32,7 @@ voice detector:
                               | o       o |        |-------|
                               | o       o |        |  led  |
                               | o       o |        |       |
-                              | o       o |        +--+-+--+
+                              | o       o |        o--+-+--o
                               | o       o |           | |
                               | o       o |         gnd vcc
                               | o       o |           | |
@@ -60,8 +60,8 @@ import (
 )
 
 const (
-	voicePin = 2
-	ledPin   = 16
+	voicePin = 7
+	ledPin   = 3
 )
 
 func main() {
