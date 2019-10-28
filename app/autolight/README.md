@@ -49,4 +49,4 @@ led:
 ```
 
 
-<img src="../../img/auto-light.gif" width=100% height=100% />
+<img src="../../img/auto-light.gif" width=80% height=80% />
