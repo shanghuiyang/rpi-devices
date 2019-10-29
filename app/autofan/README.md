@@ -46,3 +46,5 @@ realy:
 
 ```
 
+<img src="../../img/auto-fan.gif" width=40% height=40% />
+
