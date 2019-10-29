@@ -1,3 +1,5 @@
+<img src="../../img/auto-fan.gif" width=40% height=40% />
+
 # Auto Fan
 Auto-Fan let you the fan working with a relay and a temperature sensor together.
 The temperature sensor will trigger the relay to control the fan running or stopping.
@@ -45,6 +47,3 @@ realy:
                            +-----------+               o--------------o
 
 ```
-
-<img src="../../img/auto-fan.gif" width=40% height=40% />
-

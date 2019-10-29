@@ -1,3 +1,5 @@
+<img src="../../img/auto-light.gif" width=80% height=80% />
+
 # Auto Light
 Auto-Light let you control a led light working with a voice detector together.
 the led will light up when the voice detector detect a voice.
@@ -47,6 +49,3 @@ led:
                               +-----------+
           
 ```
-
-
-<img src="../../img/auto-light.gif" width=80% height=80% />
