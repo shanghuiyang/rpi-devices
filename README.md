@@ -296,8 +296,8 @@ func main() {
 ### [Self-Dirving Car](/app/car)
 <img src="img/car.gif" width=80% height=80% />
 
-### [Auto-Light](/app/autolight/readme.md)
+### [Auto-Light](/app/autolight)
 <img src="img/auto-light.gif" width=80% height=80% />
 
-## [Auto-Fan](/app/autofan/readme.md)
+## [Auto-Fan](/app/autofan)
 <img src="img/auto-fan.gif" width=40% height=40% />
