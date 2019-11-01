@@ -15,9 +15,9 @@ const (
 	stop         CarOp = "stop"
 	honk         CarOp = "honk"
 	blink        CarOp = "blink"
-	camleft      CarOp = "camleft"
-	camright     CarOp = "camright"
-	camahead     CarOp = "camahead"
+	rudderleft   CarOp = "rudderleft"
+	rudderright  CarOp = "rudderright"
+	rudderahead  CarOp = "rudderahead"
 	lighton      CarOp = "lighton"
 	lightoff     CarOp = "lightoff"
 	selfdriveon  CarOp = "selfdriveon"
@@ -35,6 +35,13 @@ type (
 func WithEngine(engine *L298N) Option {
 	return func(c *Car) {
 		c.engine = engine
+	}
+}
+
+// WithRudder ...
+func WithRudder(rudder *SG90) Option {
+	return func(c *Car) {
+		c.rudder = rudder
 	}
 }
 
@@ -75,23 +82,24 @@ func WithCamera(cam *Camera) Option {
 
 // Car ...
 type Car struct {
-	engine    *L298N
-	dist      *HCSR04
-	horn      *Buzzer
-	led       *Led
-	light     *Led
-	camera    *Camera
-	camAngle  int
-	selfdrive bool
-	chOp      chan CarOp
+	engine      *L298N
+	rudder      *SG90
+	dist        *HCSR04
+	horn        *Buzzer
+	led         *Led
+	light       *Led
+	camera      *Camera
+	rudderAngle int
+	selfdrive   bool
+	chOp        chan CarOp
 }
 
 // NewCar ...
 func NewCar(opts ...Option) *Car {
 	car := &Car{
-		camAngle:  0,
-		selfdrive: false,
-		chOp:      make(chan CarOp, chSize),
+		rudderAngle: 0,
+		selfdrive:   false,
+		chOp:        make(chan CarOp, chSize),
 	}
 	for _, opt := range opts {
 		opt(car)
@@ -102,7 +110,7 @@ func NewCar(opts ...Option) *Car {
 // Start ...
 func (c *Car) Start() error {
 	go c.start()
-	go c.camera.Turn(0)
+	go c.rudder.Roll(0)
 	go c.led.Blink()
 	return nil
 }
@@ -134,12 +142,12 @@ func (c *Car) start() {
 			c.stop()
 		case honk:
 			go c.honk()
-		case camleft:
-			go c.camLeft()
-		case camright:
-			go c.camRight()
-		case camahead:
-			go c.camAhead()
+		case rudderleft:
+			go c.rudderLeft()
+		case rudderright:
+			go c.rudderRight()
+		case rudderahead:
+			go c.rudderAhead()
 		case lighton:
 			go c.light.On()
 		case lightoff:
@@ -202,36 +210,39 @@ func (c *Car) honk() {
 	}()
 }
 
-func (c *Car) camLeft() {
-	angle := c.camAngle - 15
+func (c *Car) rudderLeft() {
+	angle := c.rudderAngle - 15
 	if angle < -90 {
 		angle = -90
 	}
-	c.camAngle = angle
-	log.Printf("camera: %v", angle)
-	c.camera.Turn(angle)
+	c.rudderAngle = angle
+	log.Printf("rudder: %v", angle)
+	if c.rudder == nil {
+		return
+	}
+	c.rudder.Roll(angle)
 }
 
-func (c *Car) camRight() {
-	angle := c.camAngle + 15
+func (c *Car) rudderRight() {
+	angle := c.rudderAngle + 15
 	if angle > 90 {
 		angle = 90
 	}
-	c.camAngle = angle
-	log.Printf("camera: %v", angle)
-	if c.camera == nil {
+	c.rudderAngle = angle
+	log.Printf("rudder: %v", angle)
+	if c.rudder == nil {
 		return
 	}
-	c.camera.Turn(angle)
+	c.rudder.Roll(angle)
 }
 
-func (c *Car) camAhead() {
-	c.camAngle = 0
-	log.Printf("camera: %v", 0)
-	if c.camera == nil {
+func (c *Car) rudderAhead() {
+	c.rudderAngle = 0
+	log.Printf("rudder: %v", 0)
+	if c.rudder == nil {
 		return
 	}
-	c.camera.Turn(0)
+	c.rudder.Roll(0)
 }
 
 func (c *Car) selfDriveOn() {
@@ -255,19 +266,23 @@ func (c *Car) selfDriveOn() {
 		log.Printf("dist: %.0f cm", d)
 
 		// backward
-		if d < 20 {
+		if d < 10 {
+			fwd = false
 			c.chOp <- backward
 			c.delay(200)
-			fwd = false
 			continue
 		}
-		// turn left
+		// find a way out
 		if d < 40 {
-			for i := 0; i < 10; i++ {
-				c.chOp <- left
-				c.delay(500)
-			}
 			fwd = false
+			c.chOp <- stop
+			d, angle := c.scan()
+			for ; d < 40; d, angle = c.scan() {
+				c.chOp <- backward
+				c.delay(200)
+			}
+			c.turn(angle)
+			c.rudder.Roll(0)
 			continue
 		}
 		// forward
@@ -286,4 +301,32 @@ func (c *Car) selfDriveOff() {
 
 func (c *Car) delay(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
+}
+
+func (c *Car) scan() (maxDist float64, angle int) {
+	for i := -90; i >= 90; i += 30 {
+		if i == 0 {
+			continue
+		}
+		c.rudder.Roll(i)
+		d := c.dist.Dist()
+		if d > maxDist {
+			maxDist = d
+			angle = i
+		}
+	}
+	return
+}
+
+func (c *Car) turn(angle int) {
+	n := int(angle / 15)
+	if angle < 0 {
+		c.engine.Left()
+		n *= -1
+	} else {
+		c.engine.Right()
+	}
+	c.delay(200 * n)
+	c.engine.Stop()
+	return
 }

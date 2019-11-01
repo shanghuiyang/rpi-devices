@@ -63,17 +63,18 @@ func main() {
 		log.Printf("failed to new a light, will build a car without lights")
 	}
 
-	steer := dev.NewSG90(pinSG)
+	rudder := dev.NewSG90(pinSG)
 	if steer == nil {
-		log.Printf("failed to new a sg90, will build a camera without steerings")
+		log.Printf("failed to new a sg90, will build a car without rudders")
 	}
-	cam := dev.NewCamera(steer)
+	cam := dev.NewCamera()
 	if cam == nil {
 		log.Printf("failed to new a camera, will build a car without cameras")
 	}
 
 	car = dev.NewCar(
 		dev.WithEngine(eng),
+		dev.WithRudder(rudder),
 		dev.WithDist(dist),
 		dev.WithHorn(horn),
 		dev.WithLed(led),

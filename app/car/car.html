@@ -12,17 +12,17 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
-        #camleft {
+        #rudderleft {
             margin-top: 0px;
             margin-left: 38px;
             padding: 10px 26px;
         }
 
-        #camahead {
+        #rudderahead {
             padding: 10px 26px;
         }
 
-        #camright {
+        #rudderright {
             padding: 10px 26px;
         }
 
@@ -107,29 +107,29 @@
             $('#honk').bind("touchend", function (e) {
                 document.getElementById("honk").style.color = "lightgray";
             });
-            // camleft
-            $('#camleft').bind("touchstart", function (e) {
-                $.post(url, { "op": "camleft" }, function (data, status) { });
-                document.getElementById("camleft").style.color = "yellow";
+            // rudderleft
+            $('#rudderleft').bind("touchstart", function (e) {
+                $.post(url, { "op": "rudderleft" }, function (data, status) { });
+                document.getElementById("rudderleft").style.color = "yellow";
             });
-            $('#camleft').bind("touchend", function (e) {
-                document.getElementById("camleft").style.color = "lightgray";
+            $('#rudderleft').bind("touchend", function (e) {
+                document.getElementById("rudderleft").style.color = "lightgray";
             });
-            // camahead
-            $('#camahead').bind("touchstart", function (e) {
-                $.post(url, { "op": "camahead" }, function (data, status) { });
-                document.getElementById("camahead").style.color = "yellow";
+            // rudderahead
+            $('#rudderahead').bind("touchstart", function (e) {
+                $.post(url, { "op": "rudderahead" }, function (data, status) { });
+                document.getElementById("rudderahead").style.color = "yellow";
             });
-            $('#camahead').bind("touchend", function (e) {
-                document.getElementById("camahead").style.color = "lightgray";
+            $('#rudderahead').bind("touchend", function (e) {
+                document.getElementById("rudderahead").style.color = "lightgray";
             });
-            // camright
-            $('#camright').bind("touchstart", function (e) {
-                $.post(url, { "op": "camright" }, function (data, status) { });
-                document.getElementById("camright").style.color = "yellow";
+            // rudderright
+            $('#rudderright').bind("touchstart", function (e) {
+                $.post(url, { "op": "rudderright" }, function (data, status) { });
+                document.getElementById("rudderright").style.color = "yellow";
             });
-            $('#camright').bind("touchend", function (e) {
-                document.getElementById("camright").style.color = "lightgray";
+            $('#rudderright').bind("touchend", function (e) {
+                document.getElementById("rudderright").style.color = "lightgray";
             });
             // light
             $('#light').change(function () {
@@ -158,11 +158,11 @@
             <!-- <img id="video" height="240" width="320" src="http://172.20.10.13:8081/"> -->
         </div>
         <div>
-            <button id='camleft' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
+            <button id='rudderleft' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
                 style="font-size:32px; color:lightgray"></button>
-            <button id='camahead' class="btn btn-lg glyphicon glyphicon glyphicon-camera"
+            <button id='rudderahead' class="btn btn-lg glyphicon glyphicon glyphicon-camera"
                 style="font-size:32px; color:lightgray"></button>
-            <button id='camright' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right"
+            <button id='rudderright' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right"
                 style="font-size:32px; color:lightgray"></button>
         </div>
         <div>
