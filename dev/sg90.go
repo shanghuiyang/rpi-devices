@@ -34,7 +34,7 @@ func NewSG90(pin uint8) *SG90 {
 //        \ | /
 //         \|/
 //          *
-//        camera
+//         eye
 //
 func (s *SG90) Roll(angle int) {
 	if angle < -90 || angle > 90 {

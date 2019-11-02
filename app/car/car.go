@@ -64,7 +64,7 @@ func main() {
 	}
 
 	rudder := dev.NewSG90(pinSG)
-	if steer == nil {
+	if rudder == nil {
 		log.Printf("failed to new a sg90, will build a car without rudders")
 	}
 	cam := dev.NewCamera()

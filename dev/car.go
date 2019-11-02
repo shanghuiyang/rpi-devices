@@ -253,7 +253,7 @@ func (c *Car) selfDriveOn() {
 	c.dist.Dist()
 
 	// make a warning before running into self-driving mode
-	for i := 4; i >= 0 && c.horn != nil; i-- {
+	for i := 3; i >= 0 && c.horn != nil; i-- {
 		log.Printf("self-drive: %v", i)
 		c.horn.Sound()
 		c.delay(1000)
@@ -268,31 +268,36 @@ func (c *Car) selfDriveOn() {
 		// backward
 		if d < 10 {
 			fwd = false
-			c.chOp <- backward
-			c.delay(200)
+			c.backward()
+			c.delay(500)
+			c.stop()
 			continue
 		}
 		// find a way out
 		if d < 40 {
 			fwd = false
-			c.chOp <- stop
-			d, angle := c.scan()
-			for ; d < 40; d, angle = c.scan() {
-				c.chOp <- backward
-				c.delay(200)
+			c.stop()
+			c.delay(500)
+			maxd, angle := c.scan()
+			log.Printf("maxd=%.0f, angle=%v", maxd, angle)
+			for i := 0; i < 3 && maxd < 40; i++ {
+				c.backward()
+				c.delay(500)
+				c.stop()
+				maxd, angle = c.scan()
 			}
-			c.turn(angle)
 			c.rudder.Roll(0)
+			c.turn(angle)
 			continue
 		}
 		// forward
 		if !fwd {
-			c.chOp <- forward
+			c.forward()
 			fwd = true
 		}
 		c.delay(200)
 	}
-	c.chOp <- stop
+	c.stop()
 }
 
 func (c *Car) selfDriveOff() {
@@ -304,12 +309,14 @@ func (c *Car) delay(ms int) {
 }
 
 func (c *Car) scan() (maxDist float64, angle int) {
-	for i := -90; i >= 90; i += 30 {
+	for i := -90; i <= 90; i += 30 {
 		if i == 0 {
 			continue
 		}
 		c.rudder.Roll(i)
+		c.delay(500)
 		d := c.dist.Dist()
+		log.Printf("scan: angle %v, dist: %.0f", i, d)
 		if d > maxDist {
 			maxDist = d
 			angle = i
@@ -319,14 +326,27 @@ func (c *Car) scan() (maxDist float64, angle int) {
 }
 
 func (c *Car) turn(angle int) {
-	n := int(angle / 15)
+	n := int(angle * 11.0 / 90.0)
+	c.speed(30)
+	c.delay(500)
 	if angle < 0 {
-		c.engine.Left()
 		n *= -1
+		for i := 0; i < n; i++ {
+			c.left()
+			c.delay(300)
+		}
 	} else {
-		c.engine.Right()
+		for i := 0; i < n; i++ {
+			c.right()
+			c.delay(300)
+		}
 	}
-	c.delay(200 * n)
-	c.engine.Stop()
+	c.stop()
+	c.speed(25)
+	c.delay(500)
 	return
+}
+
+func (c *Car) speed(s uint32) {
+	c.engine.Speed(s)
 }
