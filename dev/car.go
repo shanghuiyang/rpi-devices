@@ -24,6 +24,17 @@ const (
 	selfdriveoff CarOp = "selfdriveoff"
 )
 
+var (
+	scanningAngles = []int{-90, -45, 45, 90}
+
+	turnningAngles = map[int]int{
+		-90: 6,
+		-45: 4,
+		45:  4,
+		90:  6,
+	}
+)
+
 type (
 	// CarOp ...
 	CarOp string
@@ -196,6 +207,10 @@ func (c *Car) stop() {
 	c.engine.Stop()
 }
 
+func (c *Car) speed(s uint32) {
+	c.engine.Speed(s)
+}
+
 // honk ...
 func (c *Car) honk() {
 	log.Printf("car: honk")
@@ -269,7 +284,7 @@ func (c *Car) selfDriveOn() {
 		if d < 10 {
 			fwd = false
 			c.backward()
-			c.delay(500)
+			c.delay(300)
 			c.stop()
 			continue
 		}
@@ -282,7 +297,7 @@ func (c *Car) selfDriveOn() {
 			log.Printf("maxd=%.0f, angle=%v", maxd, angle)
 			for i := 0; i < 3 && maxd < 40; i++ {
 				c.backward()
-				c.delay(500)
+				c.delay(300)
 				c.stop()
 				maxd, angle = c.scan()
 			}
@@ -309,44 +324,39 @@ func (c *Car) delay(ms int) {
 }
 
 func (c *Car) scan() (maxDist float64, angle int) {
-	for i := -90; i <= 90; i += 30 {
-		if i == 0 {
-			continue
-		}
-		c.rudder.Roll(i)
-		c.delay(500)
+	for _, ang := range scanningAngles {
+		c.rudder.Roll(ang)
+		c.delay(100)
 		d := c.dist.Dist()
-		log.Printf("scan: angle %v, dist: %.0f", i, d)
+		log.Printf("scan: angle %v, dist: %.0f", ang, d)
 		if d > maxDist {
 			maxDist = d
-			angle = i
+			angle = ang
 		}
 	}
 	return
 }
 
 func (c *Car) turn(angle int) {
-	n := int(angle * 11.0 / 90.0)
 	c.speed(30)
-	c.delay(500)
-	if angle < 0 {
-		n *= -1
-		for i := 0; i < n; i++ {
+	c.delay(200)
+	n, ok := turnningAngles[angle]
+	if !ok {
+		n = angle*2/45 + 2
+		if angle < 0 {
+			n *= -1
+		}
+	}
+	for i := 0; i < n; i++ {
+		if angle < 0 {
 			c.left()
-			c.delay(300)
-		}
-	} else {
-		for i := 0; i < n; i++ {
+		} else {
 			c.right()
-			c.delay(300)
 		}
+		c.delay(100)
 	}
 	c.stop()
 	c.speed(25)
-	c.delay(500)
+	c.delay(200)
 	return
-}
-
-func (c *Car) speed(s uint32) {
-	c.engine.Speed(s)
 }
