@@ -225,6 +225,17 @@ func (c *Car) honk() {
 	}()
 }
 
+// honkn ...
+func (c *Car) honkn(n int, delay int) {
+	if c.horn == nil {
+		return
+	}
+	for i := 0; i < n; i++ {
+		c.horn.Sound()
+		c.delay(delay)
+	}
+}
+
 func (c *Car) rudderLeft() {
 	angle := c.rudderAngle - 15
 	if angle < -90 {
@@ -268,11 +279,8 @@ func (c *Car) selfDriveOn() {
 	c.dist.Dist()
 
 	// make a warning before running into self-driving mode
-	for i := 3; i >= 0 && c.horn != nil; i-- {
-		log.Printf("self-drive: %v", i)
-		c.horn.Sound()
-		c.delay(1000)
-	}
+	c.honkn(3, 1000)
+
 	// start self-drive
 	c.selfdrive = true
 	fwd := false
@@ -295,13 +303,20 @@ func (c *Car) selfDriveOn() {
 			c.delay(500)
 			maxd, angle := c.scan()
 			log.Printf("maxd=%.0f, angle=%v", maxd, angle)
-			for i := 0; i < 3 && maxd < 40; i++ {
+			retry := 3
+			i := 0
+			for ; i < retry && maxd < 40; i++ {
 				c.backward()
 				c.delay(300)
 				c.stop()
 				maxd, angle = c.scan()
 			}
-			c.rudder.Roll(0)
+			if i == retry {
+				// out of self-driving mode
+				go c.honkn(60, 1000)
+				c.selfdrive = false
+				break
+			}
 			c.turn(angle)
 			continue
 		}
@@ -334,6 +349,7 @@ func (c *Car) scan() (maxDist float64, angle int) {
 			angle = ang
 		}
 	}
+	c.rudder.Roll(0)
 	return
 }
 
