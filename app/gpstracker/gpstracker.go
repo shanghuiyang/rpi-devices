@@ -48,7 +48,7 @@ type gpsTracker struct {
 func (t *gpsTracker) start() {
 	log.Printf("gps tracker start working")
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 		// pt, err := g.MockLocFromCSV()
 		pt, err := t.gps.Loc()
 		if err != nil {
