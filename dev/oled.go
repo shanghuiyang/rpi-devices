@@ -70,6 +70,7 @@ func (o *OLED) Clear() error {
 
 // Close ...
 func (o *OLED) Close() {
+	o.oled.Clear()
 	o.oled.Close()
 }
 

@@ -17,6 +17,7 @@
 /tempmonitor
 /gps
 /led
+/oled
 /relay
 /stepmotor
 /temperature
