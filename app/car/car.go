@@ -5,10 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
@@ -88,16 +86,10 @@ func main() {
 	car.Start()
 	log.Printf("car server started")
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-
-	go func() {
-		sig := <-quit
-		log.Printf("received signal: " + sig.String() + ", stopping server")
+	base.WaitQuit(func() {
 		car.Stop()
-		log.Printf("car server stoped")
-		os.Exit(0)
-	}()
+		rpio.Close()
+	})
 
 	http.HandleFunc("/", carServer)
 	err := http.ListenAndServe(":8080", nil)

@@ -55,6 +55,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
@@ -88,6 +89,10 @@ func main() {
 		light: light,
 		ch:    make(chan bool, 32),
 	}
+	base.WaitQuit(func() {
+		l.off()
+		rpio.Close()
+	})
 	l.start()
 }
 
@@ -126,4 +131,8 @@ func (a *autoLight) listen() {
 		a.ch <- a.voice.Detected()
 		time.Sleep(10 * time.Millisecond)
 	}
+}
+
+func (a *autoLight) off() {
+	a.light.Off()
 }

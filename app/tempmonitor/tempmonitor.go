@@ -53,6 +53,10 @@ func main() {
 		led:   led,
 	}
 
+	base.WaitQuit(func() {
+		rpio.Close()
+	})
+
 	monitor.start()
 }
 

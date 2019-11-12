@@ -2,6 +2,10 @@ package base
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 // Point is GPS point
@@ -22,4 +26,16 @@ func SendEmail(info *EmailInfo) {
 // GetEmailList ...
 func GetEmailList() []string {
 	return emailList
+}
+
+// WaitQuit ...
+func WaitQuit(beforeQuitFunc func()) {
+	c := make(chan os.Signal)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		sig := <-c
+		log.Printf("received signal: %v, will quit\n", sig)
+		beforeQuitFunc()
+		os.Exit(0)
+	}()
 }

@@ -53,6 +53,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
@@ -86,6 +87,10 @@ func main() {
 		temperature: t,
 		relay:       r,
 	}
+	base.WaitQuit(func() {
+		f.off()
+		rpio.Close()
+	})
 	f.start()
 }
 

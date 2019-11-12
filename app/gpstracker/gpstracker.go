@@ -34,8 +34,8 @@ func main() {
 		logger: logger,
 		cloud:  cloud,
 	}
-	defer t.close()
 
+	base.WaitQuit(t.close)
 	t.start()
 }
 
