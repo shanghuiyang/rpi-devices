@@ -23,6 +23,7 @@
 /temperature
 /distance
 /alight
+/homeasst
 .DS_store
 
 # Test binary, build with `go test -c`

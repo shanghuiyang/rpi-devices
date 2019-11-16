@@ -46,8 +46,8 @@ func NewOLED(width, heigth int) (*OLED, error) {
 }
 
 // Display ...
-func (o *OLED) Display(text string, fontSize float64) error {
-	image, err := o.drawText(text, fontSize)
+func (o *OLED) Display(text string, fontSize float64, x, y int) error {
+	image, err := o.drawText(text, fontSize, x, y)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (o *OLED) Close() {
 	o.oled.Close()
 }
 
-func (o *OLED) drawText(text string, size float64) (image.Image, error) {
+func (o *OLED) drawText(text string, size float64, x, y int) (image.Image, error) {
 	dst := image.NewRGBA(image.Rect(0, 0, o.width, o.height))
 	draw.Draw(dst, dst.Bounds(), image.Transparent, image.ZP, draw.Src)
 
@@ -85,7 +85,7 @@ func (o *OLED) drawText(text string, size float64) (image.Image, error) {
 	c.SetFont(o.font)
 	c.SetFontSize(size)
 
-	if _, err := c.DrawString(text, freetype.Pt(0, 35)); err != nil {
+	if _, err := c.DrawString(text, freetype.Pt(x, y)); err != nil {
 		return nil, err
 	}
 
