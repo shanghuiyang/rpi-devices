@@ -92,10 +92,12 @@ func (h *homeAsst) getTempHumidity() {
 	for {
 		temp, humi, err := h.dht11.TempHumidity()
 		if err != nil {
-			log.Printf("failed to get temp and humidity, error: %v", err)
+			log.Printf("temp|humidity: failed to get temp and humidity, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
+		log.Printf("temp|humidity: temp: %v, humidity: %v", temp, humi)
+
 		h.chDspTemp <- temp
 		h.chDspHumi <- humi
 
@@ -130,7 +132,7 @@ func (h *homeAsst) display() {
 			tText = fmt.Sprintf("%.0f'C", temp)
 		}
 		if err := h.oled.Display(tText, 35, 0, 35); err != nil {
-			log.Printf("failed to display temperature, error: %v", err)
+			log.Printf("display: failed to display temperature, error: %v", err)
 		}
 		time.Sleep(3 * time.Second)
 
@@ -139,7 +141,7 @@ func (h *homeAsst) display() {
 			hText = fmt.Sprintf("%.0f%%", humi)
 		}
 		if err := h.oled.Display(hText, 35, 0, 35); err != nil {
-			log.Printf("failed to display humidity, error: %v", err)
+			log.Printf("display: failed to display humidity, error: %v", err)
 		}
 		time.Sleep(3 * time.Second)
 	}
@@ -155,7 +157,7 @@ func (h *homeAsst) push() {
 			}
 			go func() {
 				if err := h.cloud.Push(tv); err != nil {
-					log.Printf("failed to push temperature to cloud, error: %v", err)
+					log.Printf("push: failed to push temperature to cloud, error: %v", err)
 				}
 			}()
 
@@ -166,7 +168,7 @@ func (h *homeAsst) push() {
 			}
 			go func() {
 				if err := h.cloud.Push(hv); err != nil {
-					log.Printf("failed to push humidity to cloud, error: %v", err)
+					log.Printf("push: failed to push humidity to cloud, error: %v", err)
 				}
 			}()
 		}

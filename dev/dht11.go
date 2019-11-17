@@ -3,7 +3,6 @@ package dev
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -37,10 +36,7 @@ func (d *DHT11) TempHumidity() (float64, float64, error) {
 			if data, err := ioutil.ReadFile(tFile); err == nil {
 				if t, err = d.parseData(data); err == nil {
 					gotTemp = true
-					log.Printf("got temp: %v", t)
 				}
-			} else {
-				log.Printf("read tmep data failed: %v", err)
 			}
 		}
 
@@ -48,10 +44,7 @@ func (d *DHT11) TempHumidity() (float64, float64, error) {
 			if data, err := ioutil.ReadFile(hFile); err == nil {
 				if h, err = d.parseData(data); err == nil {
 					gotHumidity = true
-					log.Printf("got humidity: %v", h)
 				}
-			} else {
-				log.Printf("read humidity data failed: %v", err)
 			}
 		}
 		if gotTemp && gotHumidity {
@@ -65,7 +58,6 @@ func (d *DHT11) TempHumidity() (float64, float64, error) {
 
 func (d *DHT11) parseData(data []byte) (float64, error) {
 	s := strings.Trim(string(data), " \t\n")
-	log.Printf("data: %v", s)
 	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return 0, err
