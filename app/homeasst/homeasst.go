@@ -40,9 +40,9 @@ func main() {
 
 	infr := dev.NewInfraredDetector(pinInfr)
 	light := dev.NewLed(pinLight)
+	led := dev.NewLed(pinLed)
 
-	asst := newHomeAsst(dht11, oled, infr, light, cloud)
-
+	asst := newHomeAsst(dht11, oled, infr, light, led, cloud)
 	base.WaitQuit(func() {
 		asst.stop()
 		rpio.Close()
@@ -55,26 +55,32 @@ type homeAsst struct {
 	oled     *dev.OLED
 	infrared *dev.InfraredDetector
 	light    *dev.Led
+	led      *dev.Led
 	cloud    iot.Cloud
 
 	chDspTemp   chan float64 // for disploy on oled
 	chDspHumi   chan float64 // for disploy on oled
 	chCloudTemp chan float64 // for push to iot cloud
 	chCloudHumi chan float64 // for push to iot cloud
+	chAlertTemp chan float64 // for push to iot alert
+	chAlertHumi chan float64 // for push to iot alert
 	chObj       chan bool
 }
 
-func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, infr *dev.InfraredDetector, light *dev.Led, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, infr *dev.InfraredDetector, light *dev.Led, led *dev.Led, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dht11:       dht11,
 		oled:        oled,
 		infrared:    infr,
 		light:       light,
+		led:         led,
 		cloud:       cloud,
 		chDspTemp:   make(chan float64, 4),
 		chDspHumi:   make(chan float64, 4),
 		chCloudTemp: make(chan float64, 4),
 		chCloudHumi: make(chan float64, 4),
+		chAlertTemp: make(chan float64, 4),
+		chAlertHumi: make(chan float64, 4),
 		chObj:       make(chan bool, 32),
 	}
 }
@@ -84,6 +90,7 @@ func (h *homeAsst) start() {
 	go h.push()
 	go h.detect()
 	go h.alight()
+	go h.alert(false)
 
 	h.getTempHumidity()
 }
@@ -103,6 +110,9 @@ func (h *homeAsst) getTempHumidity() {
 
 		h.chCloudTemp <- temp
 		h.chCloudHumi <- humi
+
+		h.chAlertTemp <- temp
+		h.chAlertHumi <- humi
 		time.Sleep(30 * time.Second)
 	}
 }
@@ -204,7 +214,39 @@ func (h *homeAsst) alight() {
 	}
 }
 
+func (h *homeAsst) alert(enable bool) {
+	var (
+		temp float64 = -999
+		humi float64 = -999
+	)
+	for {
+		select {
+		case v := <-h.chAlertTemp:
+			temp = v
+		default:
+			// do nothing
+		}
+
+		select {
+		case v := <-h.chAlertHumi:
+			humi = v
+		default:
+			// do nothing
+		}
+
+		if enable && ((temp > -273 && temp < 18) || temp > 32 || (humi > 0 && humi < 50) || humi > 60) {
+			h.led.On()
+			time.Sleep(1 * time.Second)
+			h.led.Off()
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		h.led.Off()
+	}
+}
+
 func (h *homeAsst) stop() {
 	h.oled.Close()
 	h.light.Off()
+	h.led.Off()
 }
