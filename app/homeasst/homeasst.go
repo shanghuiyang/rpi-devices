@@ -50,6 +50,11 @@ func main() {
 	asst.start()
 }
 
+type value struct {
+	temp float64
+	humi float64
+}
+
 type homeAsst struct {
 	dht11    *dev.DHT11
 	oled     *dev.OLED
@@ -58,30 +63,24 @@ type homeAsst struct {
 	led      *dev.Led
 	cloud    iot.Cloud
 
-	chDspTemp   chan float64 // for disploy on oled
-	chDspHumi   chan float64 // for disploy on oled
-	chCloudTemp chan float64 // for push to iot cloud
-	chCloudHumi chan float64 // for push to iot cloud
-	chAlertTemp chan float64 // for push to iot alert
-	chAlertHumi chan float64 // for push to iot alert
-	chObj       chan bool
+	chDisplay chan *value // for disploying on oled
+	chCloud   chan *value // for pushing to iot cloud
+	chAlert   chan *value // for alerting
+	chDetect  chan bool   // for infrared detecting objects
 }
 
 func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, infr *dev.InfraredDetector, light *dev.Led, led *dev.Led, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
-		dht11:       dht11,
-		oled:        oled,
-		infrared:    infr,
-		light:       light,
-		led:         led,
-		cloud:       cloud,
-		chDspTemp:   make(chan float64, 4),
-		chDspHumi:   make(chan float64, 4),
-		chCloudTemp: make(chan float64, 4),
-		chCloudHumi: make(chan float64, 4),
-		chAlertTemp: make(chan float64, 4),
-		chAlertHumi: make(chan float64, 4),
-		chObj:       make(chan bool, 32),
+		dht11:     dht11,
+		oled:      oled,
+		infrared:  infr,
+		light:     light,
+		led:       led,
+		cloud:     cloud,
+		chDisplay: make(chan *value, 4),
+		chCloud:   make(chan *value, 4),
+		chAlert:   make(chan *value, 4),
+		chDetect:  make(chan bool, 32),
 	}
 }
 
@@ -105,36 +104,25 @@ func (h *homeAsst) getTempHumidity() {
 		}
 		log.Printf("temp|humidity: temp: %v, humidity: %v", temp, humi)
 
-		h.chDspTemp <- temp
-		h.chDspHumi <- humi
-
-		h.chCloudTemp <- temp
-		h.chCloudHumi <- humi
-
-		h.chAlertTemp <- temp
-		h.chAlertHumi <- humi
+		v := &value{
+			temp: temp,
+			humi: humi,
+		}
+		h.chDisplay <- v
+		h.chCloud <- v
+		h.chAlert <- v
 		time.Sleep(30 * time.Second)
 	}
 }
 
 func (h *homeAsst) display() {
-	var (
-		temp float64 = -999
-		humi float64 = -999
-	)
+	var temp, humi float64 = -999, -999
 	for {
 		select {
-		case v := <-h.chDspTemp:
-			temp = v
+		case v := <-h.chDisplay:
+			temp, humi = v.temp, v.humi
 		default:
 			// do nothing, just use the latest temp
-		}
-
-		select {
-		case v := <-h.chDspHumi:
-			humi = v
-		default:
-			// do nothing, just use the latest humidity
 		}
 
 		tText := "N/A"
@@ -158,37 +146,38 @@ func (h *homeAsst) display() {
 }
 
 func (h *homeAsst) push() {
-	for {
-		select {
-		case v := <-h.chCloudTemp:
+	for v := range h.chCloud {
+		go func(v *value) {
 			tv := &iot.Value{
 				Device: "5d3c467ce4b04a9a92a02343",
-				Value:  v,
+				Value:  v.temp,
 			}
-			go func() {
-				if err := h.cloud.Push(tv); err != nil {
-					log.Printf("push: failed to push temperature to cloud, error: %v", err)
-				}
-			}()
+			if err := h.cloud.Push(tv); err != nil {
+				log.Printf("push: failed to push temperature to cloud, error: %v", err)
+			}
 
-		case v := <-h.chCloudHumi:
 			hv := &iot.Value{
 				Device: "5d3c4627e4b04a9a92a02342",
-				Value:  v,
+				Value:  v.humi,
 			}
-			go func() {
-				if err := h.cloud.Push(hv); err != nil {
-					log.Printf("push: failed to push humidity to cloud, error: %v", err)
-				}
-			}()
-		}
+			if err := h.cloud.Push(hv); err != nil {
+				log.Printf("push: failed to push humidity to cloud, error: %v", err)
+			}
+		}(v)
 	}
 }
 
 func (h *homeAsst) detect() {
 	for {
-		h.chObj <- h.infrared.Detected()
-		time.Sleep(100 * time.Millisecond)
+		detected := h.infrared.Detected()
+		h.chDetect <- detected
+
+		t := 200 * time.Millisecond
+		if detected {
+			// make a dalay detecting
+			t = 1 * time.Second
+		}
+		time.Sleep(t)
 	}
 }
 
@@ -196,7 +185,7 @@ func (h *homeAsst) alight() {
 	h.light.Off()
 	isLightOn := false
 	lastTrig := time.Now()
-	for b := range h.chObj {
+	for b := range h.chDetect {
 		if b {
 			log.Printf("alight: detected an object")
 			if !isLightOn {
@@ -215,21 +204,11 @@ func (h *homeAsst) alight() {
 }
 
 func (h *homeAsst) alert(enable bool) {
-	var (
-		temp float64 = -999
-		humi float64 = -999
-	)
+	var temp, humi float64 = -999, -999
 	for {
 		select {
-		case v := <-h.chAlertTemp:
-			temp = v
-		default:
-			// do nothing
-		}
-
-		select {
-		case v := <-h.chAlertHumi:
-			humi = v
+		case v := <-h.chAlert:
+			temp, humi = v.temp, v.humi
 		default:
 			// do nothing
 		}
@@ -242,6 +221,7 @@ func (h *homeAsst) alert(enable bool) {
 			continue
 		}
 		h.led.Off()
+		time.Sleep(1 * time.Second)
 	}
 }
 
