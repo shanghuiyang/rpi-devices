@@ -1,12 +1,12 @@
 <img src="../../img/auto-light.gif" width=80% height=80% />
 
 # Auto Light
-Auto-Light let you control a led light working with a voice detector together.
-the led will light up when the voice detector detect a voice.
-and the led will turn off after 35 seconds.
+Auto-Light let you control a led light working with a infared detector together.
+the led light will light up when the infared detector detects objects.
+and the led will turn off after 30 seconds.
 
 ## Connect
-voice detector:
+infrared detector:
 - vcc: phys.1/3.3v
 - out: phys.3/BMC.2
 - gnd: phys.9/GND
@@ -19,7 +19,7 @@ led:
 
           +---------+
           |         |
-          | voice   |
+          | infrared|
           | detector|
           |         |
           +-+--+--+-+
