@@ -12,9 +12,7 @@ import (
 )
 
 const (
-	pinLed   = 26
-	pinLight = 16
-	pinInfr  = 18
+	pinLed = 26
 )
 
 func main() {
@@ -25,7 +23,7 @@ func main() {
 	defer rpio.Close()
 
 	dht11 := dev.NewDHT11()
-
+	led := dev.NewLed(pinLed)
 	oled, err := dev.NewOLED(128, 32)
 	if err != nil {
 		log.Printf("failed to create an oled, error: %v", err)
@@ -38,11 +36,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	infr := dev.NewInfraredDetector(pinInfr)
-	light := dev.NewLed(pinLight)
-	led := dev.NewLed(pinLed)
-
-	asst := newHomeAsst(dht11, oled, infr, light, led, cloud)
+	asst := newHomeAsst(dht11, oled, led, cloud)
 	base.WaitQuit(func() {
 		asst.stop()
 		rpio.Close()
@@ -56,41 +50,31 @@ type value struct {
 }
 
 type homeAsst struct {
-	dht11    *dev.DHT11
-	oled     *dev.OLED
-	infrared *dev.InfraredDetector
-	light    *dev.Led
-	led      *dev.Led
-	cloud    iot.Cloud
-
+	dht11     *dev.DHT11
+	oled      *dev.OLED
+	led       *dev.Led
+	cloud     iot.Cloud
 	chDisplay chan *value // for disploying on oled
 	chCloud   chan *value // for pushing to iot cloud
 	chAlert   chan *value // for alerting
-	chDetect  chan bool   // for infrared detecting objects
 }
 
-func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, infr *dev.InfraredDetector, light *dev.Led, led *dev.Led, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, led *dev.Led, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dht11:     dht11,
 		oled:      oled,
-		infrared:  infr,
-		light:     light,
 		led:       led,
 		cloud:     cloud,
 		chDisplay: make(chan *value, 4),
 		chCloud:   make(chan *value, 4),
 		chAlert:   make(chan *value, 4),
-		chDetect:  make(chan bool, 32),
 	}
 }
 
 func (h *homeAsst) start() {
 	go h.display()
 	go h.push()
-	go h.detect()
-	go h.alight()
 	go h.alert(false)
-
 	h.getTempHumidity()
 }
 
@@ -167,59 +151,6 @@ func (h *homeAsst) push() {
 	}
 }
 
-func (h *homeAsst) detect() {
-	for {
-		detected := h.infrared.Detected()
-		h.chDetect <- detected
-
-		t := 200 * time.Millisecond
-		if detected {
-			// make a dalay detecting
-			t = 1 * time.Second
-		}
-		time.Sleep(t)
-	}
-}
-
-func (h *homeAsst) alight() {
-	h.light.Off()
-	isLightOn := false
-	lastTrig := time.Now()
-	for b := range h.chDetect {
-		if b {
-			log.Printf("alight: detected an object")
-			if !isLightOn {
-				h.light.On()
-				isLightOn = true
-			}
-			lastTrig = time.Now()
-			go func() {
-				// draw a chart looks like:
-				//
-				// ____|___|____
-				//
-				v := &iot.Value{
-					Device: "5dd29e1be4b074c40dfe87c4",
-					Value:  0,
-				}
-				h.cloud.Push(v)
-				time.Sleep(5 * time.Second)
-				v.Value = 1
-				h.cloud.Push(v)
-				time.Sleep(5 * time.Second)
-				v.Value = 0
-				h.cloud.Push(v)
-			}()
-			continue
-		}
-		if time.Now().Sub(lastTrig).Seconds() > 30 && isLightOn {
-			log.Printf("alight: timeout, light off")
-			h.light.Off()
-			isLightOn = false
-		}
-	}
-}
-
 func (h *homeAsst) alert(enable bool) {
 	var temp, humi float64 = -999, -999
 	for {
@@ -244,6 +175,5 @@ func (h *homeAsst) alert(enable bool) {
 
 func (h *homeAsst) stop() {
 	h.oled.Close()
-	h.light.Off()
 	h.led.Off()
 }

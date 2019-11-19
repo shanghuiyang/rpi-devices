@@ -1,9 +1,9 @@
 /*
-Auto-Light let you control a led light working with a voice detector together
-the led will light up when the voice detector detect a voice.
-and the led will turn off after 35 seconds.
+Auto-Light let you control a led light working with a infrared detector together
+the led light will light up when the infrared detector detects objects.
+and the led will turn off after 30 seconds.
 
-voice detector:
+infrared detector:
  - vcc: phys.1/3.3v
  - out: phys.3/BCM.2
  - gnd: phys.9/GND
@@ -16,7 +16,7 @@ voice detector:
 
           o---------o
           |         |
-          | voice   |
+          | Infrared|
           | detector|
           |         |
           o-+--+--+-o
@@ -57,12 +57,13 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/stianeikeland/go-rpio"
 )
 
 const (
-	voicePin = 7
-	ledPin   = 3
+	pinLight = 16
+	pinInfra = 18
 )
 
 func main() {
@@ -72,65 +73,96 @@ func main() {
 	}
 	defer rpio.Close()
 
-	v := dev.NewVoiceDetector(voicePin)
-	if v == nil {
-		log.Printf("failed to new a voice detector")
-		return
-	}
-
-	light := dev.NewLed(ledPin)
+	infr := dev.NewInfraredDetector(pinInfra)
+	light := dev.NewLed(pinLight)
 	if light == nil {
 		log.Printf("failed to new a led light")
 		return
 	}
 
-	l := &autoLight{
-		voice: v,
+	wsnCfg := &base.WsnConfig{
+		Token: "your token",
+		API:   "http://www.wsncloud.com/api/data/v1/numerical/insert",
+	}
+	cloud := iot.NewCloud(wsnCfg)
+
+	a := &autoLight{
+		infra: infr,
 		light: light,
+		cloud: cloud,
 		ch:    make(chan bool, 32),
 	}
 	base.WaitQuit(func() {
-		l.off()
+		a.off()
 		rpio.Close()
 	})
-	l.start()
+	a.start()
 }
 
 type autoLight struct {
-	voice *dev.VoiceDetector
+	infra *dev.InfraredDetector
 	light *dev.Led
+	cloud iot.Cloud
 	ch    chan bool
 }
 
 func (a *autoLight) start() {
-	go a.listen()
+	go a.detect()
 
-	a.light.Off()
+	a.off()
 	isLightOn := false
 	lastTrig := time.Now()
 	for b := range a.ch {
 		if b {
-			log.Printf("detected a voice")
+			log.Printf("detected objects")
 			if !isLightOn {
-				a.light.On()
+				a.on()
 				isLightOn = true
 			}
 			lastTrig = time.Now()
+			go func() {
+				// draw a chart looks like:
+				//
+				// ____|___|____
+				//
+				v := &iot.Value{
+					Device: "5dd29e1be4b074c40dfe87c4",
+					Value:  0,
+				}
+				a.cloud.Push(v)
+				time.Sleep(5 * time.Second)
+				v.Value = 1
+				a.cloud.Push(v)
+				time.Sleep(5 * time.Second)
+				v.Value = 0
+				a.cloud.Push(v)
+			}()
 			continue
 		}
-		if time.Now().Sub(lastTrig).Seconds() > 35 && isLightOn {
+		if time.Now().Sub(lastTrig).Seconds() > 30 && isLightOn {
 			log.Printf("timeout, light off")
-			a.light.Off()
+			a.off()
 			isLightOn = false
 		}
 	}
 }
 
-func (a *autoLight) listen() {
+func (a *autoLight) detect() {
 	for {
-		a.ch <- a.voice.Detected()
-		time.Sleep(10 * time.Millisecond)
+		detected := a.infra.Detected()
+		a.ch <- detected
+
+		t := 200 * time.Millisecond
+		if detected {
+			// make a dalay detecting
+			t = 1 * time.Second
+		}
+		time.Sleep(t)
 	}
+}
+
+func (a *autoLight) on() {
+	a.light.On()
 }
 
 func (a *autoLight) off() {
