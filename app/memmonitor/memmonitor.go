@@ -17,15 +17,16 @@ const (
 )
 
 func main() {
-	oneNetCfg := &base.OneNetConfig{
+	wsnCfg := &base.WsnConfig{
 		Token: "your token",
-		API:   "http://api.heclouds.com/devices/540381180/datapoints",
+		API:   "http://www.wsncloud.com/api/data/v1/numerical/insert",
 	}
-	cloud := iot.NewCloud(oneNetCfg)
+	cloud := iot.NewCloud(wsnCfg)
 	if cloud == nil {
 		log.Printf("failed to new OneNet iot cloud")
 		return
 	}
+
 	monitor := &memMonitor{
 		cloud: cloud,
 	}
@@ -39,17 +40,18 @@ type memMonitor struct {
 func (m *memMonitor) start() {
 	log.Printf("memory monitor start working")
 	for {
-		time.Sleep(memoryInterval)
 		f, err := m.free()
 		if err != nil {
 			log.Printf("[%v]failed to get free memory, error: %v", logTagMemory, err)
+			time.Sleep(30 * time.Second)
 			continue
 		}
 		v := &iot.Value{
-			Device: "memory",
+			Device: "5d32cfdde4b04a9a929fd73f",
 			Value:  f,
 		}
-		m.cloud.Push(v)
+		go m.cloud.Push(v)
+		time.Sleep(memoryInterval)
 	}
 }
 

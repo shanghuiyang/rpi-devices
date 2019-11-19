@@ -16,11 +16,11 @@ const (
 )
 
 func main() {
-	oneNetCfg := &base.OneNetConfig{
+	wsnCfg := &base.WsnConfig{
 		Token: "your token",
-		API:   "http://api.heclouds.com/devices/540381180/datapoints",
+		API:   "http://www.wsncloud.com/api/data/v1/numerical/insert",
 	}
-	cloud := iot.NewCloud(oneNetCfg)
+	cloud := iot.NewCloud(wsnCfg)
 	if cloud == nil {
 		log.Printf("failed to new OneNet iot cloud")
 		return
@@ -39,18 +39,19 @@ type cpuMonitor struct {
 func (c *cpuMonitor) start() {
 	log.Printf("cpu monitor start working")
 	for {
-		time.Sleep(cpuInterval)
 		f, err := c.idle()
 		if err != nil {
 			log.Printf("failed to get cpu idle, error: %v", err)
+			time.Sleep(30 * time.Second)
 			continue
 		}
 
 		v := &iot.Value{
-			Device: "cpu",
+			Device: "5d4c25b1e4b074c40dfe4cbe",
 			Value:  f,
 		}
 		go c.cloud.Push(v)
+		time.Sleep(cpuInterval)
 	}
 }
 

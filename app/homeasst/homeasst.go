@@ -193,6 +193,23 @@ func (h *homeAsst) alight() {
 				isLightOn = true
 			}
 			lastTrig = time.Now()
+			go func() {
+				// draw a chart looks like:
+				//
+				// ____|___|____
+				//
+				v := &iot.Value{
+					Device: "5dd29e1be4b074c40dfe87c4",
+					Value:  0,
+				}
+				h.cloud.Push(v)
+				time.Sleep(5 * time.Second)
+				v.Value = 1
+				h.cloud.Push(v)
+				time.Sleep(5 * time.Second)
+				v.Value = 0
+				h.cloud.Push(v)
+			}()
 			continue
 		}
 		if time.Now().Sub(lastTrig).Seconds() > 30 && isLightOn {
