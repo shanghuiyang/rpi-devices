@@ -95,12 +95,13 @@ func (h *homeAsst) getTempHumidity() {
 		h.chDisplay <- v
 		h.chCloud <- v
 		h.chAlert <- v
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
 
 func (h *homeAsst) display() {
 	var temp, humi float64 = -999, -999
+	on := true
 	for {
 		select {
 		case v := <-h.chDisplay:
@@ -109,7 +110,19 @@ func (h *homeAsst) display() {
 			// do nothing, just use the latest temp
 		}
 
-		tText := "N/A"
+		hour := time.Now().Hour()
+		if hour >= 20 || hour < 8 {
+			// turn off oled at 20:00-08:00
+			if on {
+				h.oled.Off()
+				on = false
+			}
+			time.Sleep(10 * time.Second)
+			continue
+		}
+
+		on = true
+		tText := "--"
 		if temp > -273 {
 			tText = fmt.Sprintf("%.0f'C", temp)
 		}
@@ -118,7 +131,7 @@ func (h *homeAsst) display() {
 		}
 		time.Sleep(3 * time.Second)
 
-		hText := "N/A"
+		hText := "  --"
 		if humi > 0 {
 			hText = fmt.Sprintf("%.0f%%", humi)
 		}
