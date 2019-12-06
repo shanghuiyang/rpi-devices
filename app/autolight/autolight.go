@@ -64,6 +64,7 @@ import (
 const (
 	pinLight = 16
 	pinInfra = 18
+	pinLed   = 26
 )
 
 func main() {
@@ -74,6 +75,7 @@ func main() {
 	defer rpio.Close()
 
 	infr := dev.NewInfraredDetector(pinInfra)
+	led := dev.NewLed(pinLed)
 	light := dev.NewLed(pinLight)
 	if light == nil {
 		log.Printf("failed to new a led light")
@@ -89,6 +91,7 @@ func main() {
 	a := &autoLight{
 		infra: infr,
 		light: light,
+		led:   led,
 		cloud: cloud,
 		ch:    make(chan bool, 32),
 	}
@@ -102,6 +105,7 @@ func main() {
 type autoLight struct {
 	infra *dev.InfraredDetector
 	light *dev.Led
+	led   *dev.Led
 	cloud iot.Cloud
 	ch    chan bool
 }
@@ -139,7 +143,7 @@ func (a *autoLight) start() {
 			}()
 			continue
 		}
-		if time.Now().Sub(lastTrig).Seconds() > 30 && isLightOn {
+		if time.Now().Sub(lastTrig).Seconds() > 45 && isLightOn {
 			log.Printf("timeout, light off")
 			a.off()
 			isLightOn = false
@@ -154,6 +158,7 @@ func (a *autoLight) detect() {
 
 		t := 200 * time.Millisecond
 		if detected {
+			go a.ledBlink()
 			// make a dalay detecting
 			t = 1 * time.Second
 		}
@@ -167,4 +172,10 @@ func (a *autoLight) on() {
 
 func (a *autoLight) off() {
 	a.light.Off()
+}
+
+func (a *autoLight) ledBlink() {
+	a.led.On()
+	time.Sleep(300 * time.Second)
+	a.led.Off()
 }

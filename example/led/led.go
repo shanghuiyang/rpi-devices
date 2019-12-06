@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	p12 = 16 // led
+	p12 = 26 // led
 )
 
 func main() {
