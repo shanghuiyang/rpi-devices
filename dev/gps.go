@@ -17,6 +17,13 @@ const (
 	logTagGPS = "gps"
 )
 
+const (
+	// Recommended Minimum Specific Data from GPS
+	gpsRMC = "$GPRMC"
+	// Recommended Minimum Specific Data from GPS & Beidou/China
+	gpsAndBdRMC = "$GNRMC"
+)
+
 var (
 	points     []*base.Point
 	pointCount int
@@ -31,13 +38,9 @@ type GPS struct {
 
 // NewGPS ...
 func NewGPS() *GPS {
-	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
-	p, err := serial.OpenPort(c)
-	if err != nil {
+	g := &GPS{}
+	if err := g.open(); err != nil {
 		return nil
-	}
-	g := &GPS{
-		port: p,
 	}
 	return g
 }
@@ -51,7 +54,12 @@ func (g *GPS) Loc() (*base.Point, error) {
 	for a < 512 {
 		n, err := g.port.Read(buf[a:])
 		if err != nil {
-			return nil, fmt.Errorf("error on read from port, %v", err)
+			// try to reopen serial
+			g.port.Close()
+			if err := g.open(); err != nil {
+				log.Printf("[%v]failed open serial, error: %v", logTagGPS, err)
+			}
+			return nil, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
 		}
 		a += n
 	}
@@ -63,12 +71,11 @@ func (g *GPS) Loc() (*base.Point, error) {
 			break
 		}
 		line = strings.Trim(line, " \t\n")
-		if strings.Contains(line, "$GPRMC") {
+		if strings.Contains(line, gpsRMC) || strings.Contains(line, gpsAndBdRMC) {
 			loc = line
 			break
 		}
 	}
-	// log.Printf("buf: %v\n", string(buf[:a]))
 
 	if loc == "" {
 		return nil, fmt.Errorf("failed to read location from gps device")
@@ -191,4 +198,14 @@ func (g *GPS) MockLocFromCSV() (*base.Point, error) {
 // Close ...
 func (g *GPS) Close() {
 	g.port.Close()
+}
+
+func (g *GPS) open() error {
+	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
+	p, err := serial.OpenPort(c)
+	if err != nil {
+		return err
+	}
+	g.port = p
+	return nil
 }
