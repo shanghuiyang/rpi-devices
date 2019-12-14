@@ -154,7 +154,7 @@ func (a *autoLight) start() {
 func (a *autoLight) detect() {
 	for {
 		hour := time.Now().Hour()
-		if hour >= 8 || hour < 18 {
+		if hour >= 8 && hour < 18 {
 			// disable autolight between 8:00-18:00
 			time.Sleep(1 * time.Minute)
 			continue
