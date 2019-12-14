@@ -24,6 +24,7 @@
 /distance
 /autolight
 /homeasst
+/pm25
 .DS_store
 
 # Test binary, build with `go test -c`
