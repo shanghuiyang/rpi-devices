@@ -182,6 +182,6 @@ func (a *autoLight) off() {
 
 func (a *autoLight) ledBlink() {
 	a.led.On()
-	time.Sleep(300 * time.Second)
+	time.Sleep(300 * time.Millisecond)
 	a.led.Off()
 }

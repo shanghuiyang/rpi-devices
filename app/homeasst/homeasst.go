@@ -23,6 +23,7 @@ func main() {
 	defer rpio.Close()
 
 	dht11 := dev.NewDHT11()
+	air := dev.NewPMS7003()
 	led := dev.NewLed(pinLed)
 	oled, err := dev.NewOLED(128, 32)
 	if err != nil {
@@ -36,7 +37,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	asst := newHomeAsst(dht11, oled, led, cloud)
+	asst := newHomeAsst(dht11, air, oled, led, cloud)
 	base.WaitQuit(func() {
 		asst.stop()
 		rpio.Close()
@@ -47,10 +48,12 @@ func main() {
 type value struct {
 	temp float64
 	humi float64
+	pm25 uint16
 }
 
 type homeAsst struct {
 	dht11     *dev.DHT11
+	air       *dev.PMS7003
 	oled      *dev.OLED
 	led       *dev.Led
 	cloud     iot.Cloud
@@ -59,9 +62,10 @@ type homeAsst struct {
 	chAlert   chan *value // for alerting
 }
 
-func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, led *dev.Led, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dht11 *dev.DHT11, air *dev.PMS7003, oled *dev.OLED, led *dev.Led, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dht11:     dht11,
+		air:       air,
 		oled:      oled,
 		led:       led,
 		cloud:     cloud,
@@ -74,11 +78,11 @@ func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, led *dev.Led, cloud iot.Cloud
 func (h *homeAsst) start() {
 	go h.display()
 	go h.push()
-	go h.alert(false)
-	h.getTempHumidity()
+	go h.alert()
+	h.getData()
 }
 
-func (h *homeAsst) getTempHumidity() {
+func (h *homeAsst) getData() {
 	for {
 		temp, humi, err := h.dht11.TempHumidity()
 		if err != nil {
@@ -88,9 +92,18 @@ func (h *homeAsst) getTempHumidity() {
 		}
 		log.Printf("temp|humidity: temp: %v, humidity: %v", temp, humi)
 
+		pm25, err := h.air.PM25()
+		if err != nil {
+			log.Printf("pm25: failed to get pm2.5, error: %v", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		log.Printf("pm2.5: %v ug/m3", pm25)
+
 		v := &value{
 			temp: temp,
 			humi: humi,
+			pm25: pm25,
 		}
 		h.chDisplay <- v
 		h.chCloud <- v
@@ -100,12 +113,15 @@ func (h *homeAsst) getTempHumidity() {
 }
 
 func (h *homeAsst) display() {
-	var temp, humi float64 = -999, -999
+	var (
+		temp, humi float64 = -999, -999
+		pm25       uint16
+	)
 	on := true
 	for {
 		select {
 		case v := <-h.chDisplay:
-			temp, humi = v.temp, v.humi
+			temp, humi, pm25 = v.temp, v.humi, v.pm25
 		default:
 			// do nothing, just use the latest temp
 		}
@@ -131,12 +147,21 @@ func (h *homeAsst) display() {
 		}
 		time.Sleep(3 * time.Second)
 
-		hText := "  --"
+		hText := " --"
 		if humi > 0 {
 			hText = fmt.Sprintf("%.0f%%", humi)
 		}
 		if err := h.oled.Display(hText, 35, 0, 35); err != nil {
 			log.Printf("display: failed to display humidity, error: %v", err)
+		}
+		time.Sleep(3 * time.Second)
+
+		pmText := "  --"
+		if pm25 > 0 {
+			pmText = fmt.Sprintf("p%3d", pm25)
+		}
+		if err := h.oled.Display(pmText, 35, 0, 35); err != nil {
+			log.Printf("display: failed to display pm2.5, error: %v", err)
 		}
 		time.Sleep(3 * time.Second)
 	}
@@ -160,21 +185,32 @@ func (h *homeAsst) push() {
 			if err := h.cloud.Push(hv); err != nil {
 				log.Printf("push: failed to push humidity to cloud, error: %v", err)
 			}
+
+			pv := &iot.Value{
+				Device: "5df507c4e4b04a9a92a64928",
+				Value:  v.pm25,
+			}
+			if err := h.cloud.Push(pv); err != nil {
+				log.Printf("push: failed to push pm2.5 to cloud, error: %v", err)
+			}
 		}(v)
 	}
 }
 
-func (h *homeAsst) alert(enable bool) {
-	var temp, humi float64 = -999, -999
+func (h *homeAsst) alert() {
+	var (
+		temp, humi float64 = -999, -999
+		pm25       uint16
+	)
 	for {
 		select {
 		case v := <-h.chAlert:
-			temp, humi = v.temp, v.humi
+			temp, humi, pm25 = v.temp, v.humi, v.pm25
 		default:
 			// do nothing
 		}
 
-		if enable && ((temp > -273 && temp < 18) || temp > 32 || (humi > 0 && humi < 50) || humi > 60) {
+		if (temp > 0 && temp < 15) || humi > 70 || pm25 > 100 {
 			h.led.On()
 			time.Sleep(1 * time.Second)
 			h.led.Off()
