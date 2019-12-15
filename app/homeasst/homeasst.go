@@ -32,7 +32,7 @@ func main() {
 	}
 
 	wsnCfg := &base.WsnConfig{
-		Token: "47ccbab9769d6ce64fd9d8b03ef63d9e",
+		Token: "your token",
 		API:   "http://www.wsncloud.com/api/data/v1/numerical/insert",
 	}
 	cloud := iot.NewCloud(wsnCfg)
@@ -158,7 +158,7 @@ func (h *homeAsst) display() {
 
 		pmText := "  --"
 		if pm25 > 0 {
-			pmText = fmt.Sprintf("p%3d", pm25)
+			pmText = fmt.Sprintf("P%3d", pm25)
 		}
 		if err := h.oled.Display(pmText, 35, 0, 35); err != nil {
 			log.Printf("display: failed to display pm2.5, error: %v", err)
