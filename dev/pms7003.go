@@ -38,33 +38,39 @@ func NewPMS7003() *PMS7003 {
 	return p
 }
 
-// PM25 ...
-func (p *PMS7003) PM25() (uint16, error) {
-	if err := p.port.Flush(); err != nil {
-		return 0, err
+// Get returns pm2.5 and pm10
+func (p *PMS7003) Get() (pm25, pm10 uint16, err error) {
+	pm25 = 0
+	pm10 = 0
+	if err = p.port.Flush(); err != nil {
+		return
 	}
 	a := 0
 	for a < 32 {
-		n, err := p.port.Read(pmBuf[a:])
-		if err != nil {
+		n, er := p.port.Read(pmBuf[a:])
+		if er != nil {
 			// try to reopen serial
 			p.port.Close()
-			if err := p.open(); err != nil {
-				log.Printf("[%v]failed open serial, error: %v", logTagPMS7003, err)
+			if er := p.open(); er != nil {
+				log.Printf("[%v]failed open serial, error: %v", logTagPMS7003, er)
 			}
-			return 0, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
+			err = fmt.Errorf("error on read from port, error: %v. try to open serial again", er)
+			return
 		}
 		a += n
 	}
 
 	if a != 32 {
-		return 0, fmt.Errorf("incorrect data len for pm2.5, len: %v", a)
+		err = fmt.Errorf("incorrect data len for pm2.5, len: %v", a)
+		return
 	}
 	if pmBuf[0] != 0x42 && pmBuf[1] != 0x4d && pmBuf[2] != 0 && pmBuf[3] != 28 {
-		return 0, fmt.Errorf("bad data for pm2.5")
+		err = fmt.Errorf("bad data for pm2.5")
+		return
 	}
-	pm25 := (uint16(pmBuf[6]) << 8) | uint16(pmBuf[7])
-	return pm25, nil
+	pm25 = (uint16(pmBuf[6]) << 8) | uint16(pmBuf[7])
+	pm10 = (uint16(pmBuf[8]) << 8) | uint16(pmBuf[9])
+	return
 }
 
 // Close ...

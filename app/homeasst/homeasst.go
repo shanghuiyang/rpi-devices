@@ -32,7 +32,7 @@ func main() {
 	}
 
 	wsnCfg := &base.WsnConfig{
-		Token: "your token",
+		Token: "47ccbab9769d6ce64fd9d8b03ef63d9e",
 		API:   "http://www.wsncloud.com/api/data/v1/numerical/insert",
 	}
 	cloud := iot.NewCloud(wsnCfg)
@@ -92,7 +92,7 @@ func (h *homeAsst) getData() {
 		}
 		log.Printf("temp|humidity: temp: %v, humidity: %v", temp, humi)
 
-		pm25, err := h.air.PM25()
+		pm25, _, err := h.air.Get()
 		if err != nil {
 			log.Printf("pm25: failed to get pm2.5, error: %v", err)
 			time.Sleep(5 * time.Second)
