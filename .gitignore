@@ -25,6 +25,7 @@
 /autolight
 /homeasst
 /air
+/dht11
 .DS_store
 
 # Test binary, build with `go test -c`

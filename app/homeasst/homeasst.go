@@ -210,7 +210,7 @@ func (h *homeAsst) alert() {
 			// do nothing
 		}
 
-		if (temp > 0 && temp < 15) || humi > 70 || pm25 > 100 {
+		if (temp > 0 && temp < 15) || humi > 70 || pm25 > 130 {
 			h.led.On()
 			time.Sleep(1 * time.Second)
 			h.led.Off()
