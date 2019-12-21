@@ -148,7 +148,7 @@ func (h *homeAsst) display() {
 		time.Sleep(3 * time.Second)
 
 		hText := " --"
-		if humi > 0 {
+		if humi >= 0 {
 			hText = fmt.Sprintf("%.0f%%", humi)
 		}
 		if err := h.oled.Display(hText, 35, 0, 35); err != nil {
@@ -157,7 +157,7 @@ func (h *homeAsst) display() {
 		time.Sleep(3 * time.Second)
 
 		pmText := "  --"
-		if pm25 > 0 {
+		if pm25 >= 0 {
 			pmText = fmt.Sprintf("P%3d", pm25)
 		}
 		if err := h.oled.Display(pmText, 35, 0, 35); err != nil {
