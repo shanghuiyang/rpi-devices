@@ -8,6 +8,16 @@ import (
 	"syscall"
 )
 
+// Mode ...
+type Mode string
+
+const (
+	// DevMode ...
+	DevMode = "dev"
+	// PrdMode ...
+	PrdMode = "prd"
+)
+
 // Point is GPS point
 type Point struct {
 	Lat float32 `json:"lat"`

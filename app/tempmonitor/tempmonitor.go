@@ -80,7 +80,7 @@ func (m *tempMonitor) start() {
 			Value:  c,
 		}
 		go m.cloud.Push(v)
-		go m.led.BlinkN(5, 500)
+		go m.led.Blink(5, 500)
 
 		if c <= lowTemperatureWarning || c >= highTemperatureWarning {
 			go m.notitfy(c)

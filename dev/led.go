@@ -34,23 +34,14 @@ func (l *Led) Off() {
 	l.pin.Low()
 }
 
-// Blink ...
-func (l *Led) Blink() {
-	for {
-		l.On()
-		time.Sleep(1 * time.Second)
-		l.Off()
-		time.Sleep(1 * time.Second)
-	}
-}
-
-// BlinkN is let led blink n time, interval Millisecond each time
-func (l *Led) BlinkN(n int, interval int) {
+// Blink is let led blink n time, interval Millisecond each time
+func (l *Led) Blink(n int, interval int) {
+	d := time.Duration(interval) * time.Millisecond
 	for i := 0; i < n; i++ {
 		l.On()
-		time.Sleep(time.Duration(interval) * time.Millisecond)
+		time.Sleep(d)
 		l.Off()
-		time.Sleep(time.Duration(interval) * time.Millisecond)
+		time.Sleep(d)
 	}
 }
 

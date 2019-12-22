@@ -164,7 +164,7 @@ func (a *autoLight) detect() {
 
 		t := 200 * time.Millisecond
 		if detected {
-			go a.ledBlink()
+			go a.led.Blink(1, 300)
 			// make a dalay detecting
 			t = 1 * time.Second
 		}
@@ -178,10 +178,4 @@ func (a *autoLight) on() {
 
 func (a *autoLight) off() {
 	a.light.Off()
-}
-
-func (a *autoLight) ledBlink() {
-	a.led.On()
-	time.Sleep(300 * time.Millisecond)
-	a.led.Off()
 }

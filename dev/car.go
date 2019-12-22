@@ -122,7 +122,7 @@ func NewCar(opts ...Option) *Car {
 func (c *Car) Start() error {
 	go c.start()
 	go c.rudder.Roll(0)
-	go c.led.Blink()
+	go c.blink()
 	return nil
 }
 
@@ -217,22 +217,12 @@ func (c *Car) honk() {
 	if c.horn == nil {
 		return
 	}
-	go func() {
-		for i := 0; i < 5; i++ {
-			c.horn.Sound()
-			c.delay(100)
-		}
-	}()
+	go c.horn.Beep(5, 100)
 }
 
-// honkn ...
-func (c *Car) honkn(n int, delay int) {
-	if c.horn == nil {
-		return
-	}
-	for i := 0; i < n; i++ {
-		c.horn.Sound()
-		c.delay(delay)
+func (c *Car) blink() {
+	for {
+		c.led.Blink(1, 1000)
 	}
 }
 
@@ -279,7 +269,7 @@ func (c *Car) selfDriveOn() {
 	c.dist.Dist()
 
 	// make a warning before running into self-driving mode
-	c.honkn(3, 1000)
+	c.horn.Beep(3, 1000)
 
 	// start self-drive
 	c.selfdrive = true
@@ -313,7 +303,7 @@ func (c *Car) selfDriveOn() {
 			}
 			if i == retry {
 				// out of self-driving mode
-				go c.honkn(60, 1000)
+				go c.horn.Beep(60, 1000)
 				c.selfdrive = false
 				break
 			}

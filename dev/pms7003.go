@@ -21,6 +21,11 @@ const (
 	logTagPMS7003 = "PMS7003"
 )
 
+var (
+	mockPMs     = []uint16{50, 120, 150, 250, 120, 50}
+	mockArryIdx = -1
+)
+
 // PMS7003 ...
 type PMS7003 struct {
 	port     *serial.Port
@@ -119,4 +124,13 @@ func (p *PMS7003) check(pm25 uint16) bool {
 		}
 	}
 	return passed
+}
+
+// Mock ...
+func (p *PMS7003) Mock() (uint16, uint16, error) {
+	mockArryIdx++
+	if mockArryIdx == len(mockPMs) {
+		mockArryIdx = 0
+	}
+	return mockPMs[mockArryIdx], mockPMs[mockArryIdx], nil
 }
