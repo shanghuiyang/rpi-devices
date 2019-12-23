@@ -34,7 +34,7 @@ func main() {
 		case "off":
 			led.Off()
 		case "blink":
-			led.BlinkN(5, 100)
+			led.Blink(5, 100)
 		case "fade":
 			led.Fade(3)
 		case "q":
