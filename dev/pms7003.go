@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	mockPMs     = []uint16{50, 120, 150, 250, 120, 50}
+	mockPMs     = []uint16{50, 110, 150, 110, 50}
 	mockArryIdx = -1
 )
 
@@ -115,7 +115,7 @@ func (p *PMS7003) check(pm25 uint16) bool {
 		return true
 	}
 	avg := sum / float64(n)
-	passed := math.Abs(avg-float64(pm25)) < 100
+	passed := math.Abs(avg-float64(pm25)) < 200
 	if passed {
 		p.history[p.idx] = pm25
 		p.idx++

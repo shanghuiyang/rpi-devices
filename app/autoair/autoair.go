@@ -21,7 +21,7 @@ const (
 )
 
 const (
-	trigOnPM25  = 130
+	trigOnPM25  = 120
 	trigOffPm25 = 100
 )
 
@@ -120,6 +120,26 @@ func (a *autoAir) detect() {
 
 func (a *autoAir) clean() {
 	on := false
+	go func() {
+		for {
+			time.Sleep(60 * time.Second)
+			if a.mode != base.PrdMode {
+				continue
+			}
+			state := 0
+			if on {
+				state = 1
+			}
+			v := &iot.Value{
+				Device: "5e00eb8fe4b04a9a92a6b3fc",
+				Value:  state,
+			}
+			if err := a.cloud.Push(v); err != nil {
+				log.Printf("push: failed to push the state of air-clearner to cloud, error: %v", err)
+			}
+		}
+	}()
+
 	for pm25 := range a.chClean {
 		if !on && pm25 >= trigOnPM25 {
 			on = true
