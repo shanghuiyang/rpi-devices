@@ -135,7 +135,7 @@ func (a *autoAir) clean() {
 				Value:  state,
 			}
 			if err := a.cloud.Push(v); err != nil {
-				log.Printf("push: failed to push the state of air-clearner to cloud, error: %v", err)
+				log.Printf("push: failed to push the state of air-cleaner to cloud, error: %v", err)
 			}
 		}
 	}()
@@ -150,7 +150,7 @@ func (a *autoAir) clean() {
 		if on && pm25 < trigOffPm25 {
 			on = false
 			a.trigger()
-			log.Printf("air-clearn was turned off")
+			log.Printf("air-cleaner was turned off")
 			continue
 		}
 	}
