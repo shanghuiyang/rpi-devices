@@ -141,6 +141,17 @@ func (a *autoAir) clean() {
 	}()
 
 	for pm25 := range a.chClean {
+		hour := time.Now().Hour()
+		if pm25 < 400 && (hour >= 20 || hour < 8) {
+			// disable at 20:00-08:00
+			log.Printf("auto air-cleaner was disabled at 20:00-08:00")
+			if on {
+				a.trigger()
+				on = false
+			}
+			continue
+		}
+
 		if !on && pm25 >= trigOnPM25 {
 			on = true
 			a.trigger()
