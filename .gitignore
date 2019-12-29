@@ -27,6 +27,7 @@
 /air
 /dht11
 /autoair
+/ip
 .DS_store
 
 # Test binary, build with `go test -c`

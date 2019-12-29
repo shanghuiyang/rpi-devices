@@ -146,7 +146,7 @@ func (a *autoAir) clean() {
 			// disable at 20:00-08:00
 			log.Printf("auto air-cleaner was disabled at 20:00-08:00")
 			if on {
-				a.trigger()
+				a.turnOff()
 				on = false
 			}
 			continue
@@ -154,13 +154,13 @@ func (a *autoAir) clean() {
 
 		if !on && pm25 >= trigOnPM25 {
 			on = true
-			a.trigger()
+			a.turnOn()
 			log.Printf("air-cleaner was turned on")
 			continue
 		}
 		if on && pm25 < trigOffPm25 {
 			on = false
-			a.trigger()
+			a.turnOff()
 			log.Printf("air-cleaner was turned off")
 			continue
 		}
@@ -206,7 +206,14 @@ func (a *autoAir) alert() {
 	}
 }
 
-func (a *autoAir) trigger() {
+func (a *autoAir) turnOn() {
+	a.sg.Roll(0)
+	time.Sleep(1 * time.Second)
+	a.sg.Roll(-45)
+
+}
+
+func (a *autoAir) turnOff() {
 	a.sg.Roll(0)
 	time.Sleep(1 * time.Second)
 	a.sg.Roll(45)
