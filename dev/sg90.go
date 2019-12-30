@@ -1,3 +1,7 @@
+/*
+Package dev ...
+SG90 is the diriver of servo motor
+*/
 package dev
 
 import (
