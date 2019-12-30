@@ -21,7 +21,7 @@ The following devices had been implemented in the current version, and a device 
   ![](img/dht11.jpg)   ![](img/infared.jpg)   ![](img/oled.jpg)   ![](img/pms7003.jpg)
 
 	Temp&Humidity    Infared           OLED         Air Quality
-   		Sensor       Sensor           Display         (PM2.5)
+   	Sensor       Sensor           Display         (PM2.5)
 
 ## Visualize Data
 The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. Both of them are free for developers. You can implement the interface for new IoT cloud and add it to the framework easily.
