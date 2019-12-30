@@ -1,4 +1,12 @@
 /*
+config your pi:
+1. $ sudo apt-get install -y python-smbus
+2. $ sudo apt-get install -y i2c-tools
+3. $ sudo raspi-config
+4. 	-> [5 interface options] -> [p5 i2c] ->[yes] -> [ok]
+5. $ sudo reboot now
+6. check: $ sudo i2cdetect -y 1
+
 connect to raspberry pi:
 VCC: any 3.3v pin on raspberry
 GND: and GND pin on raspberry

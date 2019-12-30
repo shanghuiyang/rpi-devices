@@ -62,25 +62,27 @@ func getIP() (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-
-	ip := strings.Trim(string(out), " \n")
-	items := strings.Split(ip, ".")
-	if len(items) != 4 {
+	items := strings.Split(string(out), " ")
+	if len(items) == 0 {
 		return 0, fmt.Errorf("failed to exec hostname")
 	}
-	ip1, err := strconv.Atoi(items[0])
+	ips := strings.Split(items[0], ".")
+	if len(ips) != 4 {
+		return 0, fmt.Errorf("incorrect ip format")
+	}
+	ip1, err := strconv.Atoi(ips[0])
 	if err != nil {
 		return 0, err
 	}
-	ip2, err := strconv.Atoi(items[1])
+	ip2, err := strconv.Atoi(ips[1])
 	if err != nil {
 		return 0, err
 	}
-	ip3, err := strconv.Atoi(items[2])
+	ip3, err := strconv.Atoi(ips[2])
 	if err != nil {
 		return 0, err
 	}
-	ip4, err := strconv.Atoi(items[3])
+	ip4, err := strconv.Atoi(ips[3])
 	if err != nil {
 		return 0, err
 	}

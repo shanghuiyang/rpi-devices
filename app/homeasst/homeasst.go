@@ -27,7 +27,7 @@ func main() {
 	oled, err := dev.NewOLED(128, 32)
 	if err != nil {
 		log.Printf("failed to create an oled, error: %v", err)
-		return
+		log.Printf("homeasst will work without oled")
 	}
 
 	wsnCfg := &base.WsnConfig{
@@ -110,6 +110,11 @@ func (h *homeAsst) display() {
 			// do nothing, just use the latest temp
 		}
 
+		if h.oled == nil {
+			time.Sleep(30 * time.Second)
+			continue
+		}
+
 		hour := time.Now().Hour()
 		if hour >= 20 || hour < 8 {
 			// turn off oled at 20:00-08:00
@@ -183,6 +188,8 @@ func (h *homeAsst) alert() {
 }
 
 func (h *homeAsst) stop() {
-	h.oled.Close()
+	if h.oled != nil {
+		h.oled.Close()
+	}
 	h.led.Off()
 }
