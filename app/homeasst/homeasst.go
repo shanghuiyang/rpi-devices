@@ -31,8 +31,8 @@ func main() {
 	}
 
 	wsnCfg := &base.WsnConfig{
-		Token: "your token",
-		API:   "http://www.wsncloud.com/api/data/v1/numerical/insert",
+		Token: base.WsnToken,
+		API:   base.WsnNumericalAPI,
 	}
 	cloud := iot.NewCloud(wsnCfg)
 

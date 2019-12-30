@@ -38,8 +38,8 @@ func main() {
 	}
 
 	oneNetCfg := &base.OneNetConfig{
-		Token: "your token",
-		API:   "http://api.heclouds.com/devices/540381180/datapoints",
+		Token: base.OneNetToken,
+		API:   base.OneNetAPI,
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
