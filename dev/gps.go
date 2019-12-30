@@ -1,9 +1,26 @@
 /*
+Package dev ...
+
+GPS is the driver of NEO-M6 module.
+
+config your pi:
+1. $ sudo raspi-config
+	-> [P5 interface] -> P6 Serial: disable -> [no] -> [yes]
+2. $ sudo vim /boot/config.txt
+	add following two lines:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	enable_uart=1
+	dtoverlay=pi3-miniuart-bt
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. $ sudo reboot now
+4. $ sudo cat /dev/ttyAMA0
+	should see somethings output
+
 connect NEO-6M GPS sensor to raspberry pi:
-VCC: any 5v pin on pi
-GND: any GND pin on pi
-RXT: pin 15 (TXD)
-TXD: pin 14 (RXD)
+VCC: any 5v pin
+GND: any gnd pin
+RXT: pin  8(gpio 15) (TXD)
+TXD: pin 10(gpio 14) (RXD)
 
 -----------------------------------------------------------------------
 

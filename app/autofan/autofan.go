@@ -3,14 +3,14 @@ Auto-Fan let you the fan working with a relay and a temperature sensor together.
 The temperature sensor will trigger the relay to control the fan running or stopping.
 
 temperature sensor:
- - vcc: phys.1/3.3v
- - dat: phys.7/BCM.4
- - gnd: phys.9/GND
+ - vcc: pin 1 or any 3.3v pin
+ - dat: pin 7(gpio 4)
+ - gnd: pin 9 or any gnd pin
 
 realy:
- - vcc: phys.2/5v
- - in:  phys.26/BCM.7
- - gnd: phys.34/GND
+ - vcc: pin 2 or any 5v pin
+ - in:  pin 26(gpio 7)
+ - gnd: pin 34 or any gnd pin
  - on:  fan(+)
  - com: bettery(+)
 

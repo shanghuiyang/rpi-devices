@@ -4,13 +4,13 @@ the led light will light up when the infrared detector detects objects.
 and the led will turn off after 30 seconds.
 
 infrared detector:
- - vcc: phys.1/3.3v
- - out: phys.3/BCM.2
- - gnd: phys.9/GND
+ - vcc: pin 1 or any 3.3v
+ - gnd: ping 9 or any gnd pin
+ - out: pin 3(gpio 2) or any date pin
 
  led:
-  - positive: phys.36/BCM.16
-  - negative: phys.34/GND
+  - positive: pin 36(gpio 16) or any date pin
+  - negative: pin 34 or any gnd pin
 
 -----------------------------------------------------------------------
 

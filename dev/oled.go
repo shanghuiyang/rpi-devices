@@ -1,19 +1,14 @@
 /*
-config your pi:
-1. $ sudo apt-get install -y python-smbus
-2. $ sudo apt-get install -y i2c-tools
-3. $ sudo raspi-config
-4. 	-> [5 interface options] -> [p5 i2c] ->[yes] -> [ok]
-5. $ sudo reboot now
-6. check: $ sudo i2cdetect -y 1
+Package dev ...
+
+OLED is the driver of an oled screen.
+Please NOTE that current version only supports the oled module with ssd1306 driver.
 
 connect to raspberry pi:
-VCC: any 3.3v pin on raspberry
-GND: and GND pin on raspberry
+VCC: pin 1 or any 3.3v pin
+GND: pin 9 or and GND pin
 SDA: pin 3 (SDA)
 SCL: pin 5 (SCL)
-
------------------------------------------------------------------------
 
 		+--------------------+
 		|        OLED        |
@@ -46,7 +41,26 @@ SCL: pin 5 (SCL)
 		                               | o 39 40 o |
 									   +-----------+
 
------------------------------------------------------------------------
+
+config your pi:
+1. $ sudo apt-get install -y python-smbus
+2. $ sudo apt-get install -y i2c-tools
+3. $ sudo raspi-config
+4. 	-> [5 interface options] -> [p5 i2c] ->[yes] -> [ok]
+5. $ sudo reboot now
+6. check: $ sudo i2cdetect -y 1
+	it works if you saw following message:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+	00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+	10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+	20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+	30: -- -- -- -- -- -- -- -- -- -- -- -- 3c -- -- --
+	40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+	50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+	60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+	70: -- -- -- -- -- -- -- --
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 package dev
 

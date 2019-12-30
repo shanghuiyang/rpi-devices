@@ -1,4 +1,6 @@
 /*
+Package dev ...
+
 DHT11 is an sensor for getting temperature and humidity.
 config:
 1. sudo vim /boot/config.txt
@@ -7,9 +9,9 @@ config:
 	dtoverlay=dht11,gpiopin=4
 	--------------------------
 3. connect dht11 to raspberry pi:
-	SIGNAL: pin 4
+	SIGNAL: pin 7 (gpio 4)
 	GND:	any gnd pin
-	VCC:	3.3v
+	VCC:	any 3.3v pin
 
 -----------------------------------------------------------------------
 

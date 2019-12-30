@@ -22,10 +22,10 @@ func NewTemperature() *Temperature {
 
 // GetTemperature ...
 // temperature file:
-// ------------------------------------------
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ca 01 55 00 7f ff 0c 10 bf : crc=bf YES
 // ca 01 55 00 7f ff 0c 10 bf t=28625
-// ------------------------------------------
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 func (t *Temperature) GetTemperature() (float32, error) {
 	data, err := ioutil.ReadFile(tempFile)
 	if err != nil {

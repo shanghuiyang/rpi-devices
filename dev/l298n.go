@@ -1,6 +1,8 @@
 /*
+Package dev ...
+
 L298N is an motor driver
-which can be used to control the direction and speed of a DC motor.
+which can be used to control the direction and speed of DC motors.
 
 Spec:
            _________________________________________
