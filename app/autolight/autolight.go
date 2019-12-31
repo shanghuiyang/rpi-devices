@@ -1,52 +1,8 @@
 /*
-Auto-Light let you control a led light working with a infrared detector together
-the led light will light up when the infrared detector detects objects.
-and the led will turn off after 30 seconds.
-
-infrared detector:
- - vcc: pin 1 or any 3.3v
- - gnd: ping 9 or any gnd pin
- - out: pin 3(gpio 2) or any date pin
-
- led:
-  - positive: pin 36(gpio 16) or any date pin
-  - negative: pin 34 or any gnd pin
-
------------------------------------------------------------------------
-
-          o---------o
-          |         |
-          | Infrared|
-          | detector|
-          |         |
-          o-+--+--+-o
-            |  |  |
-          gnd out vcc
-            |  |  |           +-----------+
-            |  |  +-----------+ * 1   2 o |
-            +--|--------------+ * 3     o |
-               |              | o       o |
-               |              | o       o |         \ | | /
-               +--------------+ * 9     o |           ___
-                              | o       o |         /     \
-                              | o       o |        |-------|
-                              | o       o |        |  led  |
-                              | o       o |        |       |
-                              | o       o |        o--+-+--o
-                              | o       o |           | |
-                              | o       o |         gnd vcc
-                              | o       o |           | |
-                              | o       o |           | |
-                              | o       o |           | |
-                              | o       o |           | |
-                              | o    34 * +-----------+ |
-                              | o    36 * +-------------+
-                              | o       o |
-                              | o 39 40 o |
-                              +-----------+
-
------------------------------------------------------------------------
-
+Auto-Light let you control a led light by hands or any other objects.
+It works with HCSR04, an ultrasonic sensor, together.
+The led light will light up when HCSR04 sensor get distance less then 40cm.
+And the led will turn off after 45 seconds.
 */
 
 package main
@@ -63,7 +19,6 @@ import (
 
 const (
 	pinLight = 16
-	pinInfra = 18
 	pinLed   = 4
 	pinTrig  = 21
 	pinEcho  = 26
@@ -76,7 +31,6 @@ func main() {
 	}
 	defer rpio.Close()
 
-	infr := dev.NewInfraredDetector(pinInfra)
 	led := dev.NewLed(pinLed)
 	light := dev.NewLed(pinLight)
 	if light == nil {
@@ -96,7 +50,6 @@ func main() {
 	cloud := iot.NewCloud(wsnCfg)
 
 	a := &autoLight{
-		infra: infr,
 		dist:  dist,
 		light: light,
 		led:   led,
@@ -120,8 +73,7 @@ type autoLight struct {
 }
 
 func (a *autoLight) start() {
-	// go a.RIDetect()
-	go a.DistDetect()
+	go a.Detect()
 
 	a.off()
 	isLightOn := false
@@ -161,28 +113,7 @@ func (a *autoLight) start() {
 	}
 }
 
-func (a *autoLight) RIDetect() {
-	for {
-		hour := time.Now().Hour()
-		if hour >= 8 && hour < 18 {
-			// disable autolight between 8:00-18:00
-			time.Sleep(1 * time.Minute)
-			continue
-		}
-		detected := a.infra.Detected()
-		a.ch <- detected
-
-		t := 200 * time.Millisecond
-		if detected {
-			go a.led.Blink(1, 300)
-			// make a dalay detecting
-			t = 1 * time.Second
-		}
-		time.Sleep(t)
-	}
-}
-
-func (a *autoLight) DistDetect() {
+func (a *autoLight) Detect() {
 	// need to warm-up the distance sensor first
 	a.dist.Dist()
 	time.Sleep(500 * time.Millisecond)
