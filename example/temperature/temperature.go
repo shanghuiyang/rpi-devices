@@ -7,11 +7,11 @@ import (
 )
 
 func main() {
-	t := dev.NewTemperature()
-	c, err := t.GetTemperature()
+	d := dev.NewDS18B20()
+	t, err := d.GetTemperature()
 	if err != nil {
 		fmt.Printf("failed to get temperature, error: %v", err)
 		return
 	}
-	fmt.Printf("current temperature: %v", c)
+	fmt.Printf("current temperature: %v", t)
 }

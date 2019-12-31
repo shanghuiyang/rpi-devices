@@ -26,14 +26,14 @@ func main() {
 	}
 	defer rpio.Close()
 
-	t := dev.NewTemperature()
-	if t == nil {
-		log.Printf("failed to new temperature device")
+	temp := dev.NewDS18B20()
+	if temp == nil {
+		log.Printf("failed to new temperature sensor")
 		return
 	}
 	led := dev.NewLed(ledPin)
 	if led == nil {
-		log.Printf("failed to new led device")
+		log.Printf("failed to new led")
 		return
 	}
 
@@ -48,7 +48,7 @@ func main() {
 	}
 
 	monitor := tempMonitor{
-		temp:  t,
+		temp:  temp,
 		cloud: cloud,
 		led:   led,
 	}
@@ -61,7 +61,7 @@ func main() {
 }
 
 type tempMonitor struct {
-	temp  *dev.Temperature
+	temp  *dev.DS18B20
 	led   *dev.Led
 	cloud iot.Cloud
 }

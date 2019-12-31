@@ -71,21 +71,21 @@ func main() {
 	}
 	defer rpio.Close()
 
-	t := dev.NewTemperature()
-	if t == nil {
-		log.Printf("failed to new a temperature device")
+	temp := dev.NewDS18B20()
+	if temp == nil {
+		log.Printf("failed to new a temperature sensor")
 		return
 	}
 
 	r := dev.NewRelay(relayPin)
 	if r == nil {
-		log.Printf("failed to new a relay device")
+		log.Printf("failed to new a relay")
 		return
 	}
 
 	f := &autoFan{
-		temperature: t,
-		relay:       r,
+		temp:  temp,
+		relay: r,
 	}
 	base.WaitQuit(func() {
 		f.off()
@@ -95,14 +95,14 @@ func main() {
 }
 
 type autoFan struct {
-	temperature *dev.Temperature
-	relay       *dev.Relay
+	temp  *dev.DS18B20
+	relay *dev.Relay
 }
 
 func (f *autoFan) start() {
 	for {
 		time.Sleep(intervalTime)
-		c, err := f.temperature.GetTemperature()
+		c, err := f.temp.GetTemperature()
 		if err != nil {
 			log.Printf("failed to get temperature, error: %v", err)
 			continue

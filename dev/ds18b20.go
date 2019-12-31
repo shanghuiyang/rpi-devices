@@ -35,13 +35,13 @@ var (
 	tempFile = "/sys/bus/w1/devices/28-d8baf71d64ff/w1_slave"
 )
 
-// Temperature ...
-type Temperature struct {
+// DS18B20 ...
+type DS18B20 struct {
 }
 
-// NewTemperature ...
-func NewTemperature() *Temperature {
-	return &Temperature{}
+// NewDS18B20 ...
+func NewDS18B20() *DS18B20 {
+	return &DS18B20{}
 }
 
 // GetTemperature ...
@@ -49,8 +49,8 @@ func NewTemperature() *Temperature {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ca 01 55 00 7f ff 0c 10 bf : crc=bf YES
 // ca 01 55 00 7f ff 0c 10 bf t=28625
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-func (t *Temperature) GetTemperature() (float32, error) {
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~~~~
+func (d *DS18B20) GetTemperature() (float32, error) {
 	data, err := ioutil.ReadFile(tempFile)
 	if err != nil {
 		return 0, err
@@ -61,9 +61,9 @@ func (t *Temperature) GetTemperature() (float32, error) {
 	if idx < 0 {
 		return 0, fmt.Errorf("can't find 't='")
 	}
-	c, err := strconv.ParseFloat(raw[idx+2:idx+7], 32)
+	t, err := strconv.ParseFloat(raw[idx+2:idx+7], 32)
 	if err != nil {
 		return 0, fmt.Errorf("bad data")
 	}
-	return float32(c / 1000), nil
+	return float32(t / 1000), nil
 }
