@@ -64,7 +64,9 @@ import (
 const (
 	pinLight = 16
 	pinInfra = 18
-	pinLed   = 26
+	pinLed   = 4
+	pinTrig  = 21
+	pinEcho  = 26
 )
 
 func main() {
@@ -81,6 +83,11 @@ func main() {
 		log.Printf("failed to new a led light")
 		return
 	}
+	dist := dev.NewHCSR04(pinTrig, pinEcho)
+	if dist == nil {
+		log.Printf("failed to new a HCSR04")
+		return
+	}
 
 	wsnCfg := &base.WsnConfig{
 		Token: base.WsnToken,
@@ -90,6 +97,7 @@ func main() {
 
 	a := &autoLight{
 		infra: infr,
+		dist:  dist,
 		light: light,
 		led:   led,
 		cloud: cloud,
@@ -104,6 +112,7 @@ func main() {
 
 type autoLight struct {
 	infra *dev.InfraredDetector
+	dist  *dev.HCSR04
 	light *dev.Led
 	led   *dev.Led
 	cloud iot.Cloud
@@ -111,7 +120,8 @@ type autoLight struct {
 }
 
 func (a *autoLight) start() {
-	go a.detect()
+	// go a.RIDetect()
+	go a.DistDetect()
 
 	a.off()
 	isLightOn := false
@@ -151,7 +161,7 @@ func (a *autoLight) start() {
 	}
 }
 
-func (a *autoLight) detect() {
+func (a *autoLight) RIDetect() {
 	for {
 		hour := time.Now().Hour()
 		if hour >= 8 && hour < 18 {
@@ -163,6 +173,26 @@ func (a *autoLight) detect() {
 		a.ch <- detected
 
 		t := 200 * time.Millisecond
+		if detected {
+			go a.led.Blink(1, 300)
+			// make a dalay detecting
+			t = 1 * time.Second
+		}
+		time.Sleep(t)
+	}
+}
+
+func (a *autoLight) DistDetect() {
+	// need to warm-up the distance sensor first
+	a.dist.Dist()
+	time.Sleep(500 * time.Millisecond)
+
+	for {
+		d := a.dist.Dist()
+		detected := (d < 40)
+		a.ch <- detected
+
+		t := 300 * time.Millisecond
 		if detected {
 			go a.led.Blink(1, 300)
 			// make a dalay detecting
