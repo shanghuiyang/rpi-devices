@@ -16,20 +16,19 @@ Spec:
              12v GND  5V   EN1 IN1 IN2 IN3 IN4 EN2
 
 Pins:
-  - OUT1: dc motor A+
-  - OUT2: dc motor A-
-  - OUT3: dc motor B+
-  - OUT4: dc motor B-
+ - OUT1: dc motor A+
+ - OUT2: dc motor A-
+ - OUT3: dc motor B+
+ - OUT4: dc motor B-
 
-  - IN1: input 1 for motor A
-  - IN2: input 2 for motor A
-  - IN3: input 3 for motor B
-  - IN4: input 1 for motor B
-  - EN1: enable pin for motor A
-  - EN2: enable pin for motor B
+ - IN1: input 1 for motor A
+ - IN2: input 2 for motor A
+ - IN3: input 3 for motor B
+ - IN4: input 1 for motor B
+ - EN1: enable pin for motor A
+ - EN2: enable pin for motor B
 
 */
-
 package dev
 
 import (

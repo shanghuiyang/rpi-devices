@@ -16,14 +16,13 @@ Spec:
          |     |     |     |
         vcc  trig   echo  gnd
 
-Pins:
-  - vcc:	5v
-  - trig:	trigger(input)
-  - echo:	echo(output)
-  - gnd:	gnd
+Connect to Pi:
+  - vcc:	any 5v pin
+  - trig:	any data pin for triggering(input)
+  - echo:	any data pin for echoing(output)
+  - gnd:	any gnd pin
 
 */
-
 package dev
 
 import (

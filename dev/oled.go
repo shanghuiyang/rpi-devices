@@ -42,7 +42,7 @@ SCL: pin 5 (SCL)
 									   +-----------+
 
 
-config your pi:
+Config Your Pi:
 1. $ sudo apt-get install -y python-smbus
 2. $ sudo apt-get install -y i2c-tools
 3. $ sudo raspi-config

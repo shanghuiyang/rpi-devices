@@ -1,3 +1,27 @@
+/*
+Package dev ...
+DS18B20 is a tempeture sensor.
+
+Config Your Pi:
+1. $ sudo vim /boot/config.txt
+2. add following line at the end of the file
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	dtoverlay=w1-gpio,gpiopin=4
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. $ sudo reboot now
+4. check: $ cat /sys/bus/w1/devices/28-d8baf71d64ff/w1_slave
+	should saw:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	ca 01 55 00 7f ff 0c 10 bf : crc=bf YES
+	ca 01 55 00 7f ff 0c 10 bf t=28625
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Connect to Pi:
+ - vcc: any 3.3v pin
+ - gnd: any gnd pin
+ - dat: must connect to pin 7(gpio 4)
+
+*/
 package dev
 
 import (

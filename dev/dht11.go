@@ -9,7 +9,7 @@ config:
 	dtoverlay=dht11,gpiopin=4
 	--------------------------
 3. connect dht11 to raspberry pi:
-	SIGNAL: pin 7 (gpio 4)
+	SIGNAL: must connect to pin 7(gpio 4)
 	GND:	any gnd pin
 	VCC:	any 3.3v pin
 

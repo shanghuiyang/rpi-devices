@@ -1,6 +1,11 @@
 /*
 Package dev ...
 SG90 is the diriver of servo motor
+
+Connect to Pi:
+ - the red line:	any 5v pin
+ - the brown line: 	any gnd pin
+ - the yellow line:	any pwn pin(must be one of gpio 12, 13, 18, 19)
 */
 package dev
 

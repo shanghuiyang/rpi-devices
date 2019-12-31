@@ -1,3 +1,10 @@
+/*
+Package dev ...
+
+Connect to Pi:
+  - positive(the longer pin): 	any data pin
+  - negative(she shorter pin): 	any gnd pin
+*/
 package dev
 
 import (

@@ -1,10 +1,10 @@
 /*
 Package dev ...
 
-connect to pi:
+Connect to Pi:
  - vcc: any 5v pin
  - gnd: any gnd pin
- - in:  pin 26(gpio 7) or any date pin
+ - in:  pin 26(gpio 7) or any data pin
  - on:  the outside device
  - com: the bettery
 

@@ -3,7 +3,7 @@ Package dev ...
 
 PMS7003 is the driver of PMS7003, an air quality sensor which can be used to detect PM2.5 and PM10.
 
-config your pi:
+Config Your Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -18,11 +18,11 @@ config your pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-connect to pi:
-VCC: any 5v pin
-GND: any gnd pin
-TXD: pin 10(gpio 14) (RXD)
-RXT: pin  8(gpio 15) (TXD)
+Connect to Pi:
+ - VCC: any 5v pin
+ - GND: any gnd pin
+ - TXD: must connect to pin 10(gpio 14) (RXD)
+ - RXT: must connect to pin  8(gpio 15) (TXD)
 
 */
 package dev
