@@ -49,13 +49,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	a := &autoLight{
-		dist:  dist,
-		light: light,
-		led:   led,
-		cloud: cloud,
-		ch:    make(chan bool, 32),
-	}
+	a := newAutoLight(dist, light, led, cloud)
 	base.WaitQuit(func() {
 		a.off()
 		rpio.Close()
@@ -64,72 +58,93 @@ func main() {
 }
 
 type autoLight struct {
-	infra *dev.InfraredDetector
-	dist  *dev.HCSR04
-	light *dev.Led
-	led   *dev.Led
-	cloud iot.Cloud
-	ch    chan bool
+	dist    *dev.HCSR04
+	light   *dev.Led
+	led     *dev.Led
+	cloud   iot.Cloud
+	chLight chan bool
+	chLed   chan bool
 }
 
-func (a *autoLight) start() {
-	go a.Detect()
-
-	a.off()
-	isLightOn := false
-	lastTrig := time.Now()
-	for b := range a.ch {
-		if b {
-			log.Printf("detected objects")
-			if !isLightOn {
-				a.on()
-				isLightOn = true
-			}
-			lastTrig = time.Now()
-			go func() {
-				// draw a chart looks like:
-				//
-				// ____|___|____
-				//
-				v := &iot.Value{
-					Device: "5dd29e1be4b074c40dfe87c4",
-					Value:  0,
-				}
-				a.cloud.Push(v)
-				time.Sleep(5 * time.Second)
-				v.Value = 1
-				a.cloud.Push(v)
-				time.Sleep(5 * time.Second)
-				v.Value = 0
-				a.cloud.Push(v)
-			}()
-			continue
-		}
-		if time.Now().Sub(lastTrig).Seconds() > 45 && isLightOn {
-			log.Printf("timeout, light off")
-			a.off()
-			isLightOn = false
-		}
+func newAutoLight(dist *dev.HCSR04, light *dev.Led, led *dev.Led, cloud iot.Cloud) *autoLight {
+	return &autoLight{
+		dist:    dist,
+		light:   light,
+		led:     led,
+		cloud:   cloud,
+		chLight: make(chan bool, 4),
+		chLed:   make(chan bool, 4),
 	}
 }
 
-func (a *autoLight) Detect() {
+func (a *autoLight) start() {
+	log.Printf("service starting")
+
+	go a.ctrLight()
+	go a.ctrLed()
+
 	// need to warm-up the distance sensor first
 	a.dist.Dist()
 	time.Sleep(500 * time.Millisecond)
-
 	for {
 		d := a.dist.Dist()
 		detected := (d < 40)
-		a.ch <- detected
+		a.chLight <- detected
+		a.chLed <- detected
 
 		t := 300 * time.Millisecond
 		if detected {
-			go a.led.Blink(1, 300)
+			log.Printf("detected objects")
 			// make a dalay detecting
 			t = 1 * time.Second
 		}
 		time.Sleep(t)
+	}
+}
+
+func (a *autoLight) ctrLight() {
+	on := false
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			state := 0
+			if on {
+				state = 1
+			}
+			v := &iot.Value{
+				Device: "5dd29e1be4b074c40dfe87c4",
+				Value:  state,
+			}
+			if err := a.cloud.Push(v); err != nil {
+				log.Printf("push: failed to push the state of light to cloud, error: %v", err)
+			}
+		}
+	}()
+
+	lastTrig := time.Now()
+	for detected := range a.chLight {
+		if detected {
+			if !on {
+				a.on()
+				on = true
+			}
+			lastTrig = time.Now()
+			continue
+		}
+		timeout := time.Now().Sub(lastTrig).Seconds() > 45
+		if timeout && on {
+			log.Printf("timeout, light off")
+			a.off()
+			on = false
+		}
+	}
+}
+
+func (a *autoLight) ctrLed() {
+	for detected := range a.chLed {
+		if detected {
+			a.led.Blink(1, 300)
+		}
 	}
 }
 
