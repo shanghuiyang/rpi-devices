@@ -7,7 +7,7 @@ import (
 
 const (
 	// WsnToken is the token of wsn iot cloud
-	WsnToken = "your token"
+	WsnToken = "47ccbab9769d6ce64fd9d8b03ef63d9e"
 	// WsnNumericalAPI is the api of wsn iot cloud for pushing numerical datapoints
 	WsnNumericalAPI = "http://www.wsncloud.com/api/data/v1/numerical/insert"
 	// WsnGenericAPI is the api of wsn iot cloud for pushing generic datapoints

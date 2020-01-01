@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Air-Cleaner</title>
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="http://code.jquery.com/jquery.js"></script>
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+    <style type="text/css">
+    </style>
+
+    <script>
+        var url = "http://000.000.000.000:8080"
+        $(function () {
+            // air-cleaner
+            $('#aircleaner').change(function () {
+                if ($(this).prop('checked')) {
+                    $.post(url, { "op": "on" }, function (data, status) { });
+                } else {
+                    $.post(url, { "op": "off" }, function (data, status) { });
+                }
+            })
+        });
+    </script>
+</head>
+
+<body>
+    <div id="container" class="container">
+        <div>
+            <h3 style="color:Tomato;">PM2.5: xxx ug/m3</h3>
+        </div>
+        <div>
+            <h3 style="color:Tomato;">PM10: xxx ug/m3</h3>
+        </div>
+        <div>
+            <p style="color:gray;">update at: yyyy-mm-dd hh:mm:ss</p>
+        </div>
+        <br /><br /><br />
+        <div>
+            <input id="aircleaner" type="checkbox" unchecked data-toggle="toggle" data-on="Air Cleaner On" data-off="Air Cleaner Off"
+                data-onstyle="success" data-size="large">
+        </div>
+        <br />
+    </div>
+</body>
+
+</html>

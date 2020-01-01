@@ -95,8 +95,9 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		pageContext, err = ioutil.ReadFile("light.html")
 		if err != nil {
-			log.Printf("failed to read car.html")
+			log.Printf("failed to read light.html")
 			fmt.Fprintf(w, "internal error: failed to read home page")
+			return
 		}
 	}
 
