@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
@@ -36,6 +38,20 @@ func SendEmail(info *EmailInfo) {
 // GetEmailList ...
 func GetEmailList() []string {
 	return emailList
+}
+
+// GetIP ...
+func GetIP() string {
+	cmd := exec.Command("hostname", "-I")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return ""
+	}
+	items := strings.Split(string(out), " ")
+	if len(items) == 0 {
+		return ""
+	}
+	return items[0]
 }
 
 // WaitQuit ...

@@ -8,10 +8,13 @@ And the led will turn off after 45 seconds.
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
@@ -27,12 +30,17 @@ const (
 	pinEcho  = 26
 )
 
+var (
+	alight          *autoLight
+	pageContext     []byte
+	ipPattern       = "000.000.000.000"
+	checkboxPattern = `input id="light" type="checkbox"`
+)
+
 var bool2int = map[bool]int{
 	false: 0,
 	true:  1,
 }
-
-var alight *autoLight
 
 func main() {
 	if err := rpio.Open(); err != nil {
@@ -83,12 +91,42 @@ func lightServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := ioutil.ReadFile("light.html")
-	if err != nil {
-		log.Printf("failed to read car.html")
-		fmt.Fprintf(w, "failed to show home page")
+	if len(pageContext) == 0 {
+		var err error
+		pageContext, err = ioutil.ReadFile("light.html")
+		if err != nil {
+			log.Printf("failed to read car.html")
+			fmt.Fprintf(w, "internal error: failed to read home page")
+		}
 	}
-	w.Write(data)
+
+	ip := base.GetIP()
+	if ip == "" {
+		log.Printf("failed to get ip")
+		fmt.Fprintf(w, "internal error: failed to get ip")
+		return
+	}
+
+	wbuf := bytes.NewBuffer([]byte{})
+	rbuf := bytes.NewBuffer(pageContext)
+	for {
+		line, err := rbuf.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		}
+		s := string(line)
+		if strings.Index(s, ipPattern) >= 0 {
+			s = strings.Replace(s, ipPattern, ip, 1)
+		} else if strings.Index(s, checkboxPattern) >= 0 {
+			state := " unchecked "
+			if alight.state {
+				state = " checked "
+			}
+			s = strings.Replace(strings.Replace(s, " checked ", state, 1), " unchecked ", state, 1)
+		}
+		wbuf.Write([]byte(s))
+	}
+	w.Write(wbuf.Bytes())
 }
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
