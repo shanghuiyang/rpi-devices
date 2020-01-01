@@ -110,8 +110,8 @@ type autoLight struct {
 	light    *dev.Led
 	led      *dev.Led
 	cloud    iot.Cloud
+	trigTime time.Time
 	state    bool // true: turn on, false: turn off
-	lastTrig time.Time
 	chLight  chan bool
 	chLed    chan bool
 }
@@ -122,7 +122,7 @@ func newAutoLight(dist *dev.HCSR04, light *dev.Led, led *dev.Led, cloud iot.Clou
 		light:    light,
 		led:      led,
 		state:    false,
-		lastTrig: time.Now(),
+		trigTime: time.Now(),
 		cloud:    cloud,
 		chLight:  make(chan bool, 4),
 		chLed:    make(chan bool, 4),
@@ -176,10 +176,10 @@ func (a *autoLight) ctrLight() {
 			if !a.state {
 				a.on()
 			}
-			a.lastTrig = time.Now()
+			a.trigTime = time.Now()
 			continue
 		}
-		timeout := time.Now().Sub(a.lastTrig).Seconds() > 45
+		timeout := time.Now().Sub(a.trigTime).Seconds() > 45
 		if timeout && a.state {
 			log.Printf("timeout, light off")
 			a.off()
@@ -197,7 +197,7 @@ func (a *autoLight) ctrLed() {
 
 func (a *autoLight) on() {
 	a.state = true
-	a.lastTrig = time.Now()
+	a.trigTime = time.Now()
 	a.light.On()
 }
 
