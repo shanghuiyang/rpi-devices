@@ -8,7 +8,10 @@ And the led will turn off after 45 seconds.
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
@@ -23,6 +26,13 @@ const (
 	pinTrig  = 21
 	pinEcho  = 26
 )
+
+var bool2int = map[bool]int{
+	false: 0,
+	true:  1,
+}
+
+var alight *autoLight
 
 func main() {
 	if err := rpio.Open(); err != nil {
@@ -49,41 +59,86 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	a := newAutoLight(dist, light, led, cloud)
+	alight = newAutoLight(dist, light, led, cloud)
 	base.WaitQuit(func() {
-		a.off()
+		alight.off()
 		rpio.Close()
 	})
-	a.start()
+	alight.start()
+
+	http.HandleFunc("/", lightServer)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err.Error())
+	}
+}
+
+func lightServer(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		homePageHandler(w, r)
+	case "POST":
+		operationHandler(w, r)
+	}
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := ioutil.ReadFile("light.html")
+	if err != nil {
+		log.Printf("failed to read car.html")
+		fmt.Fprintf(w, "failed to show home page")
+	}
+	w.Write(data)
+}
+
+func operationHandler(w http.ResponseWriter, r *http.Request) {
+	op := r.FormValue("op")
+	switch op {
+	case "on":
+		log.Printf("web op: on")
+		alight.on()
+	case "off":
+		log.Printf("web op: off")
+		alight.off()
+	default:
+		log.Printf("web op: invalid operator")
+	}
 }
 
 type autoLight struct {
-	dist    *dev.HCSR04
-	light   *dev.Led
-	led     *dev.Led
-	cloud   iot.Cloud
-	chLight chan bool
-	chLed   chan bool
+	dist     *dev.HCSR04
+	light    *dev.Led
+	led      *dev.Led
+	cloud    iot.Cloud
+	state    bool // true: turn on, false: turn off
+	lastTrig time.Time
+	chLight  chan bool
+	chLed    chan bool
 }
 
 func newAutoLight(dist *dev.HCSR04, light *dev.Led, led *dev.Led, cloud iot.Cloud) *autoLight {
 	return &autoLight{
-		dist:    dist,
-		light:   light,
-		led:     led,
-		cloud:   cloud,
-		chLight: make(chan bool, 4),
-		chLed:   make(chan bool, 4),
+		dist:     dist,
+		light:    light,
+		led:      led,
+		state:    false,
+		lastTrig: time.Now(),
+		cloud:    cloud,
+		chLight:  make(chan bool, 4),
+		chLed:    make(chan bool, 4),
 	}
 }
 
 func (a *autoLight) start() {
-	log.Printf("service starting")
-
+	log.Printf("auto light start to service")
+	go a.detect()
 	go a.ctrLight()
 	go a.ctrLed()
 
-	// need to warm-up the distance sensor first
+}
+
+func (a *autoLight) detect() {
+	// need to warm-up the ultrasonic sensor first
 	a.dist.Dist()
 	time.Sleep(500 * time.Millisecond)
 	for {
@@ -94,26 +149,21 @@ func (a *autoLight) start() {
 
 		t := 300 * time.Millisecond
 		if detected {
-			log.Printf("detected objects")
+			log.Printf("detected objects, distance = %.2fcm", d)
 			// make a dalay detecting
-			t = 1 * time.Second
+			t = 2 * time.Second
 		}
 		time.Sleep(t)
 	}
 }
 
 func (a *autoLight) ctrLight() {
-	on := false
 	go func() {
 		for {
 			time.Sleep(5 * time.Second)
-			state := 0
-			if on {
-				state = 1
-			}
 			v := &iot.Value{
 				Device: "5dd29e1be4b074c40dfe87c4",
-				Value:  state,
+				Value:  bool2int[a.state],
 			}
 			if err := a.cloud.Push(v); err != nil {
 				log.Printf("push: failed to push the state of light to cloud, error: %v", err)
@@ -121,21 +171,18 @@ func (a *autoLight) ctrLight() {
 		}
 	}()
 
-	lastTrig := time.Now()
 	for detected := range a.chLight {
 		if detected {
-			if !on {
+			if !a.state {
 				a.on()
-				on = true
 			}
-			lastTrig = time.Now()
+			a.lastTrig = time.Now()
 			continue
 		}
-		timeout := time.Now().Sub(lastTrig).Seconds() > 45
-		if timeout && on {
+		timeout := time.Now().Sub(a.lastTrig).Seconds() > 45
+		if timeout && a.state {
 			log.Printf("timeout, light off")
 			a.off()
-			on = false
 		}
 	}
 }
@@ -143,15 +190,18 @@ func (a *autoLight) ctrLight() {
 func (a *autoLight) ctrLed() {
 	for detected := range a.chLed {
 		if detected {
-			a.led.Blink(1, 300)
+			a.led.Blink(1, 200)
 		}
 	}
 }
 
 func (a *autoLight) on() {
+	a.state = true
+	a.lastTrig = time.Now()
 	a.light.On()
 }
 
 func (a *autoLight) off() {
+	a.state = false
 	a.light.Off()
 }
