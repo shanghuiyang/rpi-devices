@@ -33,8 +33,10 @@ const (
 var (
 	alight          *autoLight
 	pageContext     []byte
-	ipPattern       = "000.000.000.000"
-	checkboxPattern = `input id="light" type="checkbox"`
+	statePattern    = "((state))"
+	ipPattern       = "((000.000.000.000))"
+	datetimePattern = "((yyyy-mm-dd hh:mm:ss))"
+	datetimeFormat  = "2006-01-02 15:04:05"
 )
 
 var bool2int = map[bool]int{
@@ -116,14 +118,18 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		s := string(line)
-		if strings.Index(s, ipPattern) >= 0 {
+		switch {
+		case strings.Index(s, ipPattern) >= 0:
 			s = strings.Replace(s, ipPattern, ip, 1)
-		} else if strings.Index(s, checkboxPattern) >= 0 {
-			state := " unchecked "
+		case strings.Index(s, datetimePattern) >= 0:
+			datetime := time.Now().Format(datetimeFormat)
+			s = strings.Replace(s, datetimePattern, datetime, 1)
+		case strings.Index(s, statePattern) >= 0:
+			state := "unchecked"
 			if alight.state {
-				state = " checked "
+				state = "checked"
 			}
-			s = strings.Replace(strings.Replace(s, " checked ", state, 1), " unchecked ", state, 1)
+			s = strings.Replace(s, statePattern, state, 1)
 		}
 		wbuf.Write([]byte(s))
 	}

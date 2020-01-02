@@ -34,11 +34,11 @@ const (
 var (
 	autoair         *autoAir
 	pageContext     []byte
-	ipPattern       = "000.000.000.000"
+	statePattern    = "((state))"
+	ipPattern       = "((000.000.000.000))"
 	pm25Pattern     = "((PM2.5))"
 	pm10Pattern     = "((PM10))"
-	datetimePattern = "yyyy-mm-dd hh:mm:ss"
-	checkboxPattern = `input id="aircleaner" type="checkbox"`
+	datetimePattern = "((yyyy-mm-dd hh:mm:ss))"
 	datetimeFormat  = "2006-01-02 15:04:05"
 )
 
@@ -126,12 +126,12 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		case strings.Index(s, datetimePattern) >= 0:
 			datetime := time.Now().Format(datetimeFormat)
 			s = strings.Replace(s, datetimePattern, datetime, 1)
-		case strings.Index(s, checkboxPattern) >= 0:
-			state := " unchecked "
+		case strings.Index(s, statePattern) >= 0:
+			state := "unchecked"
 			if autoair.state {
-				state = " checked "
+				state = "checked"
 			}
-			s = strings.Replace(strings.Replace(s, " checked ", state, 1), " unchecked ", state, 1)
+			s = strings.Replace(s, statePattern, state, 1)
 		}
 		wbuf.Write([]byte(s))
 	}

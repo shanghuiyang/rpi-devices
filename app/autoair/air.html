@@ -15,7 +15,7 @@
     </style>
 
     <script>
-        var url = "http://000.000.000.000:8080"
+        var url = "http://((000.000.000.000)):8080"
         $(function () {
             // air-cleaner
             $('#aircleaner').change(function () {
@@ -31,6 +31,10 @@
 
 <body>
     <div id="container" class="container">
+        <br>
+        <div>
+            <span style="color:DodgerBlue;font-size:180%;padding:10px;"><b>Auto Air-Cleaner</b></span>
+        </div>
         <div>
             <br><br><br>
             <span style="background-color:MediumSeaGreen;color:white;font-size:240%;padding:30px 60px;"><b>((PM2.5))</b></span>
@@ -41,13 +45,13 @@
         </div>
         <br><br><br><br><br><br>
         <div>
-            <input id="aircleaner" type="checkbox" unchecked data-toggle="toggle" data-on="Air Cleaner On" data-off="Air Cleaner Off"
+            <input id="aircleaner" type="checkbox" ((state)) data-toggle="toggle" data-on="Air Cleaner On" data-off="Air Cleaner Off"
                 data-onstyle="success" data-size="large">
         </div>
-        <br><br><br><br><br><br><br>
+        <br><br><br><br><br>
         <div>
-            <span style="color:lightgray;font-size:120%;padding:10px 10px;">unit: ug/m3</span><br>
-            <span style="color:lightgray;font-size:120%;padding:10px 10px;">update at: yyyy-mm-dd hh:mm:ss</span>
+            <span style="color:lightgray;font-size:120%;">unit: ug/m3</span><br>
+            <span style="color:lightgray;font-size:120%;">update at: ((yyyy-mm-dd hh:mm:ss))</span>
         </div>
     </div>
 </body>
