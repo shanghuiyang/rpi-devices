@@ -35,8 +35,8 @@ var (
 	autoair         *autoAir
 	pageContext     []byte
 	ipPattern       = "000.000.000.000"
-	pm25Pattern     = "PM2.5: xxx ug/m3"
-	pm10Pattern     = "PM10: xxx ug/m3"
+	pm25Pattern     = "((PM2.5))"
+	pm10Pattern     = "((PM10))"
 	datetimePattern = "yyyy-mm-dd hh:mm:ss"
 	checkboxPattern = `input id="aircleaner" type="checkbox"`
 	datetimeFormat  = "2006-01-02 15:04:05"
@@ -118,10 +118,10 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		case strings.Index(s, ipPattern) >= 0:
 			s = strings.Replace(s, ipPattern, ip, 1)
 		case strings.Index(s, pm25Pattern) >= 0:
-			pm25 := fmt.Sprintf("PM2.5: %v ug/m3", autoair.pm25)
+			pm25 := fmt.Sprintf("%v", autoair.pm25)
 			s = strings.Replace(s, pm25Pattern, pm25, 1)
 		case strings.Index(s, pm10Pattern) >= 0:
-			pm10 := fmt.Sprintf("PM10: %v ug/m3", autoair.pm10)
+			pm10 := fmt.Sprintf("%v", autoair.pm10)
 			s = strings.Replace(s, pm10Pattern, pm10, 1)
 		case strings.Index(s, datetimePattern) >= 0:
 			datetime := time.Now().Format(datetimeFormat)
