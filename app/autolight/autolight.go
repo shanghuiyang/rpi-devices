@@ -30,13 +30,16 @@ const (
 	pinEcho  = 26
 )
 
-var (
-	alight          *autoLight
-	pageContext     []byte
+const (
 	statePattern    = "((state))"
 	ipPattern       = "((000.000.000.000))"
 	datetimePattern = "((yyyy-mm-dd hh:mm:ss))"
 	datetimeFormat  = "2006-01-02 15:04:05"
+)
+
+var (
+	alight      *autoLight
+	pageContext []byte
 )
 
 var bool2int = map[bool]int{

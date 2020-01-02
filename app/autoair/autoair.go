@@ -31,15 +31,18 @@ const (
 	trigOffPm25 = 100
 )
 
-var (
-	autoair         *autoAir
-	pageContext     []byte
+const (
 	statePattern    = "((state))"
 	ipPattern       = "((000.000.000.000))"
 	pm25Pattern     = "((PM2.5))"
 	pm10Pattern     = "((PM10))"
 	datetimePattern = "((yyyy-mm-dd hh:mm:ss))"
 	datetimeFormat  = "2006-01-02 15:04:05"
+)
+
+var (
+	autoair     *autoAir
+	pageContext []byte
 )
 
 var bool2int = map[bool]int{
