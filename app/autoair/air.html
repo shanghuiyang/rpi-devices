@@ -12,6 +12,38 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
+        pageheader {
+            margin-left: 10px;
+            color:DodgerBlue;
+            font-size:25px;
+        }
+        datablock { 
+            padding:25px 50px;
+            display: block; 
+            background-color: MediumSeaGreen;
+            color: white;
+            text-align:center;
+            font-weight: bold; 
+            font-size: 26px;
+            display: inline-block;
+            margin-top: 5px;
+            margin-left: 10px;
+            font-family: Impact;
+            font-size:40px
+        }
+        pmlabel { 
+            width: 150px; 
+            text-align:center;
+            display: inline-block;
+            margin-left: 10px;
+            color:lightgray;
+            font-size:20px;
+            font-family: Impact;
+        }
+        pagefooter {
+            color:lightgray;
+            font-size:18px;
+        }
     </style>
 
     <script>
@@ -33,15 +65,14 @@
     <div id="container" class="container">
         <br>
         <div>
-            <span style="color:DodgerBlue;font-size:180%;padding:10px;"><b>Auto Air-Cleaner</b></span>
+            <pageheader>Auto Air-Cleaner</pageheader>
         </div>
+        <br>
         <div>
-            <br><br><br>
-            <span style="background-color:MediumSeaGreen;color:white;font-size:240%;padding:30px 60px;"><b>((PM2.5))</b></span>
-            <span style="background-color:MediumSeaGreen;color:white;font-size:240%;padding:30px 60px;"><b>((PM10))</b></span>
-            <br><br><br>
-            <span style="color:lightgray;font-size:150%;padding:30px 40px;"><b>PM2.5</b></span>
-            <span style="color:lightgray;font-size:150%;padding:30px 50px;"><b>PM10</b></span>
+            <datablock>((PM2.5))</datablock>
+            <datablock>((PM10))</datablock>
+            <br>
+            <pmlabel>PM2.5</pmlabel><pmlabel>PM10</pmlabel>
         </div>
         <br><br><br><br><br><br>
         <div>
@@ -50,8 +81,9 @@
         </div>
         <br><br><br><br><br>
         <div>
-            <span style="color:lightgray;font-size:120%;">unit: ug/m3</span><br>
-            <span style="color:lightgray;font-size:120%;">update at: ((yyyy-mm-dd hh:mm:ss))</span>
+            <pagefooter>unit: ug/m3</pagefooter>
+            <br>
+            <pagefooter>update at: ((yyyy-mm-dd hh:mm:ss))</pagefooter>
         </div>
     </div>
 </body>

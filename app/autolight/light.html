@@ -12,6 +12,15 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
+        pageheader {
+            margin-left: 10px;
+            color:DodgerBlue;
+            font-size:25px;
+        }
+        pagefooter {
+            color:lightgray;
+            font-size:18px;
+        }
     </style>
 
     <script>
@@ -30,11 +39,11 @@
 </head>
 
 <body>
-    <br>
-    <div>
-        <span style="color:DodgerBlue;font-size:180%;padding:20px;"><b>Auto Light</b></span>
-    </div>
     <div id="container" class="container">
+        <br>
+        <div>
+            <pageheader>Auto Light</pageheader>
+        </div>
         <br><br><br><br>
         <div>
             <input id="light" type="checkbox" ((state)) data-toggle="toggle" data-on="Light On" data-off="Light Off"
@@ -42,7 +51,7 @@
         </div>
         <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
         <div>
-            <span style="color:lightgray;font-size:120%;">update at: ((yyyy-mm-dd hh:mm:ss))</span>
+            <pagefooter>update at: ((yyyy-mm-dd hh:mm:ss))</pagefooter>
         </div>
     </div>
 </body>
