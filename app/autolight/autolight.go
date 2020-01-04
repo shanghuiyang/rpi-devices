@@ -191,7 +191,7 @@ func (a *autoLight) detect() {
 	time.Sleep(500 * time.Millisecond)
 	for {
 		d := a.dist.Dist()
-		detected := (d < 40)
+		detected := (d < 20)
 		a.chLight <- detected
 		a.chLed <- detected
 
@@ -208,7 +208,7 @@ func (a *autoLight) detect() {
 func (a *autoLight) ctrLight() {
 	go func() {
 		for {
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 			v := &iot.Value{
 				Device: "5dd29e1be4b074c40dfe87c4",
 				Value:  bool2int[a.state],
