@@ -2,6 +2,13 @@
 Package dev ...
 
 LedDisplay is based on the 74HC595 shiftregister hardware.
+
+Connect to Pi:
+ - VCC: 	any v3.3 pin
+ - GND: 	any gnd pin
+ - DIO: 	any data pin
+ - SCLK:	any data pin
+ - RCLK:	any data pin
 */
 package dev
 
@@ -109,7 +116,7 @@ func (d *LedDisplay) setBit(bit rpio.State) {
 	d.flushShcp()
 }
 
-// SendData sends the bytes to the shiftregister
+// sendData sends the bytes to the shiftregister
 func (d *LedDisplay) sendData(data uint8) {
 	d.data = data
 	for i := uint(0); i < 8; i++ {

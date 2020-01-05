@@ -24,6 +24,10 @@ const (
 	pinBzr = 10
 	pinSG  = 18
 	pinLed = 26
+
+	dioPin  = 9
+	rclkPin = 10
+	sclkPin = 11
 )
 
 const (
@@ -60,6 +64,7 @@ func main() {
 	air := dev.NewPMS7003()
 	sg := dev.NewSG90(pinSG)
 	led := dev.NewLed(pinLed)
+	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
 	wsnCfg := &base.WsnConfig{
 		Token: base.WsnToken,
@@ -67,7 +72,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	autoair = newAutoAir(air, sg, led, cloud)
+	autoair = newAutoAir(air, sg, led, dsp, cloud)
 	// a.setMode(base.DevMode)
 	base.WaitQuit(func() {
 		autoair.stop()
@@ -156,30 +161,34 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type autoAir struct {
-	air     *dev.PMS7003
-	sg      *dev.SG90
-	led     *dev.Led
-	cloud   iot.Cloud
-	mode    base.Mode
-	state   bool // true: turn on, false: turn off
-	pm25    uint16
-	pm10    uint16
-	chClean chan uint16 // for turning on/off the air-cleaner
-	chAlert chan uint16 // for alerting
-	chCloud chan uint16 // for pushing to iot cloud
+	air       *dev.PMS7003
+	sg        *dev.SG90
+	led       *dev.Led
+	dsp       *dev.LedDisplay
+	cloud     iot.Cloud
+	mode      base.Mode
+	state     bool // true: turn on, false: turn off
+	pm25      uint16
+	pm10      uint16
+	chClean   chan uint16 // for turning on/off the air-cleaner
+	chAlert   chan uint16 // for alerting
+	chDisplay chan uint16
+	chCloud   chan uint16 // for pushing to iot cloud
 }
 
-func newAutoAir(air *dev.PMS7003, sg *dev.SG90, led *dev.Led, cloud iot.Cloud) *autoAir {
+func newAutoAir(air *dev.PMS7003, sg *dev.SG90, led *dev.Led, dsp *dev.LedDisplay, cloud iot.Cloud) *autoAir {
 	return &autoAir{
-		air:     air,
-		sg:      sg,
-		led:     led,
-		cloud:   cloud,
-		mode:    base.PrdMode,
-		state:   false,
-		chClean: make(chan uint16, 4),
-		chAlert: make(chan uint16, 4),
-		chCloud: make(chan uint16, 4),
+		air:       air,
+		sg:        sg,
+		led:       led,
+		dsp:       dsp,
+		cloud:     cloud,
+		mode:      base.PrdMode,
+		state:     false,
+		chClean:   make(chan uint16, 4),
+		chAlert:   make(chan uint16, 4),
+		chDisplay: make(chan uint16, 4),
+		chCloud:   make(chan uint16, 4),
 	}
 }
 
@@ -191,6 +200,7 @@ func (a *autoAir) start() {
 	go a.clean()
 	go a.alert()
 	go a.push()
+	go a.display()
 }
 
 func (a *autoAir) setMode(mode base.Mode) {
@@ -217,6 +227,7 @@ func (a *autoAir) detect() {
 		a.chClean <- a.pm25
 		a.chAlert <- a.pm25
 		a.chCloud <- a.pm25
+		a.chDisplay <- a.pm25
 
 		sec := 60 * time.Second
 		if a.mode != base.PrdMode {
@@ -306,6 +317,47 @@ func (a *autoAir) alert() {
 	}
 }
 
+func (a *autoAir) display() {
+	var pm25 uint16
+	a.dsp.Open()
+	opened := true
+	for {
+		select {
+		case v := <-a.chDisplay:
+			pm25 = v
+		default:
+			// do nothing, just use the latest temp
+		}
+
+		if a.dsp == nil {
+			time.Sleep(30 * time.Second)
+			continue
+		}
+
+		hour := time.Now().Hour()
+		if hour >= 20 || hour < 8 {
+			// turn off oled at 20:00-08:00
+			if opened {
+				a.dsp.Close()
+				opened = false
+			}
+			time.Sleep(10 * time.Second)
+			continue
+		}
+
+		if !opened {
+			a.dsp.Open()
+			opened = true
+		}
+		text := "----"
+		if pm25 > 0 {
+			text = fmt.Sprintf("%d", pm25)
+		}
+		a.dsp.Display(text)
+		time.Sleep(3 * time.Second)
+	}
+}
+
 func (a *autoAir) on() {
 	a.sg.Roll(0)
 	time.Sleep(1 * time.Second)
@@ -323,4 +375,5 @@ func (a *autoAir) off() {
 func (a *autoAir) stop() {
 	a.sg.Roll(45)
 	a.led.Off()
+	a.dsp.Close()
 }
