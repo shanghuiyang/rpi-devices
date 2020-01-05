@@ -54,6 +54,15 @@ func GetIP() string {
 	return items[0]
 }
 
+// Reverse reverses the string
+func Reverse(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
+}
+
 // WaitQuit ...
 func WaitQuit(beforeQuitFunc func()) {
 	c := make(chan os.Signal)

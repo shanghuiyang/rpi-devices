@@ -1,7 +1,7 @@
 /*
 Package dev ...
 
-HC-SR04 is an ultrasonic sensor
+HC-SR04 is a distance meter working with ultrasonic
 which can measure the distance to the an object like a box.
 
 Spec:

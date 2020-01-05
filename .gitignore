@@ -28,6 +28,7 @@
 /dht11
 /autoair
 /ip
+/leddisplay
 .DS_store
 
 # Test binary, build with `go test -c`
