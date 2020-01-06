@@ -64,7 +64,7 @@ func NewPMS7003() *PMS7003 {
 	return p
 }
 
-// Get returns pm2.5 and pm10
+// Get returns pm2.5 and pm10 in ug/m3
 func (p *PMS7003) Get() (uint16, uint16, error) {
 	for i := 0; i < p.maxRetry; i++ {
 		if err := p.port.Flush(); err != nil {
@@ -121,9 +121,9 @@ func (p *PMS7003) check(pm25 uint16) bool {
 		n   int
 		sum float64
 	)
-	for _, pm25 := range p.history {
-		if pm25 > 0 {
-			sum += float64(pm25)
+	for _, h := range p.history {
+		if h > 0 {
+			sum += float64(h)
 			n++
 		}
 	}

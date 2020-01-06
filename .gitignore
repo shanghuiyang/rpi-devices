@@ -29,6 +29,8 @@
 /autoair
 /ip
 /leddisplay
+/ch2o
+/ch2omonitor
 .DS_store
 
 # Test binary, build with `go test -c`
