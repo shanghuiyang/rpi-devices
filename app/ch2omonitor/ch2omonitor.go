@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	pinBzr  = 10
+	pinBzr  = 17
 	pinLed  = 26
 	dioPin  = 9
 	rclkPin = 10
@@ -214,5 +214,6 @@ func (m *ch2oMonitor) display() {
 func (m *ch2oMonitor) stop() {
 	m.sensor.Close()
 	m.led.Off()
+	m.buzzer.Off()
 	m.dsp.Close()
 }

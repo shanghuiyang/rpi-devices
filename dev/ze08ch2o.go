@@ -39,7 +39,7 @@ const (
 )
 
 var (
-	mockCH2Os       = []float64{0.01, 0.05, 0.08, 0.1, 0.15}
+	mockCH2Os       = []float64{0.05, 0.08, 0.1, 0.07}
 	mockCH2OArryIdx = -1
 )
 
@@ -146,7 +146,7 @@ func (p *ZE08CH2O) check(ch2o float64) bool {
 func (p *ZE08CH2O) Mock() (float64, error) {
 	mockCH2OArryIdx++
 	if mockCH2OArryIdx == len(mockCH2Os) {
-		mockArryIdx = 0
+		mockCH2OArryIdx = 0
 	}
 	return mockCH2Os[mockCH2OArryIdx], nil
 }

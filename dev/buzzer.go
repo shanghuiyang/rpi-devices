@@ -1,3 +1,11 @@
+/*
+Package dev ...
+
+Connect to Pi:
+ - vcc: any v3.3 pin
+ - gnd: and gnd pin
+ - i/o: any data pin
+*/
 package dev
 
 import (
