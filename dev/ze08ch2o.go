@@ -29,13 +29,16 @@ package dev
 import (
 	"fmt"
 	"log"
+
 	"math"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/tarm/serial"
 )
 
 const (
 	logTagZE08CH2O = "ZE08CH2O"
+	maxDeltaCH2O   = 0.06
 )
 
 var (
@@ -46,15 +49,15 @@ var (
 // ZE08CH2O ...
 type ZE08CH2O struct {
 	port     *serial.Port
-	buf      [128]byte
-	history  [10]float64
-	idx      uint8
+	buf      [32]byte
+	history  *base.History
 	maxRetry int
 }
 
 // NewZE08CH2O ...
 func NewZE08CH2O() *ZE08CH2O {
 	p := &ZE08CH2O{
+		history:  base.NewHistory(10),
 		maxRetry: 10,
 	}
 	if err := p.open(); err != nil {
@@ -84,14 +87,20 @@ func (p *ZE08CH2O) Get() (float64, error) {
 		}
 
 		if a != 9 {
-			return 0, fmt.Errorf("incorrect data len for ch2o, len: %v", a)
+			log.Printf("[%v]incorrect data len: %v, expected: 9", logTagZE08CH2O, a)
+			continue
 		}
 
+		checksum := ^(p.buf[1] + p.buf[2] + p.buf[3] + p.buf[4] + p.buf[5] + p.buf[6] + p.buf[7]) + 1
+		if checksum != p.buf[8] {
+			log.Printf("[%v]checksum failure", logTagZE08CH2O)
+			continue
+		}
 		ppm := (uint16(p.buf[4]) << 8) | uint16(p.buf[5])
 		ch2o := float64(ppm) * 0.001228 // convert ppm to mg/m3
 
-		if !p.check(ch2o) {
-			log.Printf("[%v]check failed, discard current data. CH2O: %v mg/m3", logTagZE08CH2O, ch2o)
+		if !p.checkDelta(ch2o) {
+			log.Printf("[%v]check delta failed, discard current data. CH2O: %v mg/m3", logTagZE08CH2O, ch2o)
 			continue
 		}
 		return ch2o, nil
@@ -114,30 +123,19 @@ func (p *ZE08CH2O) open() error {
 	return nil
 }
 
-func (p *ZE08CH2O) check(ch2o float64) bool {
-	var (
-		n   int
-		sum float64
-	)
-	for _, h := range p.history {
-		if h > 0 {
-			sum += h
-			n++
+func (p *ZE08CH2O) checkDelta(ch2o float64) bool {
+	avg, err := p.history.Avg()
+	if err != nil {
+		if err == base.ErrEmpty {
+			p.history.Add(ch2o)
+			return true
 		}
+		return false
 	}
-	if n == 0 {
-		p.history[0] = ch2o
-		p.idx = 1
-		return true
-	}
-	avg := sum / float64(n)
-	passed := math.Abs(avg-float64(ch2o)) < 0.1
+
+	passed := math.Abs(avg-ch2o) < maxDeltaCH2O
 	if passed {
-		p.history[p.idx] = ch2o
-		p.idx++
-		if p.idx > 9 {
-			p.idx = 0
-		}
+		p.history.Add(ch2o)
 	}
 	return passed
 }

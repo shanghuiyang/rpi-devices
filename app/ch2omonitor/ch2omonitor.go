@@ -162,8 +162,8 @@ func (m *ch2oMonitor) alert() {
 		}
 
 		if ch2o >= alertCH2O {
-			go m.buzzer.Beep(1, 200)
-			go m.led.Blink(1, 200)
+			// go m.buzzer.Beep(1, 200)
+			// go m.led.Blink(1, 200)
 			// continue
 		}
 		time.Sleep(1 * time.Second)

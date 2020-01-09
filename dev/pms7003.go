@@ -32,30 +32,32 @@ import (
 	"log"
 	"math"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/tarm/serial"
 )
 
 const (
 	logTagPMS7003 = "PMS7003"
+	maxDeltaPM25  = 150
 )
 
 var (
-	mockPMs     = []uint16{50, 110, 150, 110, 50}
-	mockArryIdx = -1
+	mockPMs       = []uint16{50, 110, 150, 110, 50}
+	mockPMArryIdx = -1
 )
 
 // PMS7003 ...
 type PMS7003 struct {
 	port     *serial.Port
 	buf      [128]byte
-	history  [10]uint16
-	idx      uint8
+	history  *base.History
 	maxRetry int
 }
 
 // NewPMS7003 ...
 func NewPMS7003() *PMS7003 {
 	p := &PMS7003{
+		history:  base.NewHistory(10),
 		maxRetry: 10,
 	}
 	if err := p.open(); err != nil {
@@ -85,15 +87,26 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 		}
 
 		if a != 32 {
-			return 0, 0, fmt.Errorf("incorrect data len for pm2.5, len: %v", a)
+			log.Printf("[%v]incorrect data len: %v, expected 32", logTagPMS7003, a)
+			continue
 		}
 		if p.buf[0] != 0x42 && p.buf[1] != 0x4d && p.buf[2] != 0 && p.buf[3] != 28 {
-			return 0, 0, fmt.Errorf("bad data for pm2.5")
+			log.Printf("[%v]incorrect data in byte 1~4", logTagPMS7003)
+			continue
 		}
+		checksum := uint16(0)
+		for i := 0; i < 29; i++ {
+			checksum += uint16(p.buf[i])
+		}
+		if checksum != (uint16(p.buf[30])<<8)|uint16(p.buf[31]) {
+			log.Printf("[%v]checksum failure", logTagPMS7003)
+			continue
+		}
+
 		pm25 := (uint16(p.buf[6]) << 8) | uint16(p.buf[7])
 		pm10 := (uint16(p.buf[8]) << 8) | uint16(p.buf[9])
-		if !p.check(pm25) {
-			log.Printf("[%v]check failed, discard current data. pm2.5: %v", logTagPMS7003, pm25)
+		if !p.checkDelta(pm25) {
+			log.Printf("[%v]check delta failed, discard current data. pm2.5: %v", logTagPMS7003, pm25)
 			continue
 		}
 		return pm25, pm10, nil
@@ -116,39 +129,28 @@ func (p *PMS7003) open() error {
 	return nil
 }
 
-func (p *PMS7003) check(pm25 uint16) bool {
-	var (
-		n   int
-		sum float64
-	)
-	for _, h := range p.history {
-		if h > 0 {
-			sum += float64(h)
-			n++
+func (p *PMS7003) checkDelta(pm25 uint16) bool {
+	avg, err := p.history.Avg()
+	if err != nil {
+		if err == base.ErrEmpty {
+			p.history.Add(pm25)
+			return true
 		}
+		return false
 	}
-	if n == 0 {
-		p.history[0] = pm25
-		p.idx = 1
-		return true
-	}
-	avg := sum / float64(n)
-	passed := math.Abs(avg-float64(pm25)) < 200
+
+	passed := math.Abs(avg-float64(pm25)) < maxDeltaPM25
 	if passed {
-		p.history[p.idx] = pm25
-		p.idx++
-		if p.idx > 9 {
-			p.idx = 0
-		}
+		p.history.Add(pm25)
 	}
 	return passed
 }
 
 // Mock ...
 func (p *PMS7003) Mock() (uint16, uint16, error) {
-	mockArryIdx++
-	if mockArryIdx == len(mockPMs) {
-		mockArryIdx = 0
+	mockPMArryIdx++
+	if mockPMArryIdx == len(mockPMs) {
+		mockPMArryIdx = 0
 	}
-	return mockPMs[mockArryIdx], mockPMs[mockArryIdx], nil
+	return mockPMs[mockPMArryIdx], mockPMs[mockPMArryIdx], nil
 }
