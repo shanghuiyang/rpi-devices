@@ -31,6 +31,9 @@
 /leddisplay
 /ch2o
 /ch2omonitor
+/button
+/doordog
+/*.dev
 .DS_store
 
 # Test binary, build with `go test -c`
