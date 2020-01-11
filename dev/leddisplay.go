@@ -1,15 +1,16 @@
 /*
 Package dev ...
 
-LedDisplay is based on the 74HC595 shiftregister hardware.
-Only support following chars currently. The chars which didn't be spported will be displayed as blank char ' '
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+LedDisplay let you display text on an led digital module which bases on the 74HC595 dirver.
+Please note that I only test it on a 4-bit led digital module.
+Andy Only following chars were supported. The any char which didn't be spported will be displayed as '-'.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 0 1 2 3 4 5 6 7 8 9
 A B C D E F H I J L O P R S U Y Z
 a b c d h i j l o p q s t u y
 . - _ =
 (and blank char ' ')
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Connect to Pi:
  - VCC: 	any v3.3 pin
