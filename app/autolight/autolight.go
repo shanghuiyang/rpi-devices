@@ -1,6 +1,6 @@
 /*
 Auto-Light let you control a led light by hands or any other objects.
-It works with HCSR04, an ultrasonic sensor, together.
+It works with HCSR04, an ultrasonic distance meter, together.
 The led light will light up when HCSR04 sensor get distance less then 40cm.
 And the led will turn off after 45 seconds.
 */

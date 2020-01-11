@@ -1,8 +1,6 @@
 /*
-Auto-Light let you control a led light by hands or any other objects.
-It works with HCSR04, an ultrasonic sensor, together.
-The led light will light up when HCSR04 sensor get distance less then 40cm.
-And the led will turn off after 45 seconds.
+Doordog helps you watch your doors.
+When somebody entries your room, you will be alerted by a beeping buzzer and a blinking led.
 */
 
 package main
