@@ -2,6 +2,14 @@
 Package dev ...
 
 LedDisplay is based on the 74HC595 shiftregister hardware.
+Only support following chars currently. The chars which didn't be spported will be displayed as blank char ' '
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0 1 2 3 4 5 6 7 8 9
+A B C D E F H I J L O P R S U Y Z
+a b c d h i j l o p q s t u y
+. - _ =
+(and blank char ' ')
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Connect to Pi:
  - VCC: 	any v3.3 pin
@@ -20,7 +28,7 @@ import (
 )
 
 const (
-	refreshFrequency = 5 * time.Millisecond
+	refreshFrequency = 3 * time.Millisecond
 	closedSignal     = "*.*.*.*"
 )
 
@@ -44,6 +52,7 @@ var ledchars = map[byte]uint8{
 	'F': 0x71,
 	'H': 0x91,
 	'I': 0x9F,
+	'J': 0x8F,
 	'L': 0xE3,
 	'O': 0x03,
 	'P': 0x31,
@@ -51,10 +60,29 @@ var ledchars = map[byte]uint8{
 	'S': 0x49,
 	'U': 0x83,
 	'Y': 0x89,
+	'Z': 0x25,
 
-	'c': 0xE5,
+	'a': 0x05,
+	'b': 0xC1,
+	'c': 0x79,
+	'd': 0x85,
+	'h': 0xD1,
+	'i': 0xBF,
+	'j': 0xBD,
+	'l': 0xFB,
+	'o': 0x39,
+	'p': 0x31,
+	'q': 0x19,
+	's': 0x49,
+	't': 0xE1,
+	'u': 0xB9,
+	'y': 0x89,
+
 	'.': 0xFE,
 	'-': 0xFD,
+	'_': 0xEF,
+	'=': 0x7D,
+
 	' ': 0xFF,
 }
 

@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	mockCH2Os       = []float64{0.05, 0.08, 0.1, 0.07}
+	mockCH2Os       = []float64{0.052, 0.084, 0.073}
 	mockCH2OArryIdx = -1
 )
 

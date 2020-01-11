@@ -25,9 +25,9 @@ import (
 const (
 	pinBzr  = 17
 	pinLed  = 26
-	dioPin  = 9
-	rclkPin = 10
-	sclkPin = 11
+	dioPin  = 11
+	rclkPin = 9
+	sclkPin = 10
 )
 
 const (
@@ -162,9 +162,8 @@ func (m *ch2oMonitor) alert() {
 		}
 
 		if ch2o >= alertCH2O {
-			// go m.buzzer.Beep(1, 200)
-			// go m.led.Blink(1, 200)
-			// continue
+			go m.buzzer.Beep(1, 200)
+			go m.led.Blink(1, 200)
 		}
 		time.Sleep(1 * time.Second)
 	}
