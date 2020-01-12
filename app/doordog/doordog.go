@@ -20,13 +20,18 @@ const (
 	pinBtn  = 7
 	pinBzr  = 17
 	pinLed  = 23
+
+	// use rpio 8 as 3.3v pin
+	// since other two 3.3v were used by
+	// ultrasonic distance meter and buzzer
+	pin33v = 8
 )
 
 const (
 	// the time of keeping alert in second
-	alertTime = 60
+	alertTime = 30
 	// the distance of triggering alert in cm
-	alertDist = 50
+	alertDist = 60
 )
 
 func main() {
@@ -35,6 +40,10 @@ func main() {
 		return
 	}
 	defer rpio.Close()
+
+	p33v := rpio.Pin(pin33v)
+	p33v.Output()
+	p33v.High()
 
 	bzr := dev.NewBuzzer(pinBzr)
 	led := dev.NewLed(pinLed)
