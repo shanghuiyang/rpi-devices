@@ -73,7 +73,7 @@ func main() {
 	cloud := iot.NewCloud(wsnCfg)
 
 	autoair = newAutoAir(air, sg, led, dsp, cloud)
-	// a.setMode(base.DevMode)
+	// autoair.setMode(base.DevMode)
 	base.WaitQuit(func() {
 		autoair.stop()
 		rpio.Close()
