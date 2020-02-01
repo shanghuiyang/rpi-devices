@@ -269,7 +269,7 @@ func (c *Car) selfDriveOn() {
 	c.dist.Dist()
 
 	// make a warning before running into self-driving mode
-	c.horn.Beep(3, 1000)
+	c.horn.Beep(3, 300)
 
 	// start self-drive
 	c.selfdrive = true
@@ -303,7 +303,7 @@ func (c *Car) selfDriveOn() {
 			}
 			if i == retry {
 				// out of self-driving mode
-				go c.horn.Beep(60, 1000)
+				go c.horn.Beep(60, 300)
 				c.selfdrive = false
 				break
 			}
