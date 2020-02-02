@@ -1,7 +1,7 @@
 /*
 Package dev ...
 
-HC-SR04 is a distance meter working with ultrasonic
+HC-SR04 is an ultrasonic distance meter
 which can measure the distance to the an object like a box.
 
 Spec:
@@ -72,7 +72,7 @@ func (h *HCSR04) Dist() float64 {
 	return time.Now().Sub(start).Seconds() * voiceSpeed / 2.0
 }
 
-// delay is to dalay us microsecond
+// delay is to delay us microsecond
 func (h *HCSR04) delay(us int) {
 	time.Sleep(time.Duration(us) * time.Microsecond)
 }

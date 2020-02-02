@@ -12,17 +12,17 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
-        #rudderleft {
+        #servoleft {
             margin-top: 0px;
             margin-left: 38px;
             padding: 10px 26px;
         }
 
-        #rudderahead {
+        #servoahead {
             padding: 10px 26px;
         }
 
-        #rudderright {
+        #servoright {
             padding: 10px 26px;
         }
 
@@ -38,7 +38,7 @@
             padding: 16px 24px;
         }
 
-        #honk {
+        #horn {
             padding: 16px 24px;
         }
 
@@ -99,37 +99,37 @@
             $('#right').bind("touchend", function (e) {
                 document.getElementById("right").style.color = "white";
             });
-            // honk
-            $('#honk').bind("touchstart", function (e) {
-                $.post(url, { "op": "honk" }, function (data, status) { });
-                document.getElementById("honk").style.color = "yellow";
+            // horn
+            $('#horn').bind("touchstart", function (e) {
+                $.post(url, { "op": "beep" }, function (data, status) { });
+                document.getElementById("horn").style.color = "yellow";
             });
-            $('#honk').bind("touchend", function (e) {
-                document.getElementById("honk").style.color = "lightgray";
+            $('#horn').bind("touchend", function (e) {
+                document.getElementById("horn").style.color = "lightgray";
             });
-            // rudderleft
-            $('#rudderleft').bind("touchstart", function (e) {
-                $.post(url, { "op": "rudderleft" }, function (data, status) { });
-                document.getElementById("rudderleft").style.color = "yellow";
+            // servoleft
+            $('#servoleft').bind("touchstart", function (e) {
+                $.post(url, { "op": "servoleft" }, function (data, status) { });
+                document.getElementById("servoleft").style.color = "yellow";
             });
-            $('#rudderleft').bind("touchend", function (e) {
-                document.getElementById("rudderleft").style.color = "lightgray";
+            $('#servoleft').bind("touchend", function (e) {
+                document.getElementById("servoleft").style.color = "lightgray";
             });
-            // rudderahead
-            $('#rudderahead').bind("touchstart", function (e) {
-                $.post(url, { "op": "rudderahead" }, function (data, status) { });
-                document.getElementById("rudderahead").style.color = "yellow";
+            // servoahead
+            $('#servoahead').bind("touchstart", function (e) {
+                $.post(url, { "op": "servoahead" }, function (data, status) { });
+                document.getElementById("servoahead").style.color = "yellow";
             });
-            $('#rudderahead').bind("touchend", function (e) {
-                document.getElementById("rudderahead").style.color = "lightgray";
+            $('#servoahead').bind("touchend", function (e) {
+                document.getElementById("servoahead").style.color = "lightgray";
             });
-            // rudderright
-            $('#rudderright').bind("touchstart", function (e) {
-                $.post(url, { "op": "rudderright" }, function (data, status) { });
-                document.getElementById("rudderright").style.color = "yellow";
+            // servoright
+            $('#servoright').bind("touchstart", function (e) {
+                $.post(url, { "op": "servoright" }, function (data, status) { });
+                document.getElementById("servoright").style.color = "yellow";
             });
-            $('#rudderright').bind("touchend", function (e) {
-                document.getElementById("rudderright").style.color = "lightgray";
+            $('#servoright').bind("touchend", function (e) {
+                document.getElementById("servoright").style.color = "lightgray";
             });
             // light
             $('#light').change(function () {
@@ -139,12 +139,12 @@
                     $.post(url, { "op": "lightoff" }, function (data, status) { });
                 }
             })
-            // self-drive
-            $('#selfdrive').change(function () {
+            // self-driving
+            $('#selfdriving').change(function () {
                 if ($(this).prop('checked')) {
-                    $.post(url, { "op": "selfdriveon" }, function (data, status) { });
+                    $.post(url, { "op": "selfdrivingon" }, function (data, status) { });
                 } else {
-                    $.post(url, { "op": "selfdriveoff" }, function (data, status) { });
+                    $.post(url, { "op": "selfdrivingoff" }, function (data, status) { });
                 }
             })
         });
@@ -158,11 +158,11 @@
             <!-- <img id="video" height="240" width="320" src="http://172.20.10.13:8081/"> -->
         </div>
         <div>
-            <button id='rudderleft' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
+            <button id='servoleft' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
                 style="font-size:32px; color:lightgray"></button>
-            <button id='rudderahead' class="btn btn-lg glyphicon glyphicon glyphicon-camera"
+            <button id='servoahead' class="btn btn-lg glyphicon glyphicon glyphicon-camera"
                 style="font-size:32px; color:lightgray"></button>
-            <button id='rudderright' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right"
+            <button id='servoright' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right"
                 style="font-size:32px; color:lightgray"></button>
         </div>
         <div>
@@ -172,7 +172,7 @@
         <div>
             <button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left"
                 style="font-size:32px"></button>
-            <button id='honk' class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up"
+            <button id='horn' class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up"
                 style="font-size:32px; color:lightgray"></button>
             <button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right"
                 style="font-size:32px"></button>
@@ -185,8 +185,8 @@
         <div>
             <input id="light" type="checkbox" uncheckbox data-toggle="toggle" data-on="Light" data-off="Light"
                 data-onstyle="warning" data-width="100" data-height="45">
-            <input id="selfdrive" type="checkbox" uncheckbox data-toggle="toggle" data-on="Self-Drive"
-                data-off="Self-Drive" data-onstyle="warning" data-width="100" data-height="45">
+            <input id="selfdriving" type="checkbox" uncheckbox data-toggle="toggle" data-on="Self-Driving"
+                data-off="Self-Driving" data-onstyle="warning" data-width="120" data-height="45">
         </div>
         <br />
     </div>

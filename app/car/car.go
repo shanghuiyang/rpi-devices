@@ -43,7 +43,7 @@ func main() {
 
 	dist := dev.NewHCSR04(pinTrig, pinEcho)
 	if dist == nil {
-		log.Printf("failed to new a HCSR04, will build a car without ultrasonic sensor")
+		log.Printf("failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
 
 	horn := dev.NewBuzzer(pinBzr)
@@ -61,9 +61,9 @@ func main() {
 		log.Printf("failed to new a light, will build a car without lights")
 	}
 
-	rudder := dev.NewSG90(pinSG)
-	if rudder == nil {
-		log.Printf("failed to new a sg90, will build a car without rudders")
+	servo := dev.NewSG90(pinSG)
+	if servo == nil {
+		log.Printf("failed to new a sg90, will build a car without servo")
 	}
 	cam := dev.NewCamera()
 	if cam == nil {
@@ -72,7 +72,7 @@ func main() {
 
 	car = dev.NewCar(
 		dev.WithEngine(eng),
-		dev.WithRudder(rudder),
+		dev.WithServo(servo),
 		dev.WithDist(dist),
 		dev.WithHorn(horn),
 		dev.WithLed(led),

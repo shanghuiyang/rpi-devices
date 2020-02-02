@@ -186,7 +186,7 @@ func (a *autoLight) start() {
 }
 
 func (a *autoLight) detect() {
-	// need to warm-up the ultrasonic sensor first
+	// need to warm-up the ultrasonic distance meter first
 	a.dist.Dist()
 	time.Sleep(500 * time.Millisecond)
 	for {

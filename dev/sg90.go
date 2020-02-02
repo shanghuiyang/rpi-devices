@@ -1,6 +1,6 @@
 /*
 Package dev ...
-SG90 is the diriver of servo motor
+SG90 is the driver of servo motor
 
 Connect to Pi:
  - the red line:	any 5v pin
@@ -51,6 +51,6 @@ func (s *SG90) Roll(angle int) {
 	}
 	duty := uint32(10.0 - float32(angle)/15.0)
 	s.pin.DutyCycle(duty, 100)
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	s.pin.DutyCycle(0, 100)
 }

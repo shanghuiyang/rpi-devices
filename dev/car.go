@@ -8,30 +8,38 @@ import (
 const chSize = 8
 
 const (
-	forward      CarOp = "forward"
-	backward     CarOp = "backward"
-	left         CarOp = "left"
-	right        CarOp = "right"
-	stop         CarOp = "stop"
-	honk         CarOp = "honk"
-	blink        CarOp = "blink"
-	rudderleft   CarOp = "rudderleft"
-	rudderright  CarOp = "rudderright"
-	rudderahead  CarOp = "rudderahead"
-	lighton      CarOp = "lighton"
-	lightoff     CarOp = "lightoff"
-	selfdriveon  CarOp = "selfdriveon"
-	selfdriveoff CarOp = "selfdriveoff"
+	forward        CarOp = "forward"
+	backward       CarOp = "backward"
+	left           CarOp = "left"
+	right          CarOp = "right"
+	stop           CarOp = "stop"
+	beep           CarOp = "beep"
+	blink          CarOp = "blink"
+	servoleft      CarOp = "servoleft"
+	servoright     CarOp = "servoright"
+	servoahead     CarOp = "servoahead"
+	lighton        CarOp = "lighton"
+	lightoff       CarOp = "lightoff"
+	selfdrivingon  CarOp = "selfdrivingon"
+	selfdrivingoff CarOp = "selfdrivingoff"
 )
 
 var (
-	scanningAngles = []int{-90, -45, 45, 90}
+	scanningAngles = []int{-90, -75, -60, -45, -30, -15, 15, 30, 45, 60, 75, 90}
 
 	turnningAngles = map[int]int{
-		-90: 6,
+		-90: 7,
+		-75: 6,
+		-60: 5,
 		-45: 4,
+		-30: 3,
+		-15: 2,
+		15:  2,
+		30:  3,
 		45:  4,
-		90:  6,
+		60:  5,
+		75:  6,
+		90:  7,
 	}
 )
 
@@ -49,10 +57,10 @@ func WithEngine(engine *L298N) Option {
 	}
 }
 
-// WithRudder ...
-func WithRudder(rudder *SG90) Option {
+// WithServo ...
+func WithServo(servo *SG90) Option {
 	return func(c *Car) {
-		c.rudder = rudder
+		c.servo = servo
 	}
 }
 
@@ -94,22 +102,22 @@ func WithCamera(cam *Camera) Option {
 // Car ...
 type Car struct {
 	engine      *L298N
-	rudder      *SG90
+	servo       *SG90
 	dist        *HCSR04
 	horn        *Buzzer
 	led         *Led
 	light       *Led
 	camera      *Camera
-	rudderAngle int
-	selfdrive   bool
+	servoAngle  int
+	selfdriving bool
 	chOp        chan CarOp
 }
 
 // NewCar ...
 func NewCar(opts ...Option) *Car {
 	car := &Car{
-		rudderAngle: 0,
-		selfdrive:   false,
+		servoAngle:  0,
+		selfdriving: false,
 		chOp:        make(chan CarOp, chSize),
 	}
 	for _, opt := range opts {
@@ -121,7 +129,7 @@ func NewCar(opts ...Option) *Car {
 // Start ...
 func (c *Car) Start() error {
 	go c.start()
-	go c.rudder.Roll(0)
+	go c.servo.Roll(0)
 	go c.blink()
 	return nil
 }
@@ -151,22 +159,22 @@ func (c *Car) start() {
 			c.right()
 		case stop:
 			c.stop()
-		case honk:
-			go c.honk()
-		case rudderleft:
-			go c.rudderLeft()
-		case rudderright:
-			go c.rudderRight()
-		case rudderahead:
-			go c.rudderAhead()
+		case beep:
+			go c.beep()
+		case servoleft:
+			go c.servoLeft()
+		case servoright:
+			go c.servoRight()
+		case servoahead:
+			go c.servoAhead()
 		case lighton:
 			go c.light.On()
 		case lightoff:
 			go c.light.Off()
-		case selfdriveon:
-			go c.selfDriveOn()
-		case selfdriveoff:
-			go c.selfDriveOff()
+		case selfdrivingon:
+			go c.selfDrivingOn()
+		case selfdrivingoff:
+			go c.selfDrivingOff()
 		default:
 			c.stop()
 		}
@@ -211,9 +219,9 @@ func (c *Car) speed(s uint32) {
 	c.engine.Speed(s)
 }
 
-// honk ...
-func (c *Car) honk() {
-	log.Printf("car: honk")
+// beep ...
+func (c *Car) beep() {
+	log.Printf("car: beep")
 	if c.horn == nil {
 		return
 	}
@@ -226,42 +234,42 @@ func (c *Car) blink() {
 	}
 }
 
-func (c *Car) rudderLeft() {
-	angle := c.rudderAngle - 15
+func (c *Car) servoLeft() {
+	angle := c.servoAngle - 15
 	if angle < -90 {
 		angle = -90
 	}
-	c.rudderAngle = angle
-	log.Printf("rudder: %v", angle)
-	if c.rudder == nil {
+	c.servoAngle = angle
+	log.Printf("servo: %v", angle)
+	if c.servo == nil {
 		return
 	}
-	c.rudder.Roll(angle)
+	c.servo.Roll(angle)
 }
 
-func (c *Car) rudderRight() {
-	angle := c.rudderAngle + 15
+func (c *Car) servoRight() {
+	angle := c.servoAngle + 15
 	if angle > 90 {
 		angle = 90
 	}
-	c.rudderAngle = angle
-	log.Printf("rudder: %v", angle)
-	if c.rudder == nil {
+	c.servoAngle = angle
+	log.Printf("servo: %v", angle)
+	if c.servo == nil {
 		return
 	}
-	c.rudder.Roll(angle)
+	c.servo.Roll(angle)
 }
 
-func (c *Car) rudderAhead() {
-	c.rudderAngle = 0
-	log.Printf("rudder: %v", 0)
-	if c.rudder == nil {
+func (c *Car) servoAhead() {
+	c.servoAngle = 0
+	log.Printf("servo: %v", 0)
+	if c.servo == nil {
 		return
 	}
-	c.rudder.Roll(0)
+	c.servo.Roll(0)
 }
 
-func (c *Car) selfDriveOn() {
+func (c *Car) selfDrivingOn() {
 	if c.dist == nil {
 		return
 	}
@@ -271,26 +279,24 @@ func (c *Car) selfDriveOn() {
 	// make a warning before running into self-driving mode
 	c.horn.Beep(3, 300)
 
-	// start self-drive
-	c.selfdrive = true
+	// start self-driving
+	c.selfdriving = true
 	fwd := false
-	for c.selfdrive {
+	for c.selfdriving {
 		d := c.dist.Dist()
 		log.Printf("dist: %.0f cm", d)
 
-		// backward
-		if d < 10 {
-			fwd = false
-			c.backward()
-			c.delay(300)
-			c.stop()
-			continue
-		}
 		// find a way out
 		if d < 40 {
 			fwd = false
 			c.stop()
-			c.delay(500)
+			c.delay(100)
+			// backward
+			if d < 10 {
+				c.backward()
+				c.delay(500)
+				c.stop()
+			}
 			maxd, angle := c.scan()
 			log.Printf("maxd=%.0f, angle=%v", maxd, angle)
 			retry := 3
@@ -304,7 +310,7 @@ func (c *Car) selfDriveOn() {
 			if i == retry {
 				// out of self-driving mode
 				go c.horn.Beep(60, 300)
-				c.selfdrive = false
+				c.selfdriving = false
 				break
 			}
 			c.turn(angle)
@@ -320,8 +326,8 @@ func (c *Car) selfDriveOn() {
 	c.stop()
 }
 
-func (c *Car) selfDriveOff() {
-	c.selfdrive = false
+func (c *Car) selfDrivingOff() {
+	c.selfdriving = false
 }
 
 func (c *Car) delay(ms int) {
@@ -330,7 +336,7 @@ func (c *Car) delay(ms int) {
 
 func (c *Car) scan() (maxDist float64, angle int) {
 	for _, ang := range scanningAngles {
-		c.rudder.Roll(ang)
+		c.servo.Roll(ang)
 		c.delay(100)
 		d := c.dist.Dist()
 		log.Printf("scan: angle %v, dist: %.0f", ang, d)
@@ -339,13 +345,11 @@ func (c *Car) scan() (maxDist float64, angle int) {
 			angle = ang
 		}
 	}
-	c.rudder.Roll(0)
+	c.servo.Roll(0)
 	return
 }
 
 func (c *Car) turn(angle int) {
-	c.speed(30)
-	c.delay(200)
 	n, ok := turnningAngles[angle]
 	if !ok {
 		n = angle*2/45 + 2
@@ -359,10 +363,8 @@ func (c *Car) turn(angle int) {
 		} else {
 			c.right()
 		}
-		c.delay(100)
+		c.delay(50)
 	}
 	c.stop()
-	c.speed(25)
-	c.delay(200)
 	return
 }
