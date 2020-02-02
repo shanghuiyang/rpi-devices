@@ -1,10 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
+	"errors"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
@@ -24,9 +27,14 @@ const (
 	pinSG    = 18
 	pinTrig  = 21
 	pinEcho  = 26
+
+	ipPattern = "((000.000.000.000))"
 )
 
-var car *dev.Car
+var (
+	car         *dev.Car
+	pageContext []byte
+)
 
 func main() {
 	if err := rpio.Open(); err != nil {
@@ -83,6 +91,12 @@ func main() {
 		log.Fatal("failed to new a car")
 		return
 	}
+
+	if err := loadHomePage(); err != nil {
+		log.Fatalf("failed to load home page, error: %v", err)
+		return
+	}
+
 	car.Start()
 	log.Printf("car server started")
 
@@ -98,6 +112,34 @@ func main() {
 	}
 }
 
+func loadHomePage() error {
+	data, err := ioutil.ReadFile("car.html")
+	if err != nil {
+		return errors.New("internal error: failed to read car.html")
+	}
+
+	ip := base.GetIP()
+	if ip == "" {
+		return errors.New("internal error: failed to get ip")
+	}
+
+	rbuf := bytes.NewBuffer(data)
+	wbuf := bytes.NewBuffer([]byte{})
+	for {
+		line, err := rbuf.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		}
+		s := string(line)
+		if strings.Index(s, ipPattern) >= 0 {
+			s = strings.Replace(s, ipPattern, ip, 1)
+		}
+		wbuf.Write([]byte(s))
+	}
+	pageContext = wbuf.Bytes()
+	return nil
+}
+
 func carServer(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -108,12 +150,7 @@ func carServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := ioutil.ReadFile("car.html")
-	if err != nil {
-		log.Printf("failed to read car.html")
-		fmt.Fprintf(w, "failed to show home page")
-	}
-	w.Write(data)
+	w.Write(pageContext)
 }
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
