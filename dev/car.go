@@ -321,7 +321,7 @@ func (c *Car) selfDrivingOn() {
 			c.forward()
 			fwd = true
 		}
-		c.delay(200)
+		c.delay(150)
 	}
 	c.stop()
 }
@@ -337,7 +337,7 @@ func (c *Car) delay(ms int) {
 func (c *Car) scan() (maxDist float64, angle int) {
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
-		c.delay(100)
+		c.delay(50)
 		d := c.dist.Dist()
 		log.Printf("scan: angle %v, dist: %.0f", ang, d)
 		if d > maxDist {
