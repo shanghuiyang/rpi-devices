@@ -281,41 +281,41 @@ func (c *Car) selfDrivingOn() {
 
 	// start self-driving
 	c.selfdriving = true
+	op := forward
 	fwd := false
-	for c.selfdriving {
-		d := c.dist.Dist()
-		log.Printf("dist: %.0f cm", d)
 
-		// find a way out
-		if d < 40 {
+	chOp := make(chan CarOp)
+	chHup := make(chan bool)
+	go c.detectObjects(chOp, chHup)
+	for c.selfdriving {
+		select {
+		case p := <-chOp:
+			op = p
+		default:
+			op = forward
+		}
+		log.Printf("op: %v", op)
+
+		switch op {
+		case backward:
+			c.stop()
+			c.delay(100)
+			c.backward()
+			c.delay(500)
+			fallthrough
+		case stop:
 			fwd = false
 			c.stop()
 			c.delay(100)
-			// backward
-			if d < 10 {
-				c.backward()
-				c.delay(500)
-				c.stop()
-			}
+
 			maxd, angle := c.scan()
 			log.Printf("maxd=%.0f, angle=%v", maxd, angle)
-			retry := 3
-			i := 0
-			for ; i < retry && maxd < 40; i++ {
-				c.backward()
-				c.delay(300)
-				c.stop()
-				maxd, angle = c.scan()
-			}
-			if i == retry {
-				// out of self-driving mode
-				go c.horn.Beep(60, 300)
-				c.selfdriving = false
-				break
-			}
 			c.turn(angle)
+			chHup <- false
+			c.delay(150)
 			continue
 		}
+
 		// forward
 		if !fwd {
 			c.forward()
@@ -332,6 +332,27 @@ func (c *Car) selfDrivingOff() {
 
 func (c *Car) delay(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
+}
+
+func (c *Car) detectObjects(chOp chan CarOp, chHup chan bool) {
+	angles := []int{-30, -15, 0, 15, 30, 15, 0, -15}
+	for c.selfdriving {
+		for _, angle := range angles {
+			c.servo.Roll(angle)
+			c.delay(50)
+			d := c.dist.Dist()
+			if d < 10 {
+				chOp <- backward
+				<-chHup
+				break
+			}
+			if d < 40 {
+				chOp <- stop
+				<-chHup
+				break
+			}
+		}
+	}
 }
 
 func (c *Car) scan() (maxDist float64, angle int) {
