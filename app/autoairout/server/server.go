@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,8 +16,11 @@ import (
 )
 
 const (
-	pinSG     = 18
-	ipPattern = "((000.000.000.000))"
+	pinSG           = 18
+	statePattern    = "((state))"
+	ipPattern       = "((000.000.000.000))"
+	datetimePattern = "((yyyy-mm-dd hh:mm:ss))"
+	datetimeFormat  = "2006-01-02 15:04:05"
 )
 
 var (
@@ -37,11 +40,6 @@ func main() {
 		log.Printf("failed to new a sg90, will build a car without servo")
 	}
 	fan = newAuotFan(sg)
-
-	if err := loadHomePage(); err != nil {
-		log.Fatalf("failed to load home page, error: %v", err)
-		return
-	}
 
 	log.Printf("fan server started")
 
@@ -69,34 +67,6 @@ func newAuotFan(sg *dev.SG90) *autoFan {
 	}
 }
 
-func loadHomePage() error {
-	data, err := ioutil.ReadFile("car.html")
-	if err != nil {
-		return errors.New("internal error: failed to read car.html")
-	}
-
-	ip := base.GetIP()
-	if ip == "" {
-		return errors.New("internal error: failed to get ip")
-	}
-
-	rbuf := bytes.NewBuffer(data)
-	wbuf := bytes.NewBuffer([]byte{})
-	for {
-		line, err := rbuf.ReadBytes('\n')
-		if err == io.EOF {
-			break
-		}
-		s := string(line)
-		if strings.Index(s, ipPattern) >= 0 {
-			s = strings.Replace(s, ipPattern, ip, 1)
-		}
-		wbuf.Write([]byte(s))
-	}
-	pageContext = wbuf.Bytes()
-	return nil
-}
-
 func fanServer(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -107,7 +77,47 @@ func fanServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write(pageContext)
+	if len(pageContext) == 0 {
+		var err error
+		pageContext, err = ioutil.ReadFile("home.html")
+		if err != nil {
+			log.Printf("failed to read home.html")
+			fmt.Fprintf(w, "internal error: failed to read home page")
+			return
+		}
+	}
+
+	ip := base.GetIP()
+	if ip == "" {
+		log.Printf("failed to get ip")
+		fmt.Fprintf(w, "internal error: failed to get ip")
+		return
+	}
+
+	wbuf := bytes.NewBuffer([]byte{})
+	rbuf := bytes.NewBuffer(pageContext)
+	for {
+		line, err := rbuf.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		}
+		s := string(line)
+		switch {
+		case strings.Index(s, ipPattern) >= 0:
+			s = strings.Replace(s, ipPattern, ip, 1)
+		case strings.Index(s, datetimePattern) >= 0:
+			datetime := time.Now().Format(datetimeFormat)
+			s = strings.Replace(s, datetimePattern, datetime, 1)
+		case strings.Index(s, statePattern) >= 0:
+			state := "unchecked"
+			if fan.state == "on" {
+				state = "checked"
+			}
+			s = strings.Replace(s, statePattern, state, 1)
+		}
+		wbuf.Write([]byte(s))
+	}
+	w.Write(wbuf.Bytes())
 }
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
