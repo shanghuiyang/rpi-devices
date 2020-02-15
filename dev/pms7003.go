@@ -21,8 +21,8 @@ Config Your Pi:
 Connect to Pi:
  - VCC: any 5v pin
  - GND: any gnd pin
- - TXD: must connect to pin 10(gpio 14) (RXD)
- - RXT: must connect to pin  8(gpio 15) (TXD)
+ - TXD: must connect to pin 10(gpio 15) (RXD)
+ - RXT: must connect to pin  8(gpio 14) (TXD)
 
 */
 package dev

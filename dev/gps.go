@@ -19,8 +19,8 @@ Config Your Pi:
 Connect NEO-6M GPS Sensor to Raspberry Pi:
  - VCC: any 5v pin
  - GND: any gnd pin
- - RXT: must connect to pin  8(gpio 15) (TXD)
- - TXD: must connect to pin 10(gpio 14) (RXD)
+ - RXT: must connect to pin  8(gpio 14) (TXD)
+ - TXD: must connect to pin 10(gpio 15) (RXD)
 
 -----------------------------------------------------------------------
 
