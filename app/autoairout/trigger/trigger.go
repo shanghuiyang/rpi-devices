@@ -1,5 +1,5 @@
 /*
-trigger detect the shaking.
+trigger sends a command to the server when it detects a shake.
 
 */
 
@@ -16,16 +16,20 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
+type state string
+
 const (
-	sw420Pin = 7
+	sw420Pin = 2
+)
+
+const (
+	on  state = "on"
+	off state = "off"
 )
 
 var (
-	api = "http://192.168.31.64:8080"
-	op  = map[bool]string{
-		true:  "on",
-		false: "off",
-	}
+	api      = "http://192.168.31.50:8080"
+	curState = off
 )
 
 func main() {
@@ -46,20 +50,28 @@ func main() {
 	})
 
 	for {
-		shaked := sw420.Shaked()
-		go sendcmd(shaked)
-
-		sleepTime := 5 * time.Second
-		if shaked {
-			sleepTime = 60 * time.Second
+		shaked := sw420.KeepShaking()
+		if shaked && curState == off {
+			curState = on
+			log.Printf("state: on")
+			go sendcmd(curState)
+			time.Sleep(1 * time.Second)
+			continue
 		}
-		time.Sleep(sleepTime)
+		if !shaked && curState == on {
+			curState = off
+			log.Printf("state: off")
+			go sendcmd(curState)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
 	}
 }
 
-func sendcmd(shaked bool) {
+func sendcmd(s state) {
 	formData := url.Values{
-		"op": {op[shaked]},
+		"op": {string(s)},
 	}
 	resp, err := http.PostForm(api, formData)
 	if err != nil {

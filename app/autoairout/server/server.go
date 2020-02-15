@@ -122,6 +122,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
+	log.Printf("op: %v", op)
 	switch op {
 	case "on":
 		if fan.state != "on" {

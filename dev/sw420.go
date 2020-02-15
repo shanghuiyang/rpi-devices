@@ -12,6 +12,8 @@ Connect to Pi:
 package dev
 
 import (
+	"time"
+
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -22,14 +24,30 @@ type SW420 struct {
 
 // NewSW420 ...
 func NewSW420(pin uint8) *SW420 {
-	i := &SW420{
+	s := &SW420{
 		pin: rpio.Pin(pin),
 	}
-	i.pin.Input()
-	return i
+	s.pin.Input()
+	return s
 }
 
-// Shaked returns true if detect a shake, and return false if didn't detect any shakes
-func (i *SW420) Shaked() bool {
-	return i.pin.Read() == rpio.High
+// Shaked returns true if the sensor detects a shake,
+// or return false
+func (s *SW420) Shaked() bool {
+	return s.pin.Read() == rpio.High
+}
+
+// KeepShaking returns true if the sensor detects the object keeps shaking in 100 millisecond,
+// or returns false
+func (s *SW420) KeepShaking() bool {
+	states := map[bool]int{
+		true:  0,
+		false: 0,
+	}
+	for i := 0; i < 10; i++ {
+		shaked := s.Shaked()
+		states[shaked]++
+		time.Sleep(10 * time.Millisecond)
+	}
+	return states[true] > states[false]
 }
