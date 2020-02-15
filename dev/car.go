@@ -8,18 +8,24 @@ import (
 const chSize = 8
 
 const (
-	forward        CarOp = "forward"
-	backward       CarOp = "backward"
-	left           CarOp = "left"
-	right          CarOp = "right"
-	stop           CarOp = "stop"
-	beep           CarOp = "beep"
-	blink          CarOp = "blink"
-	servoleft      CarOp = "servoleft"
-	servoright     CarOp = "servoright"
-	servoahead     CarOp = "servoahead"
-	lighton        CarOp = "lighton"
-	lightoff       CarOp = "lightoff"
+	forward  CarOp = "forward"
+	backward CarOp = "backward"
+	left     CarOp = "left"
+	right    CarOp = "right"
+	stop     CarOp = "stop"
+	turn     CarOp = "turn"
+	scan     CarOp = "scan"
+
+	beep  CarOp = "beep"
+	blink CarOp = "blink"
+
+	servoleft  CarOp = "servoleft"
+	servoright CarOp = "servoright"
+	servoahead CarOp = "servoahead"
+
+	lighton  CarOp = "lighton"
+	lightoff CarOp = "lightoff"
+
 	selfdrivingon  CarOp = "selfdrivingon"
 	selfdrivingoff CarOp = "selfdrivingoff"
 )
@@ -172,9 +178,9 @@ func (c *Car) start() {
 		case lightoff:
 			go c.light.Off()
 		case selfdrivingon:
-			go c.selfDrivingOn()
+			go c.onSelfDriving()
 		case selfdrivingoff:
-			go c.selfDrivingOff()
+			go c.offSelfDriving()
 		default:
 			c.stop()
 		}
@@ -269,7 +275,31 @@ func (c *Car) servoAhead() {
 	c.servo.Roll(0)
 }
 
-func (c *Car) selfDrivingOn() {
+/*
+
+                                                                          +-----------------------------------------------+
+                                                                          |                                               |
+                                                                          v                                               |Y
++-------+     +---------+    +---------------+     +-----------+     +----+-----+      +------+      +------+     +--------------+
+| start |---->| forward |--->| objects ahead |---->| distance  |---->| backword |----->| stop |----->| scan |---->| min distance |
++-------+     +-----+---+    |   detected?   | Y   | in 10cm?  | Y   +----------+      +--+---+      +------+     |   in 10cm    |
+                    ^        +-------+-------+     +-----+-----+                          ^                       +-------+------+
+                    |                |                   |                                |                               |N
+                    |                |N                 N|                                |                               |
+                    |                |                   |                                |                               v
+                    |                v                   |           +----------+ Y       |                    Y  +--------------+
+                    |                |                   +---------->| distance |------>--+-------------<---------| max distance |
+                    |                |                               | in 40cm? |                                 |   in 40cm    |
+                    ^                |                               +-----+----+                                 +--------------+
+                    |                |                                     |N                                             |N
+                    |                |                                     |                                              |
+                    |                |                                     v                   +------+                   v
+                    +-------<--------+------------------<------------------+---------<---------| turn |--------<----------+
+                                                                                               +------+
+
+
+*/
+func (c *Car) onSelfDriving() {
 	if c.dist == nil {
 		return
 	}
@@ -282,11 +312,12 @@ func (c *Car) selfDrivingOn() {
 	// start self-driving
 	c.selfdriving = true
 	op := forward
+	angle := 0
 	fwd := false
 
 	chOp := make(chan CarOp)
-	chHup := make(chan bool)
-	go c.detectObjects(chOp, chHup)
+	chDetecting := make(chan bool)
+	go c.detecting(chOp, chDetecting)
 	for c.selfdriving {
 		select {
 		case p := <-chOp:
@@ -298,35 +329,48 @@ func (c *Car) selfDrivingOn() {
 
 		switch op {
 		case backward:
+			fwd = false
 			c.stop()
-			c.delay(100)
+			c.delay(20)
 			c.backward()
 			c.delay(500)
-			fallthrough
+			chOp <- stop
+			continue
 		case stop:
 			fwd = false
 			c.stop()
-			c.delay(100)
-
-			maxd, angle := c.scan()
-			log.Printf("maxd=%.0f, angle=%v", maxd, angle)
+			c.delay(20)
+			chOp <- scan
+			continue
+		case scan:
+			fwd = false
+			var min, max float64
+			min, max, angle = c.scanDist()
+			log.Printf("mind=%.0f, maxd=%.0f, angle=%v", min, max, angle)
+			if min < 10 {
+				chOp <- backward
+				continue
+			}
+			chOp <- turn
+		case turn:
+			fwd = false
 			c.turn(angle)
-			chHup <- false
+			chDetecting <- true // resume to detecting objects ahead
 			c.delay(150)
 			continue
+		case forward:
+			if !fwd {
+				c.forward()
+				fwd = true
+			}
+			c.delay(50)
+			continue
 		}
-
-		// forward
-		if !fwd {
-			c.forward()
-			fwd = true
-		}
-		c.delay(150)
 	}
 	c.stop()
 }
 
-func (c *Car) selfDrivingOff() {
+func (c *Car) offSelfDriving() {
 	c.selfdriving = false
 }
 
@@ -334,7 +378,8 @@ func (c *Car) delay(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
 }
 
-func (c *Car) detectObjects(chOp chan CarOp, chHup chan bool) {
+// detects the objects ahead(-30 ~ 30 degree).
+func (c *Car) detecting(chOp chan CarOp, chDetecting chan bool) {
 	angles := []int{-30, -15, 0, 15, 30, 15, 0, -15}
 	for c.selfdriving {
 		for _, angle := range angles {
@@ -343,26 +388,30 @@ func (c *Car) detectObjects(chOp chan CarOp, chHup chan bool) {
 			d := c.dist.Dist()
 			if d < 10 {
 				chOp <- backward
-				<-chHup
+				<-chDetecting // pause detecting until the car finishs the actions
 				break
 			}
 			if d < 40 {
 				chOp <- stop
-				<-chHup
+				<-chDetecting // pause detecting until the car finishs the actions
 				break
 			}
 		}
 	}
 }
 
-func (c *Car) scan() (maxDist float64, angle int) {
+// scan for geting the min & max distance, and the angle for max distance
+func (c *Car) scanDist() (min, max float64, angle int) {
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
 		c.delay(50)
 		d := c.dist.Dist()
 		log.Printf("scan: angle %v, dist: %.0f", ang, d)
-		if d > maxDist {
-			maxDist = d
+		if d < min {
+			min = d
+		}
+		if d > max {
+			max = d
 			angle = ang
 		}
 	}
