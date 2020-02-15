@@ -65,7 +65,7 @@ func WithServo(servo *SG90) Option {
 }
 
 // WithDist ...
-func WithDist(dist *HCSR04) Option {
+func WithDist(dist *US100) Option {
 	return func(c *Car) {
 		c.dist = dist
 	}
@@ -103,7 +103,7 @@ func WithCamera(cam *Camera) Option {
 type Car struct {
 	engine      *L298N
 	servo       *SG90
-	dist        *HCSR04
+	dist        *US100
 	horn        *Buzzer
 	led         *Led
 	light       *Led

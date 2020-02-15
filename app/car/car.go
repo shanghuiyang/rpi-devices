@@ -25,8 +25,6 @@ const (
 	pinENB   = 19
 	pinBzr   = 10
 	pinSG    = 18
-	pinTrig  = 21
-	pinEcho  = 26
 
 	ipPattern = "((000.000.000.000))"
 )
@@ -49,7 +47,7 @@ func main() {
 		return
 	}
 
-	dist := dev.NewHCSR04(pinTrig, pinEcho)
+	dist := dev.NewUS100()
 	if dist == nil {
 		log.Printf("failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
