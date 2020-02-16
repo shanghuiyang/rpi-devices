@@ -300,6 +300,7 @@ func (c *Car) servoAhead() {
 
 */
 func (c *Car) onSelfDriving() {
+	log.Printf("car: self-drving")
 	if c.dist == nil {
 		return
 	}
@@ -315,7 +316,7 @@ func (c *Car) onSelfDriving() {
 	angle := 0
 	fwd := false
 
-	chOp := make(chan CarOp)
+	chOp := make(chan CarOp, 1)
 	chDetecting := make(chan bool)
 	go c.detecting(chOp, chDetecting)
 	for c.selfdriving {
@@ -372,6 +373,7 @@ func (c *Car) onSelfDriving() {
 
 func (c *Car) offSelfDriving() {
 	c.selfdriving = false
+	log.Printf("car: self-drving off")
 }
 
 func (c *Car) delay(ms int) {
@@ -402,6 +404,8 @@ func (c *Car) detecting(chOp chan CarOp, chDetecting chan bool) {
 
 // scan for geting the min & max distance, and the angle for max distance
 func (c *Car) scanDist() (min, max float64, angle int) {
+	min = 9999
+	max = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
 		c.delay(50)
