@@ -302,10 +302,9 @@ func (c *Car) servoAhead() {
 func (c *Car) onSelfDriving() {
 	log.Printf("car: self-drving")
 	if c.dist == nil {
+		log.Printf("can't self-driving without the distance sensor")
 		return
 	}
-	// need to warm-up the distance sensor first
-	c.dist.Dist()
 
 	// make a warning before running into self-driving mode
 	c.horn.Beep(3, 300)
