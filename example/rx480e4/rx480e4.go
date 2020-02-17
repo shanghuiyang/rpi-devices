@@ -10,10 +10,12 @@ import (
 )
 
 const (
-	out1 = 1
-	out2 = 2
-	out3 = 4
-	out4 = 5
+	d0 = 23
+	d1 = 24
+	d2 = 25
+	d3 = 8
+
+	ledPin = 21
 )
 
 func main() {
@@ -23,11 +25,14 @@ func main() {
 	}
 	defer rpio.Close()
 
-	r := dev.NewRX480E4(out1, out2, out3, out4)
+	r := dev.NewRX480E4(d0, d1, d2, d3)
+	led := dev.NewLed(ledPin)
 	base.WaitQuit(func() {
+		led.Off()
 		rpio.Close()
 	})
 
+	ledOn := false
 	chA := make(chan bool)
 	chB := make(chan bool)
 	chC := make(chan bool)
@@ -81,6 +86,13 @@ func main() {
 		select {
 		case <-chA:
 			log.Printf("pressed A")
+			if ledOn {
+				led.Off()
+				ledOn = false
+			} else {
+				led.On()
+				ledOn = true
+			}
 		case <-chB:
 			log.Printf("pressed B")
 		case <-chC:
