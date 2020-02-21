@@ -15,18 +15,18 @@ The following devices had been implemented in the current version, and a device 
 
   ![](img/buzzer.jpg)   ![](img/voice.jpg)   ![](img/hc-sr04.jpg)   ![](img/l298n.jpg)   ![](img/sg90.jpg)
 
-	  Buzzer          Voice         Ultrasonic        Motor        Servo-Motor
-	                  Sensor          Sensor          Dirver
+	  Buzzer          Voice           HC-SR04        Motor        Servo-Motor
+	                  Sensor        Ultr Sensor     Dirver
 
   ![](img/dht11.jpg)   ![](img/infared.jpg)   ![](img/oled.jpg)   ![](img/pms7003.jpg)   ![](img/button.jpg)
 
 	Temp&Humidity    Infared           OLED         Air Quality      Button
    	   Sensor        Sensor           Display         (PM2.5)
 
-  ![](img/ze08-ch2o.jpg)
+  ![](img/ze08-ch2o.jpg)   ![](img/rx480e4.jpg)   ![](img/sw-420.jpg)   ![](img/us-100.jpg)   ![](img/digital-led-display.jpg)
      
-	 ZE08-CH2O
-	CH2O Sensor
+	 ZE08-CH2O       RX480E-4         SW-420          US-100       Digital Led
+	CH2O Sensor   Wireless Rec   Vibration Sensor  Ultr Sensor      Display
 
 ## Visualize Data
 The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. Both of them are free for developers. You can implement the interface for new IoT cloud and add it to the framework easily.
