@@ -33,19 +33,20 @@ const (
 var (
 	scanningAngles = []int{-90, -75, -60, -45, -30, -15, 15, 30, 45, 60, 75, 90}
 
-	turnningAngles = map[int]int{
-		-90: 7,
-		-75: 6,
-		-60: 5,
-		-45: 4,
-		-30: 3,
-		-15: 2,
-		15:  2,
-		30:  3,
-		45:  4,
-		60:  5,
-		75:  6,
-		90:  7,
+	// the map of between angle(degree) and time(millisecond)
+	turnAngleTimes = map[int]int{
+		-90: 1200,
+		-75: 1000,
+		-60: 800,
+		-45: 600,
+		-30: 400,
+		-15: 200,
+		15:  200,
+		30:  400,
+		45:  600,
+		60:  800,
+		75:  1000,
+		90:  1200,
 	}
 )
 
@@ -427,21 +428,16 @@ func (c *Car) scanDist() (min, max float64, angle int) {
 }
 
 func (c *Car) turn(angle int) {
-	n, ok := turnningAngles[angle]
+	ms, ok := turnAngleTimes[angle]
 	if !ok {
-		n = angle*2/45 + 2
-		if angle < 0 {
-			n *= -1
-		}
+		return
 	}
-	for i := 0; i < n; i++ {
-		if angle < 0 {
-			c.left()
-		} else {
-			c.right()
-		}
-		c.delay(50)
+	if angle < 0 {
+		c.engine.Left()
+	} else {
+		c.engine.Right()
 	}
+	c.delay(ms)
 	c.stop()
 	return
 }

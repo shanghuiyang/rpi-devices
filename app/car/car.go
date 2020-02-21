@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"bytes"
 	"errors"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
@@ -102,6 +104,24 @@ func main() {
 		car.Stop()
 		rpio.Close()
 	})
+
+	//---------------- test --------------
+	for {
+		var ms int
+		fmt.Printf(">>ms: ")
+		if n, err := fmt.Scanf("%d", &ms); n != 1 || err != nil {
+			log.Printf("invalid operator, error: %v", err)
+			continue
+		}
+		if ms < 0 {
+			break
+		}
+		eng.Left()
+		time.Sleep(time.Duration(ms)*time.Millisecond)
+		eng.Stop()
+	}
+	return
+	//------------------------------------
 
 	http.HandleFunc("/", carServer)
 	err := http.ListenAndServe(":8080", nil)
