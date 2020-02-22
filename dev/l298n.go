@@ -32,7 +32,6 @@ Pins:
 package dev
 
 import (
-
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -76,7 +75,6 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 func (l *L298N) Forward() {
 	l.in1.High()
 	l.in2.Low()
-	// time.Sleep(80 * time.Millisecond)
 	l.in3.High()
 	l.in4.Low()
 }
@@ -85,7 +83,6 @@ func (l *L298N) Forward() {
 func (l *L298N) Backward() {
 	l.in1.Low()
 	l.in2.High()
-	// time.Sleep(80 * time.Millisecond)
 	l.in3.Low()
 	l.in4.High()
 }

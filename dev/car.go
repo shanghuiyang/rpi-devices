@@ -31,22 +31,20 @@ const (
 )
 
 var (
-	scanningAngles = []int{-90, -75, -60, -45, -30, -15, 15, 30, 45, 60, 75, 90}
+	scanningAngles = []int{-90, -75, -60, -45, -30, 30, 45, 60, 75, 90}
 
-	// the map of between angle(degree) and time(millisecond)
+	// the map between angle(degree) and time(millisecond)
 	turnAngleTimes = map[int]int{
-		-90: 1200,
+		-90: 1250,
 		-75: 1000,
 		-60: 800,
 		-45: 600,
 		-30: 400,
-		-15: 200,
-		15:  200,
 		30:  400,
 		45:  600,
 		60:  800,
 		75:  1000,
-		90:  1200,
+		90:  1250,
 	}
 )
 
@@ -313,10 +311,13 @@ func (c *Car) onSelfDriving() {
 
 	// start self-driving
 	c.selfdriving = true
-	op := forward
-	angle := 0
-	fwd := false
-	retry := 0
+	var (
+		op       = forward
+		fwd      bool
+		retry    int
+		angle    int
+		min, max float64
+	)
 
 	chOp := make(chan CarOp, 1)
 	chDetecting := make(chan bool)
@@ -347,7 +348,6 @@ func (c *Car) onSelfDriving() {
 			continue
 		case scan:
 			fwd = false
-			var min, max float64
 			min, max, angle = c.scanDist()
 			log.Printf("mind=%.0f, maxd=%.0f, angle=%v", min, max, angle)
 			if min < 10 && retry < 4 {

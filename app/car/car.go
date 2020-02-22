@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -105,24 +105,6 @@ func main() {
 		rpio.Close()
 	})
 
-	//---------------- test --------------
-	for {
-		var ms int
-		fmt.Printf(">>ms: ")
-		if n, err := fmt.Scanf("%d", &ms); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
-			continue
-		}
-		if ms < 0 {
-			break
-		}
-		eng.Left()
-		time.Sleep(time.Duration(ms)*time.Millisecond)
-		eng.Stop()
-	}
-	return
-	//------------------------------------
-
 	http.HandleFunc("/", carServer)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
@@ -174,4 +156,28 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
 	car.Do(dev.CarOp(op))
+}
+
+// tuningParams tunings the mapping between angle(degree) and time(millisecond)
+func tuningParams() {
+	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
+	if eng == nil {
+		log.Fatal("failed to new L298N")
+		return
+	}
+	for {
+		var ms int
+		fmt.Printf(">>ms: ")
+		if n, err := fmt.Scanf("%d", &ms); n != 1 || err != nil {
+			log.Printf("invalid operator, error: %v", err)
+			continue
+		}
+		if ms < 0 {
+			break
+		}
+		eng.Right()
+		time.Sleep(time.Duration(ms) * time.Millisecond)
+		eng.Stop()
+	}
+	return
 }
