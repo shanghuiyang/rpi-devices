@@ -1,0 +1,38 @@
+# 
+# chat script 
+# 
+# 
+	ABORT		'BUSY'
+	ABORT		'NO ANSWER'
+	ABORT		'NO CARRIER'
+	ABORT		'NO DIALTONE'
+	ABORT		'\nRINGING\r\n\r\nRINGING\r'
+	SAY			"modem init: press <ctrl>-C to disconnect\n"
+
+
+	''		'+++ATH'
+#	OK		'ATZ'
+#	OK		'ATQ0 V1 E1 S0=0 &C1 &D2 +FCLASS=0'
+#	OK		'AT+IFC=0,0'
+#	OK		'AT&W'
+	SAY		"Before Connecting\n"
+
+#	OK		'AT+CSOCKAUTH=,,"card","card"'
+	OK		'AT+CGDCONT=1,"IP","cmnet"'
+	SAY		"\n + defining PDP context\n"
+
+#	OK		'ATD#777'
+	OK		'ATD*99#'
+	SAY		"Number Dialled\n"
+
+#	OK		'AT+CGATT=1'
+	SAY		"\n + attaching"
+# simcom
+#	OK		'AT+CIPSTART'
+#	SAY		"\n + attaching to GPRS"
+
+	SAY		"\n + requesting data connection"
+#	CONNECT		''
+	CONNECT		\d\c
+	SAY		"\n + connected"
+

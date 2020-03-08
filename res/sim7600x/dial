@@ -1,0 +1,35 @@
+#
+# pppd options
+#
+modem
+debug
+#logfile /var/ppplog 
+nodetach 
+/dev/ttyUSB2
+115200
+receive-all
+#defaultroute
+noipdefault
+-chap
+usepeerdns
+#mtu 1500
+-crtscts
+ipcp-accept-local
+ipcp-accept-remote
+lock
+noauth
+novj
+nobsdcomp
+novjccomp
+nopcomp
+noaccomp
+asyncmap 0
+user "card"
+password "card"
+
+#lcp-echo-failure 0
+#lcp-echo-interval 0
+
+# Chat scripts
+connect "/usr/sbin/chat -v -s -f /etc/ppp/chat"
+
