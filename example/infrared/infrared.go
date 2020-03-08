@@ -20,7 +20,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	infr := dev.NewInfraredDetector(pin)
+	infr := dev.NewInfrared(pin)
 	base.WaitQuit(func() {
 		rpio.Close()
 	})

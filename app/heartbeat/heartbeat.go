@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	heartBeatInterval = 2 * time.Minute
+	heartBeatInterval = 1 * time.Minute
 )
 
 func main() {
-	oneNetCfg := &base.OneNetConfig{
-		Token: base.OneNetToken,
-		API:   base.OneNetAPI,
+	oneNetCfg := &base.WsnConfig{
+		Token: base.WsnToken,
+		API:   base.WsnNumericalAPI,
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
@@ -40,7 +40,7 @@ func (h *heartBeat) start() {
 		time.Sleep(heartBeatInterval)
 		b = (b*b - 1) * (b*b - 1)
 		v := &iot.Value{
-			Device: "heartbeat",
+			Device: "5d2f15d1e4b04a9a929fadc9",
 			Value:  b,
 		}
 		h.cloud.Push(v)
