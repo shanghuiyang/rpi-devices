@@ -49,8 +49,8 @@ func main() {
 		return
 	}
 
-	dist := dev.NewUS100()
-	if dist == nil {
+	ult := dev.NewUS100()
+	if ult == nil {
 		log.Printf("failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
 
@@ -81,7 +81,7 @@ func main() {
 	car = dev.NewCar(
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
-		dev.WithDist(dist),
+		dev.WithUlt(ult),
 		dev.WithHorn(horn),
 		dev.WithLed(led),
 		dev.WithLight(light),
@@ -158,11 +158,10 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 	car.Do(dev.CarOp(op))
 }
 
-// tuningParams tunings the mapping between angle(degree) and time(millisecond)
-func tuningParams() {
-	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
+// tuningTurnAngle tunings the mapping between angle(degree) and time(millisecond)
+func tuningTurnAngle(eng *dev.L298N) {
 	if eng == nil {
-		log.Fatal("failed to new L298N")
+		log.Fatal("eng is nil")
 		return
 	}
 	for {

@@ -69,10 +69,10 @@ func WithServo(servo *SG90) Option {
 	}
 }
 
-// WithDist ...
-func WithDist(dist *US100) Option {
+// WithUlt ...
+func WithUlt(ult *US100) Option {
 	return func(c *Car) {
-		c.dist = dist
+		c.ult = ult
 	}
 }
 
@@ -108,7 +108,7 @@ func WithCamera(cam *Camera) Option {
 type Car struct {
 	engine      *L298N
 	servo       *SG90
-	dist        *US100
+	ult         *US100
 	horn        *Buzzer
 	led         *Led
 	light       *Led
@@ -301,7 +301,7 @@ func (c *Car) servoAhead() {
 */
 func (c *Car) onSelfDriving() {
 	log.Printf("car: self-drving")
-	if c.dist == nil {
+	if c.ult == nil {
 		log.Printf("can't self-driving without the distance sensor")
 		return
 	}
@@ -320,8 +320,8 @@ func (c *Car) onSelfDriving() {
 	)
 
 	chOp := make(chan CarOp, 1)
-	chDetecting := make(chan bool)
-	go c.detecting(chOp, chDetecting)
+	chDetect := make(chan bool)
+	go c.detect(chOp, chDetect)
 	for c.selfdriving {
 		select {
 		case p := <-chOp:
@@ -360,7 +360,7 @@ func (c *Car) onSelfDriving() {
 		case turn:
 			fwd = false
 			c.turn(angle)
-			chDetecting <- true // resume to detecting objects ahead
+			chDetect <- true // resume to detecting objects ahead
 			c.delay(150)
 			continue
 		case forward:
@@ -384,22 +384,22 @@ func (c *Car) delay(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
 }
 
-// detects the objects ahead(-30 ~ 30 degree).
-func (c *Car) detecting(chOp chan CarOp, chDetecting chan bool) {
-	angles := []int{-30, -15, 0, 15, 30, 15, 0, -15}
+// detect detects obstacles using an ultrasonic distance meter.
+func (c *Car) detect(chOp chan CarOp, chDetect chan bool) {
+	angles := []int{0, -10, -20, -10, 0, 10, 20, 10}
 	for c.selfdriving {
 		for _, angle := range angles {
 			c.servo.Roll(angle)
 			c.delay(50)
-			d := c.dist.Dist()
+			d := c.ult.Dist()
 			if d < 10 {
 				chOp <- backward
-				<-chDetecting // pause detecting until the car finishs the actions
+				<-chDetect // pause detecting until the car finishs the actions
 				break
 			}
 			if d < 40 {
 				chOp <- stop
-				<-chDetecting // pause detecting until the car finishs the actions
+				<-chDetect // pause detecting until the car finishs the actions
 				break
 			}
 		}
@@ -413,7 +413,14 @@ func (c *Car) scanDist() (min, max float64, angle int) {
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
 		c.delay(50)
-		d := c.dist.Dist()
+		d := c.ult.Dist()
+		for i := 0; d < 0 && i < 3; i++ {
+			c.delay(50)
+			d = c.ult.Dist()
+		}
+		if d < 0 {
+			continue
+		}
 		log.Printf("scan: angle %v, dist: %.0f", ang, d)
 		if d < min {
 			min = d
@@ -424,6 +431,7 @@ func (c *Car) scanDist() (min, max float64, angle int) {
 		}
 	}
 	c.servo.Roll(0)
+	c.delay(50)
 	return
 }
 

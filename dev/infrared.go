@@ -13,14 +13,14 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// InfraredDetector ...
-type InfraredDetector struct {
+// Infrared ...
+type Infrared struct {
 	pin rpio.Pin
 }
 
-// NewInfraredDetector ...
-func NewInfraredDetector(pin uint8) *InfraredDetector {
-	i := &InfraredDetector{
+// NewInfrared ...
+func NewInfrared(pin uint8) *Infrared {
+	i := &Infrared{
 		pin: rpio.Pin(pin),
 	}
 	i.pin.Input()
@@ -28,6 +28,6 @@ func NewInfraredDetector(pin uint8) *InfraredDetector {
 }
 
 // Detected ...
-func (i *InfraredDetector) Detected() bool {
+func (i *Infrared) Detected() bool {
 	return i.pin.Read() == rpio.Low
 }
