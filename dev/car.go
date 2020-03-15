@@ -35,16 +35,16 @@ var (
 
 	// the map between angle(degree) and time(millisecond)
 	turnAngleTimes = map[int]int{
-		-90: 1250,
-		-75: 1000,
-		-60: 800,
-		-45: 600,
-		-30: 400,
-		30:  400,
-		45:  600,
-		60:  800,
-		75:  1000,
-		90:  1250,
+		-90: 900,
+		-75: 750,
+		-60: 600,
+		-45: 450,
+		-30: 300,
+		30:  300,
+		45:  450,
+		60:  600,
+		75:  750,
+		90:  900,
 	}
 )
 
@@ -373,6 +373,8 @@ func (c *Car) onSelfDriving() {
 		}
 	}
 	c.stop()
+	close(chOp)
+	close(chDetect)
 }
 
 func (c *Car) offSelfDriving() {
@@ -404,6 +406,7 @@ func (c *Car) detect(chOp chan CarOp, chDetect chan bool) {
 			}
 		}
 	}
+	c.servo.Roll(0)
 }
 
 // scan for geting the min & max distance, and the angle for max distance

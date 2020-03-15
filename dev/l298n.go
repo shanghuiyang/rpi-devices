@@ -90,7 +90,7 @@ func (l *L298N) Backward() {
 // Left ...
 func (l *L298N) Left() {
 	l.in1.Low()
-	l.in2.Low()
+	l.in2.High()
 	l.in3.High()
 	l.in4.Low()
 }
@@ -100,7 +100,7 @@ func (l *L298N) Right() {
 	l.in1.High()
 	l.in2.Low()
 	l.in3.Low()
-	l.in4.Low()
+	l.in4.High()
 }
 
 // Stop ...
