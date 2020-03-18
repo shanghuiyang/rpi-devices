@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Monitor</title>
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="http://code.jquery.com/jquery.js"></script>
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+    <style type="text/css">
+
+        #up {
+            margin-top: 5px;
+            margin-left: 130px;
+            margin-bottom: 3px;
+            padding: 16px 24px;
+        }
+
+        #left {
+            margin-left: 45px;
+            padding: 16px 24px;
+        }
+
+        #beep {
+            padding: 16px 24px;
+        }
+
+        #right {
+            padding: 16px 24px;
+        }
+
+        #down {
+            margin-top: 3px;
+            margin-left: 130px;
+            padding: 16px 24px;
+        }
+    </style>
+
+    <script>
+        var url = "http://example:8080"
+        $(function () {
+            // up
+            $('#up').bind("touchstart", function (e) {
+                document.getElementById("up").style.color = "yellow";
+                $.post(url, { "op": "up" }, function (data, status) { });
+            });
+            $('#up').bind("touchend", function (e) {
+                document.getElementById("forward").style.color = "white";
+            });
+            // down
+            $('#down').bind("touchstart", function (e) {
+                document.getElementById("down").style.color = "yellow";
+                $.post(url, { "op": "down" }, function (data, status) { });
+            });
+            $('#down').bind("touchend", function (e) {
+                document.getElementById("backward").style.color = "white";
+            });
+            // left
+            $('#left').bind("touchstart", function (e) {
+                document.getElementById("left").style.color = "yellow";
+                $.post(url, { "op": "left" }, function (data, status) { });
+            });
+            $('#left').bind("touchend", function (e) {
+                document.getElementById("left").style.color = "white";
+            });
+            // right
+            $('#right').bind("touchstart", function (e) {
+                document.getElementById("right").style.color = "yellow";
+                $.post(url, { "op": "right" }, function (data, status) { });
+            });
+            $('#right').bind("touchend", function (e) {
+                document.getElementById("right").style.color = "white";
+            });
+            // beep
+            $('#beep').bind("touchstart", function (e) {
+                $.post(url, { "op": "beep" }, function (data, status) { });
+                document.getElementById("beep").style.color = "yellow";
+            });
+            $('#beep').bind("touchend", function (e) {
+                document.getElementById("beep").style.color = "lightgray";
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div id="container" class="container">
+        <div style="margin: 13px">
+            <img id="video" height="240" width="320" src="http://video:8081/">
+        </div>
+        <div>
+            <button id="up" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up"
+                style="font-size:32px"></button>
+        </div>
+        <div>
+            <button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left"
+                style="font-size:32px"></button>
+            <button id='beep' class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up"
+                style="font-size:32px; color:lightgray"></button>
+            <button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right"
+                style="font-size:32px"></button>
+        </div>
+        <div>
+            <button id='down' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down"
+                style="font-size:32px"></button>
+        </div>
+    </div>
+</body>
+
+</html>
