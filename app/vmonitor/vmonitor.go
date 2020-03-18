@@ -110,6 +110,8 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 		go vMonitor.up()
 	case "down":
 		go vMonitor.down()
+	case "beep":
+		go vMonitor.beep()
 	default:
 		log.Printf("invalid operator: %v", op)
 	}
@@ -139,7 +141,7 @@ func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer) *vm
 }
 
 func (v *vmonitor) left() {
-	log.Printf("left")
+	log.Printf("op: left")
 	angle := v.hAngle - 15
 	if angle < -90 {
 		angle = -90
@@ -150,7 +152,7 @@ func (v *vmonitor) left() {
 }
 
 func (v *vmonitor) right() {
-	log.Printf("right")
+	log.Printf("op: right")
 	angle := v.hAngle + 15
 	if angle > 90 {
 		angle = 90
@@ -161,7 +163,7 @@ func (v *vmonitor) right() {
 }
 
 func (v *vmonitor) up() {
-	log.Printf("up")
+	log.Printf("op: up")
 	angle := v.vAngle + 15
 	if angle > 90 {
 		angle = 90
@@ -172,7 +174,7 @@ func (v *vmonitor) up() {
 }
 
 func (v *vmonitor) down() {
-	log.Printf("down")
+	log.Printf("op: down")
 	angle := v.vAngle - 15
 	if angle < -90 {
 		angle = -90
@@ -180,4 +182,12 @@ func (v *vmonitor) down() {
 	v.vAngle = angle
 	log.Printf("servo: %v", angle)
 	v.vServo.Roll(angle)
+}
+
+func (v *vmonitor) beep() {
+	log.Printf("op: beep")
+	if v.buzzer == nil {
+		return
+	}
+	v.buzzer.Beep(5, 100)
 }
