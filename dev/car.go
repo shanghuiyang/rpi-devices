@@ -173,15 +173,15 @@ func (c *Car) start() {
 		case servoahead:
 			go c.servoAhead()
 		case lighton:
-			go c.light.On()
+			go c.lightOn()
 		case lightoff:
-			go c.light.Off()
+			go c.lightOff()
 		case selfdrivingon:
-			go c.onSelfDriving()
+			go c.selfDrivingOn()
 		case selfdrivingoff:
-			go c.offSelfDriving()
+			go c.selfDrivingOff()
 		default:
-			c.stop()
+			log.Printf("car: invalid op")
 		}
 	}
 }
@@ -230,13 +230,29 @@ func (c *Car) beep() {
 	if c.horn == nil {
 		return
 	}
-	go c.horn.Beep(5, 100)
+	c.horn.Beep(5, 100)
 }
 
 func (c *Car) blink() {
 	for {
 		c.led.Blink(1, 1000)
 	}
+}
+
+func (c *Car) lightOn() {
+	log.Printf("car: light on")
+	if c.light == nil {
+		return
+	}
+	c.light.On()
+}
+
+func (c *Car) lightOff() {
+	log.Printf("car: light off")
+	if c.light == nil {
+		return
+	}
+	c.light.Off()
 }
 
 func (c *Car) servoLeft() {
@@ -280,14 +296,14 @@ func (c *Car) servoAhead() {
                                                                           |                                               |
                                                                           v                                               |Y
 +-------+     +---------+    +---------------+     +-----------+     +----+-----+      +------+      +------+     +--------------+
-| start |---->| forward |--->| objects ahead |---->| distance  |---->| backword |----->| stop |----->| scan |---->| min distance |
+| start |---->| forward |--->|   obstacles   |---->| distance  |---->| backword |----->| stop |----->| scan |---->| min distance |
 +-------+     +-----+---+    |   detected?   | Y   |  < 10cm?  | Y   +----------+      +--+---+      +------+     |    < 10cm    |
-                    ^        +-------+-------+     +-----+-----+                          ^                       +--------------+
-                    |                |                   |                                |                               |N
+                    ^        +-------+-------+     +-----+-----+                          |                       +--------------+
+                    |                |                   |                                ^                               |N
                     |                |N                 N|                                |                               |
                     |                |                   |                                |                               v
                     |                v                   |           +----------+ Y       |   Y +----------+   Y  +-------+------+
-                    |                |                   +---------->| distance +------>--+-----| retry<4? |------| max distance |
+                    |                |                   +---------->| distance +------>--+-<---| retry<4? |-<----| max distance |
                     |                |                               |  < 40cm? |               +----+-----+      |    < 40cm    |
                     ^                |                               +----------+                    | N          +--------------+
                     |                |                                     |N                        v                    |N
@@ -299,8 +315,8 @@ func (c *Car) servoAhead() {
 
 
 */
-func (c *Car) onSelfDriving() {
-	log.Printf("car: self-drving")
+func (c *Car) selfDrivingOn() {
+	log.Printf("car: self-drving on")
 	if c.ult == nil {
 		log.Printf("can't self-driving without the distance sensor")
 		return
@@ -312,11 +328,11 @@ func (c *Car) onSelfDriving() {
 	// start self-driving
 	c.selfdriving = true
 	var (
-		op       = forward
-		fwd      bool
-		retry    int
-		angle    int
-		min, max float64
+		op                   = forward
+		fwd                  bool
+		retry                int
+		mindAngle, maxdAngle int
+		mind, maxd           float64
 	)
 
 	chOp := make(chan CarOp, 1)
@@ -348,9 +364,9 @@ func (c *Car) onSelfDriving() {
 			continue
 		case scan:
 			fwd = false
-			min, max, angle = c.scanDist()
-			log.Printf("mind=%.0f, maxd=%.0f, angle=%v", min, max, angle)
-			if min < 10 && retry < 4 {
+			mind, maxd, mindAngle, maxdAngle = c.scanDist()
+			log.Printf("mind=%.0f, maxd=%.0f, mindAngle=%v, maxdAngle=%v", mind, maxd, mindAngle, maxdAngle)
+			if mind < 10 && mindAngle != 90 && mindAngle != -90 && retry < 4 {
 				chOp <- backward
 				retry++
 				continue
@@ -359,7 +375,7 @@ func (c *Car) onSelfDriving() {
 			retry = 0
 		case turn:
 			fwd = false
-			c.turn(angle)
+			c.turn(maxdAngle)
 			chDetect <- true // resume to detecting objects ahead
 			c.delay(150)
 			continue
@@ -377,7 +393,7 @@ func (c *Car) onSelfDriving() {
 	close(chDetect)
 }
 
-func (c *Car) offSelfDriving() {
+func (c *Car) selfDrivingOff() {
 	c.selfdriving = false
 	log.Printf("car: self-drving off")
 }
@@ -409,10 +425,14 @@ func (c *Car) detect(chOp chan CarOp, chDetect chan bool) {
 	c.servo.Roll(0)
 }
 
-// scan for geting the min & max distance, and the angle for max distance
-func (c *Car) scanDist() (min, max float64, angle int) {
-	min = 9999
-	max = -9999
+// scan for geting the min & max distance, and their corresponding angles
+// mind: the min distance
+// maxd: the max distance
+// mindAngle: the angle correspond to the mind
+// maxdAngle: the angle correspond to the maxd
+func (c *Car) scanDist() (mind, maxd float64, mindAngle, maxdAngle int) {
+	mind = 9999
+	maxd = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
 		c.delay(50)
@@ -425,12 +445,13 @@ func (c *Car) scanDist() (min, max float64, angle int) {
 			continue
 		}
 		log.Printf("scan: angle %v, dist: %.0f", ang, d)
-		if d < min {
-			min = d
+		if d < mind {
+			mind = d
+			mindAngle = ang
 		}
-		if d > max {
-			max = d
-			angle = ang
+		if d > maxd {
+			maxd = d
+			maxdAngle = ang
 		}
 	}
 	c.servo.Roll(0)
