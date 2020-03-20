@@ -15,8 +15,6 @@ const (
 	pinSGV = 18
 	pinLed = 4
 	pinBzr = 10
-
-	ipPattern = "((000.000.000.000))"
 )
 
 var (
