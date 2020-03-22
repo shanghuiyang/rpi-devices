@@ -76,6 +76,13 @@ func WithUlt(ult *US100) Option {
 	}
 }
 
+// WithCSwitchs ...
+func WithCSwitchs(cswitchs []*CollisionSwitch) Option {
+	return func(c *Car) {
+		c.cswitchs = cswitchs
+	}
+}
+
 // WithHorn ...
 func WithHorn(horn *Buzzer) Option {
 	return func(c *Car) {
@@ -109,6 +116,7 @@ type Car struct {
 	engine      *L298N
 	servo       *SG90
 	ult         *US100
+	cswitchs    []*CollisionSwitch
 	horn        *Buzzer
 	led         *Led
 	light       *Led
@@ -335,9 +343,13 @@ func (c *Car) selfDrivingOn() {
 		mind, maxd           float64
 	)
 
+	// collided := false
 	chOp := make(chan CarOp, 1)
-	chDetect := make(chan bool)
-	go c.detect(chOp, chDetect)
+	chDetectCollision := make(chan bool)
+	chDetectObstacle := make(chan bool)
+	chPauseDetecting := make(chan bool)
+	go c.detectCollision(chOp, chDetectCollision, chPauseDetecting)
+	go c.detectObstacle(chOp, chDetectObstacle, chPauseDetecting)
 	for c.selfdriving {
 		select {
 		case p := <-chOp:
@@ -376,7 +388,8 @@ func (c *Car) selfDrivingOn() {
 		case turn:
 			fwd = false
 			c.turn(maxdAngle)
-			chDetect <- true // resume to detecting objects ahead
+			chDetectCollision <- true // resume to detecting collision
+			chDetectObstacle <- true  // resume to detecting obstacles
 			c.delay(150)
 			continue
 		case forward:
@@ -390,7 +403,9 @@ func (c *Car) selfDrivingOn() {
 	}
 	c.stop()
 	close(chOp)
-	close(chDetect)
+	close(chPauseDetecting)
+	close(chDetectCollision)
+	close(chDetectObstacle)
 }
 
 func (c *Car) selfDrivingOff() {
@@ -403,26 +418,71 @@ func (c *Car) delay(ms int) {
 }
 
 // detect detects obstacles using an ultrasonic distance meter.
-func (c *Car) detect(chOp chan CarOp, chDetect chan bool) {
+func (c *Car) detectObstacle(chOp chan CarOp, chDetect, chPause chan bool) {
 	angles := []int{0, -10, -20, -10, 0, 10, 20, 10}
+	pause := func() {
+		// notify other sensors to pause detecting
+		chPause <- true
+	}
 	for c.selfdriving {
 		for _, angle := range angles {
 			c.servo.Roll(angle)
 			c.delay(50)
 			d := c.ult.Dist()
+
+			select {
+			case <-chPause:
+				log.Printf("ult: pause")
+				<-chDetect
+				break
+			default:
+				// do nothing
+			}
+
 			if d < 10 {
 				chOp <- backward
+				go pause()
 				<-chDetect // pause detecting until the car finishs the actions
 				break
 			}
 			if d < 40 {
 				chOp <- stop
+				go pause()
 				<-chDetect // pause detecting until the car finishs the actions
 				break
 			}
 		}
 	}
 	c.servo.Roll(0)
+}
+
+// detect detects obstacles using an ultrasonic distance meter.
+func (c *Car) detectCollision(chOp chan CarOp, chDetect, chPause chan bool) {
+	pause := func() {
+		// notify other sensors to pause detecting
+		chPause <- true
+	}
+	for c.selfdriving {
+		select {
+		case <-chPause:
+			log.Printf("cswitch: pause")
+			<-chDetect
+			break
+		default:
+			// do nothing
+		}
+		for _, cswitch := range c.cswitchs {
+			if cswitch.Collided() {
+				chOp <- backward
+				go pause()
+				go c.horn.Beep(1, 100)
+				log.Printf("cswitch: got a crash")
+				<-chDetect // pause detecting collision until the car finishs the actions
+			}
+		}
+
+		c.delay(10)
+	}
 }
 
 // scan for geting the min & max distance, and their corresponding angles
@@ -462,6 +522,7 @@ func (c *Car) scanDist() (mind, maxd float64, mindAngle, maxdAngle int) {
 func (c *Car) turn(angle int) {
 	ms, ok := turnAngleTimes[angle]
 	if !ok {
+		log.Printf("invalid angle: %d", angle)
 		return
 	}
 	if angle < 0 {

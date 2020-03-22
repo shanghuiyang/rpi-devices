@@ -17,16 +17,18 @@ import (
 )
 
 const (
-	pinLed   = 4
-	pinLight = 16
-	pinIn1   = 17
-	pinIn2   = 23
-	pinIn3   = 27
-	pinIn4   = 22
-	pinENA   = 13
-	pinENB   = 19
-	pinBzr   = 10
-	pinSG    = 18
+	pinLed       = 4
+	pinLight     = 16
+	pinIn1       = 17
+	pinIn2       = 23
+	pinIn3       = 27
+	pinIn4       = 22
+	pinENA       = 13
+	pinENB       = 19
+	pinBzr       = 10
+	pinSG        = 18
+	pinCSwaitchL = 20 // the collision switch on left
+	pinCSwaitchR = 12 // the collision switch on right
 
 	ipPattern = "((000.000.000.000))"
 )
@@ -53,6 +55,17 @@ func main() {
 	if ult == nil {
 		log.Printf("failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
+
+	cswitchL := dev.NewCollisionSwitch(pinCSwaitchL)
+	if cswitchL == nil {
+		log.Printf("failed to new a collision switch, will build a car without collision switchs")
+	}
+
+	cswitchR := dev.NewCollisionSwitch(pinCSwaitchR)
+	if cswitchL == nil {
+		log.Printf("failed to new a collision switch, will build a car without collision switchs")
+	}
+	cswitchs := []*dev.CollisionSwitch{cswitchL, cswitchR}
 
 	horn := dev.NewBuzzer(pinBzr)
 	if horn == nil {
@@ -82,6 +95,7 @@ func main() {
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
 		dev.WithUlt(ult),
+		dev.WithCSwitchs(cswitchs),
 		dev.WithHorn(horn),
 		dev.WithLed(led),
 		dev.WithLight(light),
