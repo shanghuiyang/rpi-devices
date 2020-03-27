@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	pinSGH = 13
-	pinSGV = 18
+	pinSGH = 12
+	pinSGV = 13
 	pinLed = 4
 	pinBzr = 10
 )
@@ -131,10 +131,10 @@ func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer) *vm
 		led:    led,
 		buzzer: buzzer,
 		hAngle: 0,
-		vAngle: -45,
+		vAngle: 0,
 	}
 	v.hServo.Roll(v.hAngle)
-	v.hServo.Roll(v.vAngle)
+	v.vServo.Roll(v.vAngle)
 	return v
 }
 
@@ -174,8 +174,8 @@ func (v *vmonitor) up() {
 func (v *vmonitor) down() {
 	log.Printf("op: down")
 	angle := v.vAngle - 15
-	if angle < -90 {
-		angle = -90
+	if angle < -30 {
+		return
 	}
 	v.vAngle = angle
 	log.Printf("servo: %v", angle)

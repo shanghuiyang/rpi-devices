@@ -49,7 +49,7 @@
                 $.post(url, { "op": "up" }, function (data, status) { });
             });
             $('#up').bind("touchend", function (e) {
-                document.getElementById("forward").style.color = "white";
+                document.getElementById("up").style.color = "white";
             });
             // down
             $('#down').bind("touchstart", function (e) {
@@ -57,7 +57,7 @@
                 $.post(url, { "op": "down" }, function (data, status) { });
             });
             $('#down').bind("touchend", function (e) {
-                document.getElementById("backward").style.color = "white";
+                document.getElementById("down").style.color = "white";
             });
             // left
             $('#left').bind("touchstart", function (e) {
