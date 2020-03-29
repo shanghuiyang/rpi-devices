@@ -34,11 +34,12 @@
 /button
 /doordog
 /*.dev
-.DS_store
+/vmonitor
 
 # Test binary, build with `go test -c`
 # *.test
 /tmp
+.DS_store
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

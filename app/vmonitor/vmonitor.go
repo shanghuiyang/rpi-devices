@@ -16,8 +16,8 @@ import (
 const (
 	pinSGH = 12
 	pinSGV = 13
-	pinLed = 4
-	pinBzr = 10
+	pinLed = 21
+	pinBzr = 11
 )
 
 var (
@@ -99,7 +99,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(pageContext)
-	go vMonitor.led.Blink(5, 100)
 }
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
@@ -146,8 +145,9 @@ func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer) *vm
 func (v *vmonitor) start() {
 	go v.hServo.Roll(v.hAngle)
 	go v.vServo.Roll(v.vAngle)
-	go v.detectConnecting()
 	go v.alert()
+	go v.detectConnecting()
+
 }
 
 func (v *vmonitor) stop() {
@@ -159,7 +159,7 @@ func (v *vmonitor) left() {
 	log.Printf("op: left")
 	angle := v.hAngle - 15
 	if angle < -90 {
-		angle = -90
+		return
 	}
 	v.hAngle = angle
 	log.Printf("servo: %v", angle)
@@ -169,8 +169,8 @@ func (v *vmonitor) left() {
 func (v *vmonitor) right() {
 	log.Printf("op: right")
 	angle := v.hAngle + 15
-	if angle > 90 {
-		angle = 90
+	if angle > 75 {
+		return
 	}
 	v.hAngle = angle
 	log.Printf("servo: %v", angle)
@@ -181,7 +181,7 @@ func (v *vmonitor) up() {
 	log.Printf("op: up")
 	angle := v.vAngle + 15
 	if angle > 90 {
-		angle = 90
+		return
 	}
 	v.vAngle = angle
 	log.Printf("servo: %v", angle)
@@ -209,8 +209,8 @@ func (v *vmonitor) beep(n int, interval int) {
 
 func (v *vmonitor) detectConnecting() {
 	for {
-		time.Sleep(10 * time.Second)
-		n, err := getConCount()
+		time.Sleep(5 * time.Second)
+		n, err := v.getConCount()
 		if err != nil {
 			log.Printf("failed to get users count, err: %v", err)
 			continue
@@ -220,19 +220,19 @@ func (v *vmonitor) detectConnecting() {
 }
 
 func (v *vmonitor) alert() {
-	var currentUsers int
+	conCount := 0
 	for {
 		select {
 		case n := <-v.chAlert:
-			if n > currentUsers {
+			if n > conCount {
 				// there are new connections, give an alert
 				go v.beep(2, 100)
 			}
-			currentUsers = n
+			conCount = n
 		default:
 			// do nothing
 		}
-		if currentUsers > 0 {
+		if conCount > 0 {
 			v.led.Blink(1, 1000)
 		}
 		time.Sleep(1 * time.Second)
@@ -240,7 +240,7 @@ func (v *vmonitor) alert() {
 }
 
 // getConCount is get the count of connecting to the server
-func getConCount() (int, error) {
+func (v *vmonitor) getConCount() (int, error) {
 	cmd := `netstat -nat|grep -i "127.0.0.1:8081"|wc -l`
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	if err != nil {
