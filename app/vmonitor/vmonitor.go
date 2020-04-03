@@ -20,6 +20,24 @@ const (
 	pinBzr = 11
 )
 
+const (
+	pageOutOfService = `
+		<!DOCTYPE html>
+		<html>
+			<title>Video Monitor</title>
+			<h1 style="color:red;font-size:50px;">
+				<span style="font-size:100px;">
+        			&ensp;&#129318;&#129318;&#129318;<br>
+    			</span>
+				~~~~~~~~~~~~~~~<br>
+				&nbsp;&ensp;Out of Service<br>
+				&nbsp;&emsp;20:00 ~ 9:00<br>
+				~~~~~~~~~~~~~~~<br>
+			</h1>
+		</html>
+	`
+)
+
 var (
 	vMonitor    *vmonitor
 	pageContext []byte
@@ -98,6 +116,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
+	if vMonitor.outOfService() {
+		w.Write([]byte(pageOutOfService))
+		return
+	}
 	w.Write(pageContext)
 }
 
@@ -147,6 +169,7 @@ func (v *vmonitor) start() {
 	go v.vServo.Roll(v.vAngle)
 	go v.alert()
 	go v.detectConnecting()
+	go v.detectServing()
 
 }
 
@@ -252,4 +275,36 @@ func (v *vmonitor) getConCount() (int, error) {
 		return 0, fmt.Errorf("failed to parse the output of netstat")
 	}
 	return count, nil
+}
+
+func (v *vmonitor) detectServing() {
+	inServing := true
+	for {
+		time.Sleep(1 * time.Minute)
+		if v.outOfService() {
+			if inServing {
+				log.Printf("out of service, stop motion")
+				cmd := "sudo killall motion"
+				exec.Command("bash", "-c", cmd).CombinedOutput()
+				inServing = false
+			}
+			continue
+		}
+
+		if !inServing {
+			log.Printf("in service time, start motion")
+			cmd := "sudo motion -c /etc/motion/motion.conf"
+			exec.Command("bash", "-c", cmd).CombinedOutput()
+			inServing = true
+		}
+	}
+}
+
+func (v *vmonitor) outOfService() bool {
+	hour := time.Now().Hour()
+	if hour >= 20 || hour < 9 {
+		// out of service at 20:00~09:00
+		return true
+	}
+	return false
 }
