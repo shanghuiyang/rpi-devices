@@ -35,6 +35,7 @@
 /doordog
 /*.dev
 /vmonitor
+/rlight
 
 # Test binary, build with `go test -c`
 # *.test

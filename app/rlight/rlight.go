@@ -10,12 +10,16 @@ import (
 )
 
 const (
-	d0 = 23
-	d1 = 24
-	d2 = 25
-	d3 = 8
+	d0 = 16
+	d1 = 20
+	d2 = 21
+	d3 = 6
 
-	ledPin = 21
+	ledPin = 26
+
+	// use this rpio as 3.3v pin
+	// if all 3.3v pins were used
+	pin33v = 5
 )
 
 var light *rlight
@@ -31,6 +35,10 @@ func main() {
 		return
 	}
 	defer rpio.Close()
+
+	p33v := rpio.Pin(pin33v)
+	p33v.Output()
+	p33v.High()
 
 	led := dev.NewLed(ledPin)
 	light = &rlight{
@@ -95,12 +103,16 @@ func main() {
 	for {
 		select {
 		case <-chA:
+			log.Printf("pressed A")
 			light.turn()
 		case <-chB:
+			log.Printf("pressed B")
 			light.turn()
 		case <-chC:
+			log.Printf("pressed C")
 			light.turn()
 		case <-chD:
+			log.Printf("pressed D")
 			light.turn()
 		default:
 			time.Sleep(20 * time.Millisecond)
