@@ -12,7 +12,10 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
-
+        #video {
+            max-width: 100%;
+            height: auto;
+        }
         #up {
             margin-top: 5px;
             margin-left: 130px;
@@ -88,10 +91,9 @@
 </head>
 
 <body>
+    <img id="video" src="http://video:8081">
+    <br /><br /><br /><br /><br />
     <div id="container" class="container">
-        <div style="margin: 13px">
-            <img id="video" height="240" width="320" src="http://video:8081/">
-        </div>
         <div>
             <button id="up" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up"
                 style="font-size:32px"></button>
