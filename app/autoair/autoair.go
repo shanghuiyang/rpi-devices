@@ -306,12 +306,12 @@ func (a *autoAir) alert() {
 		}
 
 		if pm25 >= trigOnPM25 {
-			interval := 1000 - int(pm25)
-			if interval < 0 {
-				interval = 200
-			}
-			a.led.Blink(1, interval)
-			continue
+			// interval := 1000 - int(pm25)
+			// if interval < 0 {
+			// 	interval = 200
+			// }
+			// a.led.Blink(1, interval)
+			// continue
 		}
 		time.Sleep(1 * time.Second)
 	}
