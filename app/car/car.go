@@ -27,6 +27,7 @@ const (
 	pinENB       = 19
 	pinBzr       = 10
 	pinSG        = 18
+	pinEncoder   = 0
 	pinCSwaitchL = 20 // the collision switch on left
 	pinCSwaitchR = 12 // the collision switch on right
 
@@ -54,6 +55,11 @@ func main() {
 	ult := dev.NewUS100()
 	if ult == nil {
 		log.Printf("failed to new a HCSR04, will build a car without ultrasonic distance meter")
+	}
+
+	encoder := dev.NewEncoder(pinEncoder)
+	if encoder == nil {
+		log.Printf("failed to new a encoder, will build a car without encoder")
 	}
 
 	cswitchL := dev.NewCollisionSwitch(pinCSwaitchL)
@@ -95,6 +101,7 @@ func main() {
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
 		dev.WithUlt(ult),
+		dev.WithEncoder(encoder),
 		dev.WithCSwitchs(cswitchs),
 		dev.WithHorn(horn),
 		dev.WithLed(led),
@@ -190,6 +197,35 @@ func tuningTurnAngle(eng *dev.L298N) {
 		}
 		eng.Right()
 		time.Sleep(time.Duration(ms) * time.Millisecond)
+		eng.Stop()
+	}
+	return
+}
+
+// tuningTurnAngle tunings the mapping between angle(degree) and time(millisecond)
+func tuningEncoder(eng *dev.L298N, encoder *dev.Encoder) {
+	if eng == nil {
+		log.Fatal("engineer is nil")
+		return
+	}
+	if encoder == nil {
+		log.Fatal("encoder is nil")
+		return
+	}
+	for {
+		var count int
+		fmt.Printf(">>count: ")
+		if n, err := fmt.Scanf("%d", &count); n != 1 || err != nil {
+			log.Printf("invalid count, error: %v", err)
+			continue
+		}
+		if count < 0 {
+			break
+		}
+		eng.Right()
+		for i := 0; i < count; {
+			i += encoder.Count1()
+		}
 		eng.Stop()
 	}
 	return

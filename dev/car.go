@@ -46,6 +46,19 @@ var (
 		75:  750,
 		90:  900,
 	}
+
+	turnAngleCounts = map[int]int{
+		-90: 900,
+		-75: 750,
+		-60: 600,
+		-45: 450,
+		-30: 300,
+		30:  300,
+		45:  450,
+		60:  600,
+		75:  750,
+		90:  900,
+	}
 )
 
 type (
@@ -73,6 +86,13 @@ func WithServo(servo *SG90) Option {
 func WithUlt(ult *US100) Option {
 	return func(c *Car) {
 		c.ult = ult
+	}
+}
+
+// WithEncoder ...
+func WithEncoder(e *Encoder) Option {
+	return func(c *Car) {
+		c.encoder = e
 	}
 }
 
@@ -116,6 +136,7 @@ type Car struct {
 	engine      *L298N
 	servo       *SG90
 	ult         *US100
+	encoder     *Encoder
 	cswitchs    []*CollisionSwitch
 	horn        *Buzzer
 	led         *Led
@@ -531,6 +552,24 @@ func (c *Car) turn(angle int) {
 		c.engine.Right()
 	}
 	c.delay(ms)
+	c.stop()
+	return
+}
+
+func (c *Car) turn2(angle int) {
+	n, ok := turnAngleCounts[angle]
+	if !ok {
+		log.Printf("invalid angle: %d", angle)
+		return
+	}
+	if angle < 0 {
+		c.engine.Left()
+	} else {
+		c.engine.Right()
+	}
+	for i := 0; i < n; {
+		i += c.encoder.Count1()
+	}
 	c.stop()
 	return
 }
