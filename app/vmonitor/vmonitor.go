@@ -18,6 +18,7 @@ const (
 	pinSGV = 13
 	pinLed = 21
 	pinBzr = 11
+	pinBtn = 4
 )
 
 const (
@@ -38,9 +39,21 @@ const (
 	`
 )
 
+type mode string
+
+var (
+	normalMode  mode = "normal"
+	babyMode    mode = "bady"
+	unknownMode mode = "unknown"
+)
+
 var (
 	vMonitor    *vmonitor
 	pageContext []byte
+	motionConfs = map[mode]string{
+		normalMode: "/home/pi/motion_conf/normal_mode.conf",
+		babyMode:   "/home/pi/motion_conf/baby_mode.conf",
+	}
 )
 
 func main() {
@@ -72,7 +85,12 @@ func main() {
 		log.Printf("failed to new a buzzer, will run the monitor without buzzer")
 	}
 
-	vMonitor = newVMonitor(hServo, vServo, led, bzr)
+	btn := dev.NewButton(pinBtn)
+	if btn == nil {
+		log.Printf("failed to new a button, will run the monitor without button")
+	}
+
+	vMonitor = newVMonitor(hServo, vServo, led, bzr, btn)
 	if vMonitor == nil {
 		log.Printf("failed to new a vmonitor")
 		return
@@ -116,7 +134,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	if vMonitor.outOfService() {
+	if vMonitor.outOfService() && vMonitor.mode == normalMode {
 		w.Write([]byte(pageOutOfService))
 		return
 	}
@@ -142,24 +160,34 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type vmonitor struct {
-	hServo  *dev.SG90
-	vServo  *dev.SG90
-	led     *dev.Led
-	buzzer  *dev.Buzzer
+	hServo *dev.SG90
+	vServo *dev.SG90
+	led    *dev.Led
+	buzzer *dev.Buzzer
+	button *dev.Button
+
+	mode    mode
 	hAngle  int
 	vAngle  int
 	chAlert chan int
 }
 
-func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer) *vmonitor {
+func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, button *dev.Button) *vmonitor {
 	v := &vmonitor{
-		hServo:  hServo,
-		vServo:  vServo,
-		led:     led,
-		buzzer:  buzzer,
+		hServo: hServo,
+		vServo: vServo,
+		led:    led,
+		buzzer: buzzer,
+		button: button,
+
+		mode:    normalMode,
 		hAngle:  0,
 		vAngle:  0,
 		chAlert: make(chan int, 16),
+	}
+
+	if err := v.restartMotion(); err != nil {
+		return nil
 	}
 	return v
 }
@@ -170,6 +198,7 @@ func (v *vmonitor) start() {
 	go v.alert()
 	go v.detectConnecting()
 	go v.detectServing()
+	go v.detectingMode()
 
 }
 
@@ -245,6 +274,10 @@ func (v *vmonitor) detectConnecting() {
 func (v *vmonitor) alert() {
 	conCount := 0
 	for {
+		if v.mode == babyMode {
+			time.Sleep(1 * time.Second)
+			continue
+		}
 		select {
 		case n := <-v.chAlert:
 			if n > conCount {
@@ -281,11 +314,14 @@ func (v *vmonitor) detectServing() {
 	inServing := true
 	for {
 		time.Sleep(1 * time.Minute)
+		if v.mode == babyMode {
+			// keep serving in baby monitor mode
+			continue
+		}
 		if v.outOfService() {
 			if inServing {
 				log.Printf("out of service, stop motion")
-				cmd := "sudo killall motion"
-				exec.Command("bash", "-c", cmd).CombinedOutput()
+				v.stopMotion()
 				inServing = false
 			}
 			continue
@@ -293,8 +329,7 @@ func (v *vmonitor) detectServing() {
 
 		if !inServing {
 			log.Printf("in service time, start motion")
-			cmd := "sudo motion -c /etc/motion/motion.conf"
-			exec.Command("bash", "-c", cmd).CombinedOutput()
+			v.startMotion()
 			inServing = true
 		}
 	}
@@ -307,4 +342,59 @@ func (v *vmonitor) outOfService() bool {
 		return true
 	}
 	return false
+}
+
+func (v *vmonitor) detectingMode() {
+	for {
+		if v.button.Pressed() {
+			log.Printf("the button was pressed")
+			go v.led.Blink(2, 100)
+			lastMode := v.mode
+			if v.mode == normalMode {
+				v.mode = babyMode
+			} else if v.mode == babyMode {
+				v.mode = normalMode
+			} else {
+				// make a dalay detecting
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			if err := v.restartMotion(); err != nil {
+				log.Printf("failed to restart motion, error: %v", err)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			go v.led.Blink(5, 100)
+			log.Printf("mode changed: %v --> %v", lastMode, v.mode)
+			continue
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func (v *vmonitor) stopMotion() error {
+	cmd := "sudo killall motion"
+	exec.Command("bash", "-c", cmd).CombinedOutput()
+	time.Sleep(1 * time.Second)
+	return nil
+}
+
+func (v *vmonitor) startMotion() error {
+	cmd := fmt.Sprintf("sudo motion -c %v", motionConfs[v.mode])
+	_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	if err != nil {
+		return err
+	}
+	time.Sleep(1 * time.Second)
+	return nil
+}
+
+func (v *vmonitor) restartMotion() error {
+	if err := v.stopMotion(); err != nil {
+		return err
+	}
+	if err := v.startMotion(); err != nil {
+		return err
+	}
+	return nil
 }
