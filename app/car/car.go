@@ -27,9 +27,13 @@ const (
 	pinENB       = 19
 	pinBzr       = 10
 	pinSG        = 18
-	pinEncoder   = 0
+	pinEncoder   = 6
 	pinCSwaitchL = 20 // the collision switch on left
 	pinCSwaitchR = 12 // the collision switch on right
+
+	// use this rpio as 3.3v pin
+	// if all 3.3v pins were used
+	pin33v = 5
 
 	ipPattern = "((000.000.000.000))"
 )
@@ -45,6 +49,10 @@ func main() {
 		return
 	}
 	defer rpio.Close()
+
+	p33v := rpio.Pin(pin33v)
+	p33v.Output()
+	p33v.High()
 
 	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
@@ -222,9 +230,11 @@ func tuningEncoder(eng *dev.L298N, encoder *dev.Encoder) {
 		if count < 0 {
 			break
 		}
-		eng.Right()
+		eng.Left()
+		time.Sleep(100 * time.Microsecond)
 		for i := 0; i < count; {
 			i += encoder.Count1()
+			time.Sleep(5 * time.Microsecond)
 		}
 		eng.Stop()
 	}
