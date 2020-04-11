@@ -4,5 +4,8 @@ go:
   - 1.12.x
   - master
 
+before_install:
+  sudo apt install libasound2-dev
+
 notifications:
   slack: grab:OVbEkJH3R10nkyKfwT996cB5
