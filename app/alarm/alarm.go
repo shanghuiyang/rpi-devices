@@ -13,7 +13,6 @@ import (
 
 	"github.com/hajimehoshi/go-mp3"
 	"github.com/hajimehoshi/oto"
-	"github.com/shanghuiyang/rpi-devices/base"
 )
 
 type alarm string
@@ -26,19 +25,17 @@ const (
 
 var sounds = map[alarm]string{
 	alarmClock:       "sounds/alarm_clock.mp3",
-	policeSiren:      "sounds/police_siren.mp3",
+	policeSiren:      "/Users/shanghui.yang/Downloads/classic.mp3",
 	railroadCrossing: "sounds/RailroadCrossing.mp3",
 }
 
 type server struct {
-	player   *oto.Player
 	ch       chan alarm
 	alarming bool
 }
 
 func main() {
 	svr := newServer()
-	base.WaitQuit(svr.close)
 	svr.start()
 }
 
@@ -115,23 +112,17 @@ func (s *server) playmp3(mp3f string) error {
 		return err
 	}
 
-	if s.player == nil {
-		var err error
-		s.player, err = oto.NewPlayer(d.SampleRate(), 2, 2, 8192)
-		if err != nil {
-			return err
-		}
+	c, err := oto.NewContext(d.SampleRate(), 2, 2, 8192)
+	if err != nil {
+		return err
 	}
+	defer c.Close()
 
-	if _, err := io.Copy(s.player, d); err != nil {
+	p := c.NewPlayer()
+	defer p.Close()
+
+	if _, err := io.Copy(p, d); err != nil {
 		return err
 	}
 	return nil
-}
-
-func (s *server) close() {
-	if s.player != nil {
-		s.player.Close()
-		s.player = nil
-	}
 }
