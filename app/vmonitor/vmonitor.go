@@ -166,10 +166,11 @@ type vmonitor struct {
 	buzzer *dev.Buzzer
 	button *dev.Button
 
-	mode    mode
-	hAngle  int
-	vAngle  int
-	chAlert chan int
+	mode      mode
+	inServing bool
+	hAngle    int
+	vAngle    int
+	chAlert   chan int
 }
 
 func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, button *dev.Button) *vmonitor {
@@ -180,10 +181,11 @@ func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, but
 		buzzer: buzzer,
 		button: button,
 
-		mode:    normalMode,
-		hAngle:  0,
-		vAngle:  0,
-		chAlert: make(chan int, 16),
+		mode:      normalMode,
+		inServing: true,
+		hAngle:    0,
+		vAngle:    0,
+		chAlert:   make(chan int, 16),
 	}
 
 	if err := v.restartMotion(); err != nil {
@@ -311,26 +313,25 @@ func (v *vmonitor) getConCount() (int, error) {
 }
 
 func (v *vmonitor) detectServing() {
-	inServing := true
 	for {
-		time.Sleep(1 * time.Minute)
+		time.Sleep(15 * time.Second)
 		if v.mode == babyMode {
 			// keep serving in baby monitor mode
 			continue
 		}
 		if v.outOfService() {
-			if inServing {
+			if v.inServing {
 				log.Printf("out of service, stop motion")
 				v.stopMotion()
-				inServing = false
+				v.inServing = false
 			}
 			continue
 		}
 
-		if !inServing {
+		if !v.inServing {
 			log.Printf("in service time, start motion")
 			v.startMotion()
-			inServing = true
+			v.inServing = true
 		}
 	}
 }
@@ -395,6 +396,9 @@ func (v *vmonitor) restartMotion() error {
 	}
 	if err := v.startMotion(); err != nil {
 		return err
+	}
+	if v.mode == normalMode {
+		v.inServing = true
 	}
 	return nil
 }
