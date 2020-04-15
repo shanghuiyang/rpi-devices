@@ -39,9 +39,7 @@ func main() {
 				led.On()
 				on = true
 			}
-			time.Sleep(1 * time.Second)
-			continue
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 	}
 }

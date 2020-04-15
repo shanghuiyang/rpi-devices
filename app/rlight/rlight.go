@@ -52,71 +52,28 @@ func main() {
 		rpio.Close()
 	})
 
-	chA := make(chan bool)
-	chB := make(chan bool)
-	chC := make(chan bool)
-	chD := make(chan bool)
-	go func(ch chan bool) {
-		for {
-			if r.PressA() == true {
-				ch <- true
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			time.Sleep(20 * time.Millisecond)
-		}
-	}(chA)
-
-	go func(ch chan bool) {
-		for {
-			if r.PressB() == true {
-				ch <- true
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			time.Sleep(20 * time.Millisecond)
-		}
-	}(chB)
-
-	go func(ch chan bool) {
-		for {
-			if r.PressC() == true {
-				ch <- true
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			time.Sleep(20 * time.Millisecond)
-		}
-	}(chC)
-
-	go func(ch chan bool) {
-		for {
-			if r.PressD() == true {
-				ch <- true
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			time.Sleep(20 * time.Millisecond)
-		}
-	}(chD)
-
 	for {
-		select {
-		case <-chA:
+		if r.PressA() == true {
 			log.Printf("pressed A")
-			light.turn()
-		case <-chB:
-			log.Printf("pressed B")
-			light.turn()
-		case <-chC:
-			log.Printf("pressed C")
-			light.turn()
-		case <-chD:
-			log.Printf("pressed D")
-			light.turn()
-		default:
-			time.Sleep(20 * time.Millisecond)
+			go light.turn()
+			continue
 		}
+		if r.PressB() == true {
+			log.Printf("pressed B")
+			go light.turn()
+			continue
+		}
+		if r.PressC() == true {
+			log.Printf("pressed C")
+			go light.turn()
+			continue
+		}
+		if r.PressD() == true {
+			log.Printf("pressed D")
+			go light.turn()
+			continue
+		}
+		time.Sleep(300 * time.Millisecond)
 	}
 }
 
