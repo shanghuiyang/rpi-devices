@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
@@ -23,5 +24,6 @@ func main() {
 	for {
 		count += e.Count1()
 		log.Printf("%v", count)
+		time.Sleep(100 * time.Millisecond)
 	}
 }

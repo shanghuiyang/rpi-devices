@@ -220,6 +220,7 @@ func tuningEncoder(eng *dev.L298N, encoder *dev.Encoder) {
 		log.Fatal("encoder is nil")
 		return
 	}
+	eng.Speed(30)
 	for {
 		var count int
 		fmt.Printf(">>count: ")
@@ -227,16 +228,21 @@ func tuningEncoder(eng *dev.L298N, encoder *dev.Encoder) {
 			log.Printf("invalid count, error: %v", err)
 			continue
 		}
-		if count < 0 {
+		if count == 0 {
 			break
 		}
-		eng.Left()
-		time.Sleep(100 * time.Microsecond)
+		if count < 0 {
+			eng.Left()
+			count *= -1
+		} else {
+			eng.Right()
+		}
 		for i := 0; i < count; {
 			i += encoder.Count1()
-			time.Sleep(5 * time.Microsecond)
 		}
 		eng.Stop()
 	}
+	eng.Stop()
+	encoder.Close()
 	return
 }

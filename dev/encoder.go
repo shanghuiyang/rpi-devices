@@ -24,18 +24,25 @@ func NewEncoder(pin uint8) *Encoder {
 		pin: rpio.Pin(pin),
 	}
 	e.pin.Input()
+	e.pin.PullDown()
+	e.pin.Detect(rpio.RiseEdge)
 	return e
 }
 
 // Detected ...
 func (e *Encoder) Detected() bool {
-	return e.pin.Read() == rpio.High
+	return e.pin.EdgeDetected()
 }
 
 // Count1 ...
 func (e *Encoder) Count1() int {
-	if e.pin.Read() == rpio.High {
+	if e.pin.EdgeDetected() {
 		return 1
 	}
 	return 0
+}
+
+// Close ...
+func (e *Encoder) Close() {
+	e.pin.Detect(rpio.NoEdge)
 }

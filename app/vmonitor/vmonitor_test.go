@@ -7,6 +7,6 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	v := &vmonitor{}
+	v := &videoServer{}
 	assert.NotNil(t, v)
 }

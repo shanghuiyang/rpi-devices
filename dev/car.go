@@ -33,31 +33,17 @@ const (
 var (
 	scanningAngles = []int{-90, -75, -60, -45, -30, 30, 45, 60, 75, 90}
 
-	// the map between angle(degree) and time(millisecond)
-	turnAngleTimes = map[int]int{
-		-90: 900,
-		-75: 750,
-		-60: 600,
-		-45: 450,
-		-30: 300,
-		30:  300,
-		45:  450,
-		60:  600,
-		75:  750,
-		90:  900,
-	}
-
 	turnAngleCounts = map[int]int{
-		-90: 4000,
-		-75: 3600,
-		-60: 3300,
-		-45: 2300,
-		-30: 2000,
-		30:  1200,
-		45:  2300,
-		60:  2500,
-		75:  2800,
-		90:  4000,
+		-90: 20,
+		-75: 17,
+		-60: 14,
+		-45: 10,
+		-30: 7,
+		30:  5,
+		45:  8,
+		60:  10,
+		75:  13,
+		90:  17,
 	}
 )
 
@@ -162,6 +148,7 @@ func NewCar(opts ...Option) *Car {
 
 // Start ...
 func (c *Car) Start() error {
+	go c.speed(30)
 	go c.start()
 	go c.servo.Roll(0)
 	go c.blink()
@@ -177,6 +164,7 @@ func (c *Car) Do(op CarOp) {
 func (c *Car) Stop() error {
 	close(c.chOp)
 	c.engine.Stop()
+	c.encoder.Close()
 	return nil
 }
 
@@ -466,7 +454,7 @@ func (c *Car) detectObstacle(chOp chan CarOp, chDetect, chPause chan bool) {
 				<-chDetect // pause detecting until the car finishs the actions
 				break
 			}
-			if d < 40 {
+			if d < 50 {
 				chOp <- stop
 				go pause()
 				<-chDetect // pause detecting until the car finishs the actions
@@ -541,22 +529,6 @@ func (c *Car) scanDist() (mind, maxd float64, mindAngle, maxdAngle int) {
 }
 
 func (c *Car) turn(angle int) {
-	ms, ok := turnAngleTimes[angle]
-	if !ok {
-		log.Printf("invalid angle: %d", angle)
-		return
-	}
-	if angle < 0 {
-		c.engine.Left()
-	} else {
-		c.engine.Right()
-	}
-	c.delay(ms)
-	c.stop()
-	return
-}
-
-func (c *Car) turn2(angle int) {
 	n, ok := turnAngleCounts[angle]
 	if !ok {
 		log.Printf("invalid angle: %d", angle)

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
@@ -22,6 +26,7 @@ const (
 )
 
 const (
+	ipPattern        = "((000.000.000.000))"
 	pageOutOfService = `
 		<!DOCTYPE html>
 		<html>
@@ -48,8 +53,6 @@ var (
 )
 
 var (
-	vMonitor    *vmonitor
-	pageContext []byte
 	motionConfs = map[mode]string{
 		normalMode: "/home/pi/motion_conf/normal_mode.conf",
 		babyMode:   "/home/pi/motion_conf/baby_mode.conf",
@@ -90,91 +93,38 @@ func main() {
 		log.Printf("failed to new a button, will run the monitor without button")
 	}
 
-	vMonitor = newVMonitor(hServo, vServo, led, bzr, btn)
-	if vMonitor == nil {
-		log.Printf("failed to new a vmonitor")
+	server := newVideoServer(hServo, vServo, led, bzr, btn)
+	if server == nil {
+		log.Printf("failed to new the video server")
 		return
 	}
 
-	if err := loadHomePage(); err != nil {
-		log.Fatalf("failed to load home page, error: %v", err)
-		return
-	}
-
-	log.Printf("video monitor server started")
 	base.WaitQuit(func() {
-		vMonitor.stop()
+		server.stop()
 		rpio.Close()
 	})
-	vMonitor.start()
 
-	http.HandleFunc("/", handler)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err.Error())
-	}
+	log.Printf("video server started")
+	server.start()
 }
 
-func loadHomePage() error {
-	var err error
-	pageContext, err = ioutil.ReadFile("vmonitor.html")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		homePageHandler(w, r)
-	case "POST":
-		operationHandler(w, r)
-	}
-}
-
-func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	if vMonitor.outOfService() && vMonitor.mode == normalMode {
-		w.Write([]byte(pageOutOfService))
-		return
-	}
-	w.Write(pageContext)
-}
-
-func operationHandler(w http.ResponseWriter, r *http.Request) {
-	op := r.FormValue("op")
-	switch op {
-	case "left":
-		go vMonitor.left()
-	case "right":
-		go vMonitor.right()
-	case "up":
-		go vMonitor.up()
-	case "down":
-		go vMonitor.down()
-	case "beep":
-		go vMonitor.beep(5, 100)
-	default:
-		log.Printf("invalid operator: %v", op)
-	}
-}
-
-type vmonitor struct {
+type videoServer struct {
 	hServo *dev.SG90
 	vServo *dev.SG90
 	led    *dev.Led
 	buzzer *dev.Buzzer
 	button *dev.Button
 
-	mode      mode
-	inServing bool
-	hAngle    int
-	vAngle    int
-	chAlert   chan int
+	mode        mode
+	inServing   bool
+	hAngle      int
+	vAngle      int
+	chAlert     chan int
+	pageContext []byte
 }
 
-func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, button *dev.Button) *vmonitor {
-	v := &vmonitor{
+func newVideoServer(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, button *dev.Button) *videoServer {
+	v := &videoServer{
 		hServo: hServo,
 		vServo: vServo,
 		led:    led,
@@ -194,7 +144,7 @@ func newVMonitor(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, but
 	return v
 }
 
-func (v *vmonitor) start() {
+func (v *videoServer) start() {
 	go v.hServo.Roll(v.hAngle)
 	go v.vServo.Roll(v.vAngle)
 	go v.alert()
@@ -202,14 +152,98 @@ func (v *vmonitor) start() {
 	go v.detectServing()
 	go v.detectingMode()
 
+	if err := v.loadHomePage(); err != nil {
+		log.Fatalf("failed to load home page, error: %v", err)
+		return
+	}
+
+	http.HandleFunc("/", v.handler)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err.Error())
+	}
 }
 
-func (v *vmonitor) stop() {
+func (v *videoServer) loadHomePage() error {
+	if v.mode == normalMode {
+		data, err := ioutil.ReadFile("vmonitor.html")
+		if err != nil {
+			return err
+		}
+		v.pageContext = data
+		return nil
+	}
+
+	if v.mode == babyMode {
+		ip := base.GetIP()
+		if ip == "" {
+			return errors.New("internal error: failed to get ip")
+		}
+		data, err := ioutil.ReadFile("vmonitor_baby.html")
+		if err != nil {
+			return err
+		}
+		rbuf := bytes.NewBuffer(data)
+		wbuf := bytes.NewBuffer([]byte{})
+		for {
+			line, err := rbuf.ReadBytes('\n')
+			if err == io.EOF {
+				break
+			}
+			s := string(line)
+			if strings.Index(s, ipPattern) >= 0 {
+				s = strings.Replace(s, ipPattern, ip, 1)
+			}
+			wbuf.Write([]byte(s))
+		}
+		v.pageContext = wbuf.Bytes()
+		return nil
+	}
+
+	return fmt.Errorf("invalid mode: %v", v.mode)
+}
+
+func (v *videoServer) handler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		v.homePageHandler(w, r)
+	case "POST":
+		op := r.FormValue("op")
+		v.do(op)
+	}
+}
+
+func (v *videoServer) homePageHandler(w http.ResponseWriter, r *http.Request) {
+	if v.outOfService() && v.mode == normalMode {
+		w.Write([]byte(pageOutOfService))
+		return
+	}
+	w.Write(v.pageContext)
+}
+
+func (v *videoServer) do(op string) {
+	switch op {
+	case "left":
+		go v.left()
+	case "right":
+		go v.right()
+	case "up":
+		go v.up()
+	case "down":
+		go v.down()
+	case "beep":
+		go v.beep(5, 100)
+	default:
+		log.Printf("invalid operator: %v", op)
+	}
+}
+
+func (v *videoServer) stop() {
 	v.led.Off()
 	close(v.chAlert)
 }
 
-func (v *vmonitor) left() {
+func (v *videoServer) left() {
 	log.Printf("op: left")
 	angle := v.hAngle - 15
 	if angle < -90 {
@@ -220,7 +254,7 @@ func (v *vmonitor) left() {
 	v.hServo.Roll(angle)
 }
 
-func (v *vmonitor) right() {
+func (v *videoServer) right() {
 	log.Printf("op: right")
 	angle := v.hAngle + 15
 	if angle > 75 {
@@ -231,7 +265,7 @@ func (v *vmonitor) right() {
 	v.hServo.Roll(angle)
 }
 
-func (v *vmonitor) up() {
+func (v *videoServer) up() {
 	log.Printf("op: up")
 	angle := v.vAngle + 15
 	if angle > 90 {
@@ -242,7 +276,7 @@ func (v *vmonitor) up() {
 	v.vServo.Roll(angle)
 }
 
-func (v *vmonitor) down() {
+func (v *videoServer) down() {
 	log.Printf("op: down")
 	angle := v.vAngle - 15
 	if angle < -30 {
@@ -253,7 +287,7 @@ func (v *vmonitor) down() {
 	v.vServo.Roll(angle)
 }
 
-func (v *vmonitor) beep(n int, interval int) {
+func (v *videoServer) beep(n int, interval int) {
 	log.Printf("op: beep")
 	if v.buzzer == nil {
 		return
@@ -261,7 +295,7 @@ func (v *vmonitor) beep(n int, interval int) {
 	v.buzzer.Beep(n, interval)
 }
 
-func (v *vmonitor) detectConnecting() {
+func (v *videoServer) detectConnecting() {
 	for {
 		time.Sleep(5 * time.Second)
 		n, err := v.getConCount()
@@ -273,7 +307,7 @@ func (v *vmonitor) detectConnecting() {
 	}
 }
 
-func (v *vmonitor) alert() {
+func (v *videoServer) alert() {
 	conCount := 0
 	for {
 		if v.mode == babyMode {
@@ -298,7 +332,7 @@ func (v *vmonitor) alert() {
 }
 
 // getConCount is get the count of connecting to the server
-func (v *vmonitor) getConCount() (int, error) {
+func (v *videoServer) getConCount() (int, error) {
 	cmd := `netstat -nat|grep -i "127.0.0.1:8081"|wc -l`
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	if err != nil {
@@ -312,7 +346,7 @@ func (v *vmonitor) getConCount() (int, error) {
 	return count, nil
 }
 
-func (v *vmonitor) detectServing() {
+func (v *videoServer) detectServing() {
 	for {
 		time.Sleep(15 * time.Second)
 		if v.mode == babyMode {
@@ -336,7 +370,7 @@ func (v *vmonitor) detectServing() {
 	}
 }
 
-func (v *vmonitor) outOfService() bool {
+func (v *videoServer) outOfService() bool {
 	hour := time.Now().Hour()
 	if hour >= 20 || hour < 9 {
 		// out of service at 20:00~09:00
@@ -345,7 +379,7 @@ func (v *vmonitor) outOfService() bool {
 	return false
 }
 
-func (v *vmonitor) detectingMode() {
+func (v *videoServer) detectingMode() {
 	for {
 		if v.button.Pressed() {
 			log.Printf("the button was pressed")
@@ -360,27 +394,30 @@ func (v *vmonitor) detectingMode() {
 				time.Sleep(1 * time.Second)
 				continue
 			}
+			if err := v.loadHomePage(); err != nil {
+				log.Printf("failed to load home page, error: %v", err)
+				continue
+			}
 			if err := v.restartMotion(); err != nil {
 				log.Printf("failed to restart motion, error: %v", err)
-				time.Sleep(5 * time.Second)
 				continue
 			}
 			go v.led.Blink(5, 100)
 			log.Printf("mode changed: %v --> %v", lastMode, v.mode)
 			continue
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
-func (v *vmonitor) stopMotion() error {
+func (v *videoServer) stopMotion() error {
 	cmd := "sudo killall motion"
 	exec.Command("bash", "-c", cmd).CombinedOutput()
 	time.Sleep(1 * time.Second)
 	return nil
 }
 
-func (v *vmonitor) startMotion() error {
+func (v *videoServer) startMotion() error {
 	cmd := fmt.Sprintf("sudo motion -c %v", motionConfs[v.mode])
 	_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	if err != nil {
@@ -390,7 +427,7 @@ func (v *vmonitor) startMotion() error {
 	return nil
 }
 
-func (v *vmonitor) restartMotion() error {
+func (v *videoServer) restartMotion() error {
 	if err := v.stopMotion(); err != nil {
 		return err
 	}
