@@ -313,6 +313,12 @@ func main() {
 ### [Self-Dirving Car](/app/car)
 <img src="img/car.gif" width=80% height=80% />
 
+### [Video Monitor](/app/vmonitor)
+<img src="img/vmonitor.gif" width=80% height=80% />
+
+### [Auto-Air](/app/autoair)
+<img src="img/auto-air.gif" width=80% height=80% />
+
 ### [Auto-Light](/app/autolight)
 <img src="img/auto-light.gif" width=80% height=80% />
 
