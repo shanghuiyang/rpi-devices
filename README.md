@@ -28,6 +28,12 @@ The following devices had been implemented in the current version, and a device 
 	 ZE08-CH2O       RX480E-4         SW-420          US-100       Digital Led
 	CH2O Sensor   Wireless Rec   Vibration Sensor  Ultr Sensor      Display
 
+  ![](img/collision-switch.jpg)   ![](img/encoder.jpg)
+
+	 Collision        Speed
+	   Switch        Encoder
+
+
 ## Visualize Data
 The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. Both of them are free for developers. You can implement the interface for new IoT cloud and add it to the framework easily.
 
