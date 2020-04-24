@@ -148,7 +148,6 @@ func NewCar(opts ...Option) *Car {
 
 // Start ...
 func (c *Car) Start() error {
-	go c.speed(30)
 	go c.start()
 	go c.servo.Roll(0)
 	go c.blink()
