@@ -2,10 +2,19 @@ package dev
 
 import (
 	"log"
+	"os/exec"
 	"time"
+
+	"github.com/shanghuiyang/go-speech/asr"
+	"github.com/shanghuiyang/go-speech/oauth"
 )
 
 const chSize = 8
+
+const (
+	appKey    = "your app key"
+	secretKey = "your secret key"
+)
 
 const (
 	forward  CarOp = "forward"
@@ -28,6 +37,9 @@ const (
 
 	selfdrivingon  CarOp = "selfdrivingon"
 	selfdrivingoff CarOp = "selfdrivingoff"
+
+	speechdrivingon  CarOp = "speechdrivingon"
+	speechdrivingoff CarOp = "speechdrivingoff"
 )
 
 var (
@@ -119,18 +131,19 @@ func WithCamera(cam *Camera) Option {
 
 // Car ...
 type Car struct {
-	engine      *L298N
-	servo       *SG90
-	ult         *US100
-	encoder     *Encoder
-	cswitchs    []*CollisionSwitch
-	horn        *Buzzer
-	led         *Led
-	light       *Led
-	camera      *Camera
-	servoAngle  int
-	selfdriving bool
-	chOp        chan CarOp
+	engine        *L298N
+	servo         *SG90
+	ult           *US100
+	encoder       *Encoder
+	cswitchs      []*CollisionSwitch
+	horn          *Buzzer
+	led           *Led
+	light         *Led
+	camera        *Camera
+	servoAngle    int
+	selfdriving   bool
+	speechdriving bool
+	chOp          chan CarOp
 }
 
 // NewCar ...
@@ -196,6 +209,10 @@ func (c *Car) start() {
 			go c.selfDrivingOn()
 		case selfdrivingoff:
 			go c.selfDrivingOff()
+		case speechdrivingon:
+			go c.speechDrivingOn()
+		case speechdrivingoff:
+			go c.speechDrivingOff()
 		default:
 			log.Printf("car: invalid op")
 		}
@@ -251,6 +268,10 @@ func (c *Car) beep() {
 
 func (c *Car) blink() {
 	for {
+		if c.speechdriving {
+			c.delay(2000)
+			continue
+		}
 		c.led.Blink(1, 1000)
 	}
 }
@@ -543,4 +564,69 @@ func (c *Car) turn(angle int) {
 	}
 	c.stop()
 	return
+}
+
+func (c *Car) speechDrivingOff() {
+	c.speechdriving = false
+	log.Printf("car: speech-drving off")
+}
+
+func (c *Car) speechDrivingOn() {
+	log.Printf("car: speech-drving on")
+	c.speechdriving = true
+
+	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
+	asrEngine := asr.NewEngine(auth)
+
+	for c.speechdriving {
+		time.Sleep(1 * time.Second)
+
+		// -D:			device
+		// -d 3:		3 seconds
+		// -t wav:		wav type
+		// -r 16000:	Rate 16000 Hz
+		// -c 1:		1 channel
+		// -f S16_LE:	Signed 16 bit Little Endian
+		cmd := `sudo arecord -D "plughw:1,0" -d 2 -t wav -r 16000 -c 1 -f S16_LE car.wav`
+		log.Printf("arecording...")
+		c.led.On()
+		_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+		if err != nil {
+			log.Printf("failed to record the speech: %v", err)
+			continue
+		}
+		c.led.Off()
+		log.Printf("arecorded")
+
+		text, err := asrEngine.ToText("car.wav")
+		if err != nil {
+			log.Printf("failed to recognize the speech, error: %v", err)
+			continue
+		}
+		log.Printf("speech: %v", text)
+
+		switch text {
+		case "前进":
+			c.forward()
+			c.delay(500)
+			c.stop()
+		case "后退":
+			c.backward()
+			c.delay(500)
+			c.stop()
+		case "左转":
+			c.engine.Left()
+			c.delay(400)
+			c.stop()
+		case "右转":
+			c.engine.Right()
+			c.delay(400)
+			c.stop()
+		case "停止":
+			c.stop()
+		default:
+			c.stop()
+		}
+	}
+	c.stop()
 }

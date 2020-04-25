@@ -150,6 +150,14 @@
                     $.post(url, { "op": "selfdrivingoff" }, function (data, status) { });
                 }
             })
+            // speech-driving
+            $('#speechdriving').change(function () {
+                if ($(this).prop('checked')) {
+                    $.post(url, { "op": "speechdrivingon" }, function (data, status) { });
+                } else {
+                    $.post(url, { "op": "speechdrivingoff" }, function (data, status) { });
+                }
+            })
         });
     </script>
 </head>
@@ -185,6 +193,8 @@
         <div>
             <input id="selfdriving" type="checkbox" uncheckbox data-toggle="toggle" data-on="Self-Driving"
                 data-off="Self-Driving" data-onstyle="warning" data-width="120" data-height="45">
+            <input id="speechdriving" type="checkbox" uncheckbox data-toggle="toggle" data-on="Speech-Driving"
+                data-off="Speech-Driving" data-onstyle="warning" data-width="120" data-height="45">
             <input id="light" type="checkbox" uncheckbox data-toggle="toggle" data-on="Light" data-off="Light"
                 data-onstyle="warning" data-width="120" data-height="45">
         </div>
