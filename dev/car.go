@@ -3,6 +3,7 @@ package dev
 import (
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/shanghuiyang/go-speech/asr"
@@ -364,19 +365,21 @@ func (c *Car) selfDrivingOn() {
 
 	// start self-driving
 	c.selfdriving = true
+	c.speechdriving = false
 	var (
-		op                   = forward
-		fwd                  bool
-		retry                int
-		mindAngle, maxdAngle int
-		mind, maxd           float64
+		fwd               bool
+		retry             int
+		mindAngle         int
+		maxdAngle         int
+		mind              float64
+		maxd              float64
+		op                = forward
+		chOp              = make(chan CarOp, 1)
+		chDetectCollision = make(chan bool)
+		chDetectObstacle  = make(chan bool)
+		chPauseDetecting  = make(chan bool)
 	)
 
-	// collided := false
-	chOp := make(chan CarOp, 1)
-	chDetectCollision := make(chan bool)
-	chDetectObstacle := make(chan bool)
-	chPauseDetecting := make(chan bool)
 	go c.detectCollision(chOp, chDetectCollision, chPauseDetecting)
 	go c.detectObstacle(chOp, chDetectObstacle, chPauseDetecting)
 	for c.selfdriving {
@@ -453,7 +456,7 @@ func (c *Car) detectObstacle(chOp chan CarOp, chDetect, chPause chan bool) {
 		// notify other sensors to pause detecting
 		chPause <- true
 	}
-	for c.selfdriving {
+	for c.selfdriving || c.speechdriving {
 		for _, angle := range angles {
 			c.servo.Roll(angle)
 			c.delay(50)
@@ -511,6 +514,72 @@ func (c *Car) detectCollision(chOp chan CarOp, chDetect, chPause chan bool) {
 		}
 
 		c.delay(10)
+	}
+}
+
+func (c *Car) detectSpeech(chOp chan CarOp, chDetect, chPause chan bool) {
+	pause := func() {
+		// notify other sensors to pause detecting
+		chPause <- true
+	}
+
+	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
+	asrEngine := asr.NewEngine(auth)
+
+	for c.speechdriving {
+		select {
+		case <-chPause:
+			// do nothing
+		default:
+			// do nothing
+		}
+
+		// -D:			device
+		// -d 3:		3 seconds
+		// -t wav:		wav type
+		// -r 16000:	Rate 16000 Hz
+		// -c 1:		1 channel
+		// -f S16_LE:	Signed 16 bit Little Endian
+		cmd := `sudo arecord -D "plughw:1,0" -d 2 -t wav -r 16000 -c 1 -f S16_LE car.wav`
+		log.Printf("arecording...")
+		go func() {
+			c.led.On()
+			c.horn.Beep(1, 100)
+		}()
+		_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+		if err != nil {
+			log.Printf("failed to record the speech: %v", err)
+			continue
+		}
+		go c.led.Off()
+		log.Printf("arecorded")
+
+		text, err := asrEngine.ToText("car.wav")
+		if err != nil {
+			log.Printf("failed to recognize the speech, error: %v", err)
+			continue
+		}
+		log.Printf("speech: %v", text)
+
+		switch {
+		case strings.Index(text, "前") >= 0:
+			chOp <- forward
+		case strings.Index(text, "后") >= 0:
+			chOp <- backward
+			go pause()
+		case strings.Index(text, "左") >= 0:
+			chOp <- left
+			go pause()
+		case strings.Index(text, "右") >= 0:
+			chOp <- right
+			go pause()
+		case strings.Index(text, "停") >= 0:
+			chOp <- stop
+			go pause()
+		default:
+			go pause()
+		}
+
 	}
 }
 
@@ -574,58 +643,63 @@ func (c *Car) speechDrivingOff() {
 func (c *Car) speechDrivingOn() {
 	log.Printf("car: speech-drving on")
 	c.speechdriving = true
+	c.selfdriving = false
 
-	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
-	asrEngine := asr.NewEngine(auth)
+	var (
+		op               = stop
+		fwd              = false
+		chOp             = make(chan CarOp, 1)
+		chDetectSpeech   = make(chan bool)
+		chDetectObstacle = make(chan bool)
+		chPauseDetecting = make(chan bool)
+	)
 
+	go c.detectSpeech(chOp, chDetectSpeech, chPauseDetecting)
+	c.delay(5000)
+	go c.detectObstacle(chOp, chDetectObstacle, chPauseDetecting)
 	for c.speechdriving {
-		time.Sleep(1 * time.Second)
-
-		// -D:			device
-		// -d 3:		3 seconds
-		// -t wav:		wav type
-		// -r 16000:	Rate 16000 Hz
-		// -c 1:		1 channel
-		// -f S16_LE:	Signed 16 bit Little Endian
-		cmd := `sudo arecord -D "plughw:1,0" -d 2 -t wav -r 16000 -c 1 -f S16_LE car.wav`
-		log.Printf("arecording...")
-		c.led.On()
-		_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-		if err != nil {
-			log.Printf("failed to record the speech: %v", err)
-			continue
+		select {
+		case p := <-chOp:
+			op = p
+		default:
+			// op = stop
 		}
-		c.led.Off()
-		log.Printf("arecorded")
+		log.Printf("op: %v", op)
 
-		text, err := asrEngine.ToText("car.wav")
-		if err != nil {
-			log.Printf("failed to recognize the speech, error: %v", err)
+		switch op {
+		case forward:
+			if !fwd {
+				c.forward()
+				chDetectObstacle <- true // start to detecting obstacles
+				fwd = true
+			}
+			c.delay(50)
 			continue
-		}
-		log.Printf("speech: %v", text)
-
-		switch text {
-		case "前进":
-			c.forward()
-			c.delay(500)
+		case backward:
+			fwd = false
 			c.stop()
-		case "后退":
+			c.delay(20)
 			c.backward()
 			c.delay(500)
+			chOp <- stop
+			continue
+		case left:
+			fwd = false
 			c.stop()
-		case "左转":
-			c.engine.Left()
-			c.delay(400)
+			c.delay(20)
+			c.turn(-90)
+			continue
+		case right:
+			fwd = false
 			c.stop()
-		case "右转":
-			c.engine.Right()
-			c.delay(400)
+			c.delay(20)
+			c.turn(90)
+			continue
+		case stop:
+			fwd = false
 			c.stop()
-		case "停止":
-			c.stop()
-		default:
-			c.stop()
+			c.delay(2000)
+			continue
 		}
 	}
 	c.stop()
