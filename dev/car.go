@@ -44,8 +44,7 @@ const (
 )
 
 var (
-	scanningAngles = []int{-90, -75, -60, -45, -30, 30, 45, 60, 75, 90}
-
+	scanningAngles  = []int{-90, -75, -60, -45, -30, 30, 45, 60, 75, 90}
 	turnAngleCounts = map[int]int{
 		-90: 20,
 		-75: 17,
@@ -58,6 +57,7 @@ var (
 		75:  13,
 		90:  17,
 	}
+	aheadAngles = []int{0, -10, -20, -10, 0, 10, 20, 10}
 )
 
 type (
@@ -367,27 +367,22 @@ func (c *Car) selfDrivingOn() {
 	c.selfdriving = true
 	c.speechdriving = false
 	var (
-		fwd               bool
-		retry             int
-		mindAngle         int
-		maxdAngle         int
-		mind              float64
-		maxd              float64
-		op                = forward
-		chOp              = make(chan CarOp, 1)
-		chDetectCollision = make(chan bool)
-		chDetectObstacle  = make(chan bool)
-		chPauseDetecting  = make(chan bool)
+		fwd       bool
+		retry     int
+		mindAngle int
+		maxdAngle int
+		mind      float64
+		maxd      float64
+		op        = forward
+		chOp      = make(chan CarOp, 16)
 	)
 
-	go c.detectCollision(chOp, chDetectCollision, chPauseDetecting)
-	go c.detectObstacle(chOp, chDetectObstacle, chPauseDetecting)
 	for c.selfdriving {
 		select {
 		case p := <-chOp:
 			op = p
 		default:
-			op = forward
+			// 	do nothing
 		}
 		log.Printf("op: %v", op)
 
@@ -420,24 +415,88 @@ func (c *Car) selfDrivingOn() {
 		case turn:
 			fwd = false
 			c.turn(maxdAngle)
-			chDetectCollision <- true // resume to detecting collision
-			chDetectObstacle <- true  // resume to detecting obstacles
 			c.delay(150)
+			chOp <- forward
 			continue
 		case forward:
 			if !fwd {
 				c.forward()
 				fwd = true
+				go c.detectObstacles(chOp)
 			}
 			c.delay(50)
 			continue
 		}
 	}
 	c.stop()
+	c.delay(500)
 	close(chOp)
-	close(chPauseDetecting)
-	close(chDetectCollision)
-	close(chDetectObstacle)
+}
+
+func (c *Car) speechDrivingOn() {
+	log.Printf("car: speech-drving on")
+	c.speechdriving = true
+	c.selfdriving = false
+
+	var (
+		op   = stop
+		fwd  = false
+		chOp = make(chan CarOp, 1)
+	)
+
+	go c.detectSpeech(chOp)
+	for c.speechdriving {
+		select {
+		case p := <-chOp:
+			op = p
+		default:
+			// do nothing
+		}
+		log.Printf("op: %v", op)
+
+		switch op {
+		case forward:
+			if !fwd {
+				c.forward()
+				fwd = true
+				go c.detectObstacles(chOp)
+			}
+			c.delay(50)
+			continue
+		case backward:
+			fwd = false
+			c.stop()
+			c.delay(20)
+			c.backward()
+			c.delay(500)
+			chOp <- stop
+			continue
+		case left:
+			fwd = false
+			c.stop()
+			c.delay(20)
+			c.turn(-90)
+			c.delay(20)
+			chOp <- forward
+			continue
+		case right:
+			fwd = false
+			c.stop()
+			c.delay(20)
+			c.turn(90)
+			c.delay(20)
+			chOp <- forward
+			continue
+		case stop:
+			fwd = false
+			c.stop()
+			c.delay(500)
+			continue
+		}
+	}
+	c.stop()
+	c.delay(500)
+	close(chOp)
 }
 
 func (c *Car) selfDrivingOff() {
@@ -445,95 +504,60 @@ func (c *Car) selfDrivingOff() {
 	log.Printf("car: self-drving off")
 }
 
-func (c *Car) delay(ms int) {
-	time.Sleep(time.Duration(ms) * time.Millisecond)
+func (c *Car) speechDrivingOff() {
+	c.speechdriving = false
+	log.Printf("car: speech-drving off")
 }
 
-// detect detects obstacles using an ultrasonic distance meter.
-func (c *Car) detectObstacle(chOp chan CarOp, chDetect, chPause chan bool) {
-	angles := []int{0, -10, -20, -10, 0, 10, 20, 10}
-	pause := func() {
-		// notify other sensors to pause detecting
-		chPause <- true
-	}
+func (c *Car) detectObstacles(chOp chan CarOp) {
+	// defer c.servo.Roll(0)
+	quit := false
+	go c.detectCollision(chOp, &quit)
 	for c.selfdriving || c.speechdriving {
-		for _, angle := range angles {
+		for _, angle := range aheadAngles {
 			c.servo.Roll(angle)
 			c.delay(50)
 			d := c.ult.Dist()
-
-			select {
-			case <-chPause:
-				log.Printf("ult: pause")
-				<-chDetect
-				break
-			default:
-				// do nothing
+			if quit {
+				return
 			}
-
 			if d < 10 {
 				chOp <- backward
-				go pause()
-				<-chDetect // pause detecting until the car finishs the actions
-				break
+				quit = true
+				continue
 			}
 			if d < 50 {
 				chOp <- stop
-				go pause()
-				<-chDetect // pause detecting until the car finishs the actions
-				break
+				quit = true
+				continue
 			}
 		}
 	}
-	c.servo.Roll(0)
 }
 
-// detect detects obstacles using an ultrasonic distance meter.
-func (c *Car) detectCollision(chOp chan CarOp, chDetect, chPause chan bool) {
-	pause := func() {
-		// notify other sensors to pause detecting
-		chPause <- true
-	}
-	for c.selfdriving {
-		select {
-		case <-chPause:
-			log.Printf("cswitch: pause")
-			<-chDetect
-			break
-		default:
-			// do nothing
-		}
+func (c *Car) detectCollision(chOp chan CarOp, quit *bool) {
+	for c.selfdriving || c.speechdriving {
 		for _, cswitch := range c.cswitchs {
 			if cswitch.Collided() {
+				if *quit {
+					return
+				}
 				chOp <- backward
-				go pause()
 				go c.horn.Beep(1, 100)
-				log.Printf("cswitch: got a crash")
-				<-chDetect // pause detecting collision until the car finishs the actions
+				log.Printf("cswitch: crashed")
+				*quit = true
+				continue
 			}
 		}
-
 		c.delay(10)
 	}
 }
 
-func (c *Car) detectSpeech(chOp chan CarOp, chDetect, chPause chan bool) {
-	pause := func() {
-		// notify other sensors to pause detecting
-		chPause <- true
-	}
-
+func (c *Car) detectSpeech(chOp chan CarOp) {
 	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
 	asrEngine := asr.NewEngine(auth)
 
 	for c.speechdriving {
-		select {
-		case <-chPause:
-			// do nothing
-		default:
-			// do nothing
-		}
-
 		// -D:			device
 		// -d 3:		3 seconds
 		// -t wav:		wav type
@@ -541,18 +565,15 @@ func (c *Car) detectSpeech(chOp chan CarOp, chDetect, chPause chan bool) {
 		// -c 1:		1 channel
 		// -f S16_LE:	Signed 16 bit Little Endian
 		cmd := `sudo arecord -D "plughw:1,0" -d 2 -t wav -r 16000 -c 1 -f S16_LE car.wav`
-		log.Printf("arecording...")
-		go func() {
-			c.led.On()
-			c.horn.Beep(1, 100)
-		}()
+		log.Printf("start recording")
+		go c.led.On()
 		_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 		if err != nil {
 			log.Printf("failed to record the speech: %v", err)
 			continue
 		}
 		go c.led.Off()
-		log.Printf("arecorded")
+		log.Printf("stop recording")
 
 		text, err := asrEngine.ToText("car.wav")
 		if err != nil {
@@ -566,20 +587,15 @@ func (c *Car) detectSpeech(chOp chan CarOp, chDetect, chPause chan bool) {
 			chOp <- forward
 		case strings.Index(text, "后") >= 0:
 			chOp <- backward
-			go pause()
 		case strings.Index(text, "左") >= 0:
 			chOp <- left
-			go pause()
 		case strings.Index(text, "右") >= 0:
 			chOp <- right
-			go pause()
 		case strings.Index(text, "停") >= 0:
 			chOp <- stop
-			go pause()
 		default:
-			go pause()
+			// do nothing
 		}
-
 	}
 }
 
@@ -635,72 +651,6 @@ func (c *Car) turn(angle int) {
 	return
 }
 
-func (c *Car) speechDrivingOff() {
-	c.speechdriving = false
-	log.Printf("car: speech-drving off")
-}
-
-func (c *Car) speechDrivingOn() {
-	log.Printf("car: speech-drving on")
-	c.speechdriving = true
-	c.selfdriving = false
-
-	var (
-		op               = stop
-		fwd              = false
-		chOp             = make(chan CarOp, 1)
-		chDetectSpeech   = make(chan bool)
-		chDetectObstacle = make(chan bool)
-		chPauseDetecting = make(chan bool)
-	)
-
-	go c.detectSpeech(chOp, chDetectSpeech, chPauseDetecting)
-	c.delay(5000)
-	go c.detectObstacle(chOp, chDetectObstacle, chPauseDetecting)
-	for c.speechdriving {
-		select {
-		case p := <-chOp:
-			op = p
-		default:
-			// op = stop
-		}
-		log.Printf("op: %v", op)
-
-		switch op {
-		case forward:
-			if !fwd {
-				c.forward()
-				chDetectObstacle <- true // start to detecting obstacles
-				fwd = true
-			}
-			c.delay(50)
-			continue
-		case backward:
-			fwd = false
-			c.stop()
-			c.delay(20)
-			c.backward()
-			c.delay(500)
-			chOp <- stop
-			continue
-		case left:
-			fwd = false
-			c.stop()
-			c.delay(20)
-			c.turn(-90)
-			continue
-		case right:
-			fwd = false
-			c.stop()
-			c.delay(20)
-			c.turn(90)
-			continue
-		case stop:
-			fwd = false
-			c.stop()
-			c.delay(2000)
-			continue
-		}
-	}
-	c.stop()
+func (c *Car) delay(ms int) {
+	time.Sleep(time.Duration(ms) * time.Millisecond)
 }

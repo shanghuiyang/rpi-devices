@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -38,15 +39,15 @@ const (
 	ipPattern = "((000.000.000.000))"
 )
 
-var (
+type carServer struct {
 	car         *dev.Car
 	pageContext []byte
-)
+}
 
 func main() {
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("failed to open rpio, error: %v", err)
-		return
+		os.Exit(1)
 	}
 	defer rpio.Close()
 
@@ -57,7 +58,7 @@ func main() {
 	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
 		log.Fatal("failed to new a L298N as engine, a car can't without any engine")
-		return
+		os.Exit(1)
 	}
 
 	ult := dev.NewUS100()
@@ -105,7 +106,7 @@ func main() {
 		log.Printf("failed to new a camera, will build a car without cameras")
 	}
 
-	car = dev.NewCar(
+	car := dev.NewCar(
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
 		dev.WithUlt(ult),
@@ -121,27 +122,46 @@ func main() {
 		return
 	}
 
-	if err := loadHomePage(); err != nil {
-		log.Fatalf("failed to load home page, error: %v", err)
-		return
-	}
-
-	car.Start()
-	log.Printf("car server started")
-
+	server := newCarServer(car)
 	base.WaitQuit(func() {
-		car.Stop()
+		server.stop()
 		rpio.Close()
 	})
+	if err := server.start(); err != nil {
+		log.Printf("failed to start car server, error: %v", err)
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
 
-	http.HandleFunc("/", carServer)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err.Error())
+func newCarServer(car *dev.Car) *carServer {
+	return &carServer{
+		car: car,
 	}
 }
 
-func loadHomePage() error {
+func (s *carServer) start() error {
+	if err := s.loadHomePage(); err != nil {
+		return err
+	}
+
+	if err := s.car.Start(); err != nil {
+		return err
+	}
+	log.Printf("car started successfully")
+
+	http.HandleFunc("/", s.handler)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *carServer) stop() error {
+	return s.car.Stop()
+}
+
+func (s *carServer) loadHomePage() error {
 	data, err := ioutil.ReadFile("car.html")
 	if err != nil {
 		return errors.New("internal error: failed to read car.html")
@@ -165,26 +185,18 @@ func loadHomePage() error {
 		}
 		wbuf.Write([]byte(s))
 	}
-	pageContext = wbuf.Bytes()
+	s.pageContext = wbuf.Bytes()
 	return nil
 }
 
-func carServer(w http.ResponseWriter, r *http.Request) {
+func (s *carServer) handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		homePageHandler(w, r)
+		w.Write(s.pageContext)
 	case "POST":
-		operationHandler(w, r)
+		op := r.FormValue("op")
+		s.car.Do(dev.CarOp(op))
 	}
-}
-
-func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write(pageContext)
-}
-
-func operationHandler(w http.ResponseWriter, r *http.Request) {
-	op := r.FormValue("op")
-	car.Do(dev.CarOp(op))
 }
 
 // tuningTurnAngle tunings the mapping between angle(degree) and time(millisecond)
