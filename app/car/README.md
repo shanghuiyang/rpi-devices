@@ -7,7 +7,7 @@ Self-Dirving Car
 
 **Parts & Censors**
 
-<img src="../../img/car.jpg" width=80% height=80% />
+<img src="../../img/car-parts.jpg" width=80% height=80% />
 
 
 **control the car from mobile phone.**
