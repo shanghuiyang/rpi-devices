@@ -10,4 +10,7 @@ import (
 func TestStart(t *testing.T) {
 	car := dev.NewCar()
 	assert.NotNil(t, car)
+
+	s := newCarServer(car)
+	assert.NotNil(t, s)
 }
