@@ -12,7 +12,7 @@ The following devices & sensors had been implemented in the current version, and
 |Button|![](img/button.jpg)|Button module|[example](/example/button/button.go)|[vedio-monitor](/app/vmonitor)|
 |Buzzer|![](img/buzzer.jpg)|Buzzer module|N/A|[car](/app/car), [door-dog](/app/doordog)|
 |Collision Switch|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collisionswitch/collisionswitch.go)|[car](/app/car)|
-|DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/dht11.go)|[home-assit](/app/homeassit)|
+|DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/dht11.go)|[home-asst](/app/homeasst)|
 |DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/temperature.go)|[auto-fan](/app/autofan)|
 |Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/encoder.go)|[car](/app/car)|
 |GPS|![](img/gps.jpg))|location sensor|[example](/example/gps/gps.go)|[gps-tracker](/app/gpstracker)|
@@ -21,7 +21,7 @@ The following devices & sensors had been implemented in the current version, and
 |L298N|![](img/l298n.jpg)|motor driver|N/A|[car](/app/car)|
 |Led|![](img/led.jpg)|Led light|[example](/example/led/led.go)|[car](/app/car), [vedio-monitor](/app/vmonitor)|
 |Led Display|![](img/digital-led-display.jpg)|led digital module|[example](/example/leddisplay/leddisplay.go)|[auto-air](/app/autoair)|
-|Oled|![](img/oled.jpg)|Oled display module|[example](/example/oled/oled.go)|[home-assit](/app/homeassit)|
+|Oled|![](img/oled.jpg)|Oled display module|[example](/example/oled/oled.go)|[home-asst](/app/homeasst)|
 |PMS7003|![](img/pms7003.jpg)|Air quality sensor|[example](/example/air/air.go)|[auto-air](/app/autoair)|
 |Relay|![](img/relay.jpg)|Relay module|[example](/example/relay/relay.go)|[auto-fan](/app/autofan)|
 |RX480E-4|![](img/rx480e4.jpg)|Wireless remote control|[example](/example/rx480e4/rx480e4.go)|[remote-light](/app/rlight)|
@@ -30,7 +30,7 @@ The following devices & sensors had been implemented in the current version, and
 |SW-420|![](img/sw-420.jpg)|Shaking sensor|[example](/example/sw420/sw420.go)|[auto-air-out](/app/autoairout)|
 |US-100|![](img/us-100.jpg)|ultrasonic distance meter|[example](/example/us100/us100.go)|[car](/app/car)|
 |Voice|![](img/voice.jpg)|Voice sensor|N/A|N/A|
-|ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch20/ch2o.go)|[ch2o-monitor](/app/ch2omonitor)|
+|ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch2o/ch2o.go)|[ch2o-monitor](/app/ch2omonitor)|
 
 
 ## Compile & Deploy
