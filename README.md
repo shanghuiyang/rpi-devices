@@ -3,56 +3,41 @@
 # rpi-devices 
 [![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
 
-rpi-devices let you drive the devices using a raspberry pi in golang, and push your data onto an IoT cloud platform for visualizing.
-
-The following devices had been implemented in the current version, and a device interface was designed to let you add new devices easily.
-
-
-  ![](img/led.jpg)   ![](img/temp.jpg)   ![](img/relay.jpg)   ![](img/step-motor.jpg)   ![](img/gps.jpg)
-
-         LED        Temperature        Relay        Step-Motor         GPS
+rpi-devices let you drive the devices and sensors using a raspberry pi in pure golang.
+The following devices & sensors had been implemented in the current version, and I will keep implementing new devices and sensors.
 
 
-  ![](img/buzzer.jpg)   ![](img/voice.jpg)   ![](img/hc-sr04.jpg)   ![](img/l298n.jpg)   ![](img/sg90.jpg)
+|Sensors|Image|Description|Example|App|
+|-------|-----|-----|-------|---|
+|Button|![](img/button.jpg)|Button module|[example](/example/button/button.go)|[vedio-monitor](/app/vmonitor)|
+|Buzzer|![](img/buzzer.jpg)|Buzzer module|N/A|[car](/app/car), [door-dog](/app/doordog)|
+|Collision Switch|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collisionswitch/collisionswitch.go)|[car](/app/car)|
+|DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/dht11.go)|[home-assit](/app/homeassit)|
+|DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/temperature.go)|[auto-fan](/app/autofan)|
+|Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/encoder.go)|[car](/app/car)|
+|GPS|![](img/gps.jpg))|location sensor|[example](/example/gps/gps.go)|[gps-tracker](/app/gpstracker)|
+|HC-SR04|![](img/hc-sr04.jpg)|ultrasonic distance meter|[example](/example/hcsr04/hcsr04.go)|[auto-light](/app/autolight), [doordog](/app/doordog)|
+|Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/infrared/infrared.go)|N/A|
+|L298N|![](img/l298n.jpg)|motor driver|N/A|[car](/app/car)|
+|Led|![](img/led.jpg)|Led light|[example](/example/led/led.go)|[car](/app/car), [vedio-monitor](/app/vmonitor)|
+|Led Display|![](img/digital-led-display.jpg)|led digital module|[example](/example/leddisplay/leddisplay.go)|[auto-air](/app/autoair)|
+|Oled|![](img/oled.jpg)|Oled display module|[example](/example/oled/oled.go)|[home-assit](/app/homeassit)|
+|PMS7003|![](img/pms7003.jpg)|Air quality sensor|[example](/example/air/air.go)|[auto-air](/app/autoair)|
+|Relay|![](img/relay.jpg)|Relay module|[example](/example/relay/relay.go)|[auto-fan](/app/autofan)|
+|RX480E-4|![](img/rx480e4.jpg)|Wireless remote control|[example](/example/rx480e4/rx480e4.go)|[remote-light](/app/rlight)|
+|SG90|![](img/sg90.jpg)|Servo motor|[example](/example/sg90/sg90.go)|[auto-air](/app/autoair), [car](/app/car), [vedio-monitor](/app/vmonitor)|
+|Step Motor|![](img/step-motor.jpg)|Step motor|[example](/example/stepmotor/stepmotor.go)|N/A|
+|SW-420|![](img/sw-420.jpg)|Shaking sensor|[example](/example/sw420/sw420.go)|[auto-air-out](/app/autoairout)|
+|US-100|![](img/us-100.jpg)|ultrasonic distance meter|[example](/example/us100/us100.go)|[car](/app/car)|
+|Voice|![](img/voice.jpg)|Voice sensor|N/A|N/A|
+|ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch20/ch2o.go)|[ch2o-monitor](/app/ch2omonitor)|
 
-	  Buzzer          Voice           HC-SR04        Motor        Servo-Motor
-	                  Sensor        Ultr Sensor     Dirver
 
-  ![](img/dht11.jpg)   ![](img/infared.jpg)   ![](img/oled.jpg)   ![](img/pms7003.jpg)   ![](img/button.jpg)
-
-	Temp&Humidity    Infared           OLED         Air Quality      Button
-   	   Sensor        Sensor           Display         (PM2.5)
-
-  ![](img/ze08-ch2o.jpg)   ![](img/rx480e4.jpg)   ![](img/sw-420.jpg)   ![](img/us-100.jpg)   ![](img/digital-led-display.jpg)
-     
-	 ZE08-CH2O       RX480E-4         SW-420          US-100       Digital Led
-	CH2O Sensor   Wireless Rec   Vibration Sensor  Ultr Sensor      Display
-
-  ![](img/collision-switch.jpg)   ![](img/encoder.jpg)
-
-	 Collision        Speed
-	   Switch        Encoder
-
-
-## Visualize Data
-The data from devices can be pushed to an IoT cloud platform for visualizing. rpi-devices designed an interface of IoT cloud, and implemented the interface for [WSN](http://www.wsncloud.com/) cloud and [OneNET](https://open.iot.10086.cn/) cloud. Both of them are free for developers. You can implement the interface for new IoT cloud and add it to the framework easily.
-
-* [WSN](http://www.wsncloud.com/)
-    
-    visualize the temperature
-	
-	<img src="img/temp-vis.png" width=70% height=70% />
-* [OneNET](https://open.iot.10086.cn/)
-
-    visualize the gps locations
-
-	<img src="img/gps.gif" width=30% height=30% />
-
-## Usage
+## Compile & Deploy
 
 It is very easy to cross-compile and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
 ```shell
-$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o devices.pi main.go
+$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o app.pi main.go
 ````
 
 If you aren't sure the cpu info of your raspberry pi, check it out by,
@@ -80,7 +65,7 @@ $ lscpu
 
 And then, deploy the binary to your raspberry pi by,
 ```shell
-$ scp devices.pi pi@192.168.31.57:/home/pi
+$ scp app.pi pi@192.168.31.57:/home/pi
 ```
 `192.168.31.57` is the ip address of my raspberry pi, you need to replace it with yours.
 
@@ -91,222 +76,6 @@ $ ./devices.pi
 
 # or, run it in background
 $ nohub ./devices.pi > devices.pi 2>&1 &
-```
-
-## Examples
-
-### LED
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
-)
-
-const (
-	p12 = 16 // led
-)
-
-func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
-	led := dev.NewLed(p12)
-
-	var op string
-	for {
-		fmt.Printf(">>op: ")
-		if n, err := fmt.Scanf("%s", &op); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
-			continue
-		}
-		switch op {
-		case "on":
-			led.On()
-		case "off":
-			led.Off()
-		case "blink":
-			led.Blink(5, 100)
-		case "fade":
-			led.Fade(3)
-		case "q":
-			log.Printf("quit\n")
-			return
-		default:
-			fmt.Printf("invalid operator, should be: on, off, blink or q\n")
-		}
-	}
-}
-```
-
-### Temperature
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/shanghuiyang/rpi-devices/dev"
-)
-
-func main() {
-	t := dev.NewTemperature()
-	c, err := t.GetTemperature()
-	if err != nil {
-		fmt.Printf("failed to get temperature, error: %v", err)
-		return
-	}
-	fmt.Printf("current temperature: %v", c)
-}
-```
-
-### Relay
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
-)
-
-const (
-	p7 = 7 // relay
-)
-
-func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
-	r := dev.NewRelay(p7)
-	var op string
-	for {
-		fmt.Printf(">>op: ")
-		if n, err := fmt.Scanf("%s", &op); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
-			continue
-		}
-		switch op {
-		case "on":
-			r.On()
-		case "off":
-			r.Off()
-		case "q":
-			log.Printf("done\n")
-			return
-		default:
-			fmt.Printf("invalid operator, should be: on, off or q\n")
-		}
-	}
-}
-```
-
-### Step-Motor
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
-)
-
-const (
-	p8  = 8  // in1 for step motor
-	p25 = 25 // in2 for step motor
-	p24 = 24 // in3 for step motor
-	p23 = 23 // in4 for step motor
-)
-
-func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
-	m := dev.NewStepMotor(p8, p25, p24, p23)
-	log.Printf("step motor is ready for service\n")
-
-	var angle float32
-	for {
-		fmt.Printf(">>op: ")
-		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
-			log.Printf("invalid angle, error: %v", err)
-			continue
-		}
-		if angle == 0 {
-			break
-		}
-		m.Roll(angle)
-	}
-	log.Printf("step motor stop service\n")
-}
-```
-
-### GPS
-```go
-package main
-
-import (
-	"log"
-
-	"github.com/shanghuiyang/rpi-devices/dev"
-)
-
-func main() {
-	g := dev.NewGPS()
-	pt, err := g.Loc()
-	if err != nil {
-		log.Printf("failed, error: %v", err)
-		return
-	}
-	log.Printf("%v", pt)
-	g.Close()
-}
-```
-
-### Distance
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
-)
-
-const (
-	pinTrig = 21
-	pinEcho = 26
-)
-
-func main() {
-
-	if err := rpio.Open(); err != nil {
-		return
-	}
-	h := dev.NewHCSR04(pinTrig, pinEcho)
-	d := h.Dist()
-	fmt.Printf("d: %v\n", d)
-
-	rpio.Close()
-}
 ```
 
 ## App
