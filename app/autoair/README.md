@@ -9,5 +9,6 @@ hardware:
 - sevo SG90
 - led digital module which is used to display the pm2.5 value
 
-other
-- iot cloud using for displaying historic pm2.5 values
+iot cloud is used for displaying historic pm2.5 values
+
+<img src="../../img/pm25-vis.jpg" width=50% height=50% />
