@@ -524,12 +524,12 @@ func (c *Car) detectObstacles(chOp chan CarOp) {
 			if d < 10 {
 				chOp <- backward
 				quit = true
-				continue
+				return
 			}
 			if d < 50 {
 				chOp <- stop
 				quit = true
-				continue
+				return
 			}
 		}
 	}
@@ -546,7 +546,7 @@ func (c *Car) detectCollision(chOp chan CarOp, quit *bool) {
 				go c.horn.Beep(1, 100)
 				log.Printf("cswitch: crashed")
 				*quit = true
-				continue
+				return
 			}
 		}
 		c.delay(10)
