@@ -3,8 +3,6 @@
 # Self-Driving Car
 Self-Dirving Car
 
-<img src="../../img/self-driving-car.gif" width=80% height=80% />
-
 **Parts & Sensors**
 
 <img src="../../img/car-parts.jpg" width=80% height=80% />
