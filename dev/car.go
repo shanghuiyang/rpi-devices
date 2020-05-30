@@ -4,6 +4,7 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/shanghuiyang/go-speech/asr"
@@ -354,6 +355,10 @@ func (c *Car) servoAhead() {
 
 */
 func (c *Car) selfDrivingOn() {
+	if c.selfdriving {
+		return
+	}
+
 	log.Printf("car: self-drving on")
 	if c.ult == nil {
 		log.Printf("can't self-driving without the distance sensor")
@@ -403,7 +408,7 @@ func (c *Car) selfDrivingOn() {
 			continue
 		case scan:
 			fwd = false
-			mind, maxd, mindAngle, maxdAngle = c.scanDist()
+			mind, maxd, mindAngle, maxdAngle = c.scan()
 			log.Printf("mind=%.0f, maxd=%.0f, mindAngle=%v, maxdAngle=%v", mind, maxd, mindAngle, maxdAngle)
 			if mind < 10 && mindAngle != 90 && mindAngle != -90 && retry < 4 {
 				chOp <- backward
@@ -422,7 +427,7 @@ func (c *Car) selfDrivingOn() {
 			if !fwd {
 				c.forward()
 				fwd = true
-				go c.detectObstacles(chOp)
+				go c.detecting(chOp)
 			}
 			c.delay(50)
 			continue
@@ -434,6 +439,9 @@ func (c *Car) selfDrivingOn() {
 }
 
 func (c *Car) speechDrivingOn() {
+	if c.speechdriving {
+		return
+	}
 	log.Printf("car: speech-drving on")
 	c.speechdriving = true
 	c.selfdriving = false
@@ -459,7 +467,7 @@ func (c *Car) speechDrivingOn() {
 			if !fwd {
 				c.forward()
 				fwd = true
-				go c.detectObstacles(chOp)
+				go c.detecting(chOp)
 			}
 			c.delay(50)
 			continue
@@ -509,34 +517,53 @@ func (c *Car) speechDrivingOff() {
 	log.Printf("car: speech-drving off")
 }
 
-func (c *Car) detectObstacles(chOp chan CarOp) {
-	// defer c.servo.Roll(0)
-	quit := false
-	go c.detectCollision(chOp, &quit)
+func (c *Car) detecting(chOp chan CarOp) {
+	var (
+		quit bool
+		wg   sync.WaitGroup
+	)
+	wg.Add(1)
+	go c.detectCollision(chOp, &quit, &wg)
+
+	wg.Add(1)
+	go c.detectObstacles(chOp, &quit, &wg)
+
+	wg.Wait()
+}
+
+func (c *Car) detectObstacles(chOp chan CarOp, quit *bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	for c.selfdriving || c.speechdriving {
-		for _, angle := range aheadAngles {
-			c.servo.Roll(angle)
-			c.delay(50)
-			d := c.ult.Dist()
-			if quit {
-				return
-			}
-			if d < 10 {
-				chOp <- backward
-				quit = true
-				return
-			}
-			if d < 50 {
-				chOp <- stop
-				quit = true
-				return
-			}
+		// for _, angle := range aheadAngles {
+		// c.servo.Roll(angle)
+		// c.delay(50)
+		d := c.ult.Dist()
+		if *quit {
+			return
 		}
+		if d < 10 {
+			chOp <- backward
+			*quit = true
+			return
+		}
+		if d < 30 {
+			chOp <- stop
+			*quit = true
+			return
+		}
+		c.delay(50)
+		// }
 	}
 }
 
-func (c *Car) detectCollision(chOp chan CarOp, quit *bool) {
+func (c *Car) detectCollision(chOp chan CarOp, quit *bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	for c.selfdriving || c.speechdriving {
+		if *quit {
+			return
+		}
 		for _, cswitch := range c.cswitchs {
 			if cswitch.Collided() {
 				if *quit {
@@ -604,15 +631,15 @@ func (c *Car) detectSpeech(chOp chan CarOp) {
 // maxd: the max distance
 // mindAngle: the angle correspond to the mind
 // maxdAngle: the angle correspond to the maxd
-func (c *Car) scanDist() (mind, maxd float64, mindAngle, maxdAngle int) {
+func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 	mind = 9999
 	maxd = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
-		c.delay(50)
+		c.delay(100)
 		d := c.ult.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
-			c.delay(50)
+			c.delay(100)
 			d = c.ult.Dist()
 		}
 		if d < 0 {
