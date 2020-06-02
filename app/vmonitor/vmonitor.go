@@ -380,33 +380,42 @@ func (v *videoServer) outOfService() bool {
 }
 
 func (v *videoServer) detectingMode() {
+	count := 0
 	for {
 		if v.button.Pressed() {
-			log.Printf("the button was pressed")
-			go v.led.Blink(2, 100)
-			lastMode := v.mode
-			if v.mode == normalMode {
-				v.mode = babyMode
-			} else if v.mode == babyMode {
-				v.mode = normalMode
-			} else {
-				// make a dalay detecting
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			if err := v.loadHomePage(); err != nil {
-				log.Printf("failed to load home page, error: %v", err)
-				continue
-			}
-			if err := v.restartMotion(); err != nil {
-				log.Printf("failed to restart motion, error: %v", err)
-				continue
-			}
-			go v.led.Blink(5, 100)
-			log.Printf("mode changed: %v --> %v", lastMode, v.mode)
+			count++
+		} else {
+			count = 0
+		}
+		log.Printf("count: %v", count)
+		if count < 5 {
+			time.Sleep(500 * time.Millisecond)
 			continue
 		}
-		time.Sleep(500 * time.Millisecond)
+
+		count = 0
+		log.Printf("the button was pressed")
+		go v.led.Blink(2, 100)
+		lastMode := v.mode
+		if v.mode == normalMode {
+			v.mode = babyMode
+		} else if v.mode == babyMode {
+			v.mode = normalMode
+		} else {
+			// make a dalay detecting
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		if err := v.loadHomePage(); err != nil {
+			log.Printf("failed to load home page, error: %v", err)
+			continue
+		}
+		if err := v.restartMotion(); err != nil {
+			log.Printf("failed to restart motion, error: %v", err)
+			continue
+		}
+		go v.led.Blink(5, 100)
+		log.Printf("mode changed: %v --> %v", lastMode, v.mode)
 	}
 }
 

@@ -58,7 +58,7 @@ var (
 		75:  13,
 		90:  17,
 	}
-	aheadAngles = []int{0, -10, -20, -10, 0, 10, 20, 10}
+	aheadAngles = []int{0, -10, 0, 10}
 )
 
 type (
@@ -434,7 +434,7 @@ func (c *Car) selfDrivingOn() {
 		}
 	}
 	c.stop()
-	c.delay(500)
+	c.delay(1000)
 	close(chOp)
 }
 
@@ -535,25 +535,24 @@ func (c *Car) detectObstacles(chOp chan CarOp, quit *bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for c.selfdriving || c.speechdriving {
-		// for _, angle := range aheadAngles {
-		// c.servo.Roll(angle)
-		// c.delay(50)
-		d := c.ult.Dist()
-		if *quit {
-			return
+		for _, angle := range aheadAngles {
+			c.servo.Roll(angle)
+			c.delay(100)
+			d := c.ult.Dist()
+			if *quit {
+				return
+			}
+			if d < 10 {
+				chOp <- backward
+				*quit = true
+				return
+			}
+			if d < 40 {
+				chOp <- stop
+				*quit = true
+				return
+			}
 		}
-		if d < 10 {
-			chOp <- backward
-			*quit = true
-			return
-		}
-		if d < 30 {
-			chOp <- stop
-			*quit = true
-			return
-		}
-		c.delay(50)
-		// }
 	}
 }
 
