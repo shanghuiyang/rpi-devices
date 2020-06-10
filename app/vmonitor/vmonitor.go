@@ -387,7 +387,6 @@ func (v *videoServer) detectingMode() {
 		} else {
 			count = 0
 		}
-		log.Printf("count: %v", count)
 		if count < 5 {
 			time.Sleep(500 * time.Millisecond)
 			continue
