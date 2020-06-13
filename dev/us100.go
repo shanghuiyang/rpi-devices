@@ -88,6 +88,7 @@ func (u *US100) Dist() float64 {
 			return -1
 		}
 		p += n
+		log.Printf("[us100]read data, p=%v", p)
 	}
 	// check data len
 	if p != 2 {

@@ -60,79 +60,170 @@
     <script>
         var url = "http://((000.000.000.000)):8080"
         $(function () {
+            var flag = false;
             // forward
-            $('#forward').bind("touchstart", function (e) {
-                document.getElementById("forward").style.color = "yellow";
-                $.post(url, { "op": "forward" }, function (data, status) { });
+            $('#forward').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true;
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("forward").style.color = "yellow";
+                    $.post(url, { "op": "forward" }, function (data, status) { });
+                }
+                return false;
             });
-            $('#forward').bind("touchend", function (e) {
-                document.getElementById("forward").style.color = "white";
-                $.post(url, { "op": "stop" }, function (data, status) { });
+            $('#forward').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true;
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("forward").style.color = "white";
+                    $.post(url, { "op": "stop" }, function (data, status) { });
+                }
+                return false;
             });
             // backward
-            $('#backward').bind("touchstart", function (e) {
-                document.getElementById("backward").style.color = "yellow";
-                $.post(url, { "op": "backward" }, function (data, status) { });
+            $('#backward').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true;
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("backward").style.color = "yellow";
+                    $.post(url, { "op": "backward" }, function (data, status) { });
+                }
+                return false;
             });
-            $('#backward').bind("touchend", function (e) {
-                document.getElementById("backward").style.color = "white";
-                $.post(url, { "op": "stop" }, function (data, status) { });
+            $('#backward').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true;
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("backward").style.color = "white";
+                    $.post(url, { "op": "stop" }, function (data, status) { });
+                }
+                return false;
             });
             // stop
-            $('#stop').bind("touchstart", function (e) {
-                document.getElementById("stop").style.color = "yellow";
-                $.post(url, { "op": "stop" }, function (data, status) { });
+            $('#stop').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("stop").style.color = "yellow";
+                    $.post(url, { "op": "stop" }, function (data, status) { });
+                }
+                return false
             });
-            $('#stop').bind("touchend", function (e) {
-                document.getElementById("stop").style.color = "white";
+            $('#stop').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("stop").style.color = "white";
+                }
+                return false
             });
             // left
-            $('#left').bind("touchstart", function (e) {
-                document.getElementById("left").style.color = "yellow";
-                $.post(url, { "op": "left" }, function (data, status) { });
+            $('#left').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("left").style.color = "yellow";
+                    $.post(url, { "op": "left" }, function (data, status) { });
+                }
+                return false
             });
-            $('#left').bind("touchend", function (e) {
-                document.getElementById("left").style.color = "white";
+            $('#left').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("left").style.color = "white";
+                }
+                return false
             });
             // right
-            $('#right').bind("touchstart", function (e) {
-                document.getElementById("right").style.color = "yellow";
-                $.post(url, { "op": "right" }, function (data, status) { });
+            $('#right').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("right").style.color = "yellow";
+                    $.post(url, { "op": "right" }, function (data, status) { });
+                }
+                return false
             });
-            $('#right').bind("touchend", function (e) {
-                document.getElementById("right").style.color = "white";
+            $('#right').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("right").style.color = "white";
+                }
+                return false
             });
             // horn
-            $('#horn').bind("touchstart", function (e) {
-                $.post(url, { "op": "beep" }, function (data, status) { });
-                document.getElementById("horn").style.color = "yellow";
+            $('#horn').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    $.post(url, { "op": "beep" }, function (data, status) { });
+                    document.getElementById("horn").style.color = "yellow";
+                }
+                return false
             });
-            $('#horn').bind("touchend", function (e) {
-                document.getElementById("horn").style.color = "lightgray";
+            $('#horn').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("horn").style.color = "lightgray";
+                }
+                return false
             });
             // servoleft
-            $('#servoleft').bind("touchstart", function (e) {
-                $.post(url, { "op": "servoleft" }, function (data, status) { });
-                document.getElementById("servoleft").style.color = "yellow";
+            $('#servoleft').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    $.post(url, { "op": "servoleft" }, function (data, status) { });
+                    document.getElementById("servoleft").style.color = "yellow";
+                }
+                return false
             });
-            $('#servoleft').bind("touchend", function (e) {
-                document.getElementById("servoleft").style.color = "lightgray";
+            $('#servoleft').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("servoleft").style.color = "lightgray";
+                }
+                return false
             });
             // servoahead
-            $('#servoahead').bind("touchstart", function (e) {
-                $.post(url, { "op": "servoahead" }, function (data, status) { });
-                document.getElementById("servoahead").style.color = "yellow";
+            $('#servoahead').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    $.post(url, { "op": "servoahead" }, function (data, status) { });
+                    document.getElementById("servoahead").style.color = "yellow";
+                }
+                return false
             });
-            $('#servoahead').bind("touchend", function (e) {
-                document.getElementById("servoahead").style.color = "lightgray";
+            $('#servoahead').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("servoahead").style.color = "lightgray";
+                }
+                return false
             });
             // servoright
-            $('#servoright').bind("touchstart", function (e) {
-                $.post(url, { "op": "servoright" }, function (data, status) { });
-                document.getElementById("servoright").style.color = "yellow";
+            $('#servoright').bind("touchstart mousedown", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    $.post(url, { "op": "servoright" }, function (data, status) { });
+                    document.getElementById("servoright").style.color = "yellow";
+                }
+                return false
             });
-            $('#servoright').bind("touchend", function (e) {
-                document.getElementById("servoright").style.color = "lightgray";
+            $('#servoright').bind("touchend mouseup", function (e) {
+                if (!flag) {
+                    flag = true
+                    setTimeout(function(){ flag = false; }, 20);
+                    document.getElementById("servoright").style.color = "lightgray";
+                }
+                return false
             });
             // light
             $('#light').change(function () {

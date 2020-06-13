@@ -379,13 +379,16 @@ func (c *Car) selfDrivingOn() {
 		mind      float64
 		maxd      float64
 		op        = forward
-		chOp      = make(chan CarOp, 16)
+		chOp      = make(chan CarOp, 4)
 	)
 
 	for c.selfdriving {
 		select {
 		case p := <-chOp:
 			op = p
+			for len(chOp) > 0 {
+				_ = <-chOp
+			}
 		default:
 			// 	do nothing
 		}
@@ -449,7 +452,7 @@ func (c *Car) speechDrivingOn() {
 	var (
 		op   = stop
 		fwd  = false
-		chOp = make(chan CarOp, 1)
+		chOp = make(chan CarOp, 4)
 	)
 
 	go c.detectSpeech(chOp)
@@ -457,6 +460,9 @@ func (c *Car) speechDrivingOn() {
 		select {
 		case p := <-chOp:
 			op = p
+			for len(chOp) > 0 {
+				_ = <-chOp
+			}
 		default:
 			// do nothing
 		}
@@ -518,60 +524,68 @@ func (c *Car) speechDrivingOff() {
 }
 
 func (c *Car) detecting(chOp chan CarOp) {
-	var (
-		quit bool
-		wg   sync.WaitGroup
-	)
-	wg.Add(1)
-	go c.detectCollision(chOp, &quit, &wg)
+
+	chQuit := make(chan bool, 2)
+	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go c.detectObstacles(chOp, &quit, &wg)
+	go c.detectCollision(chOp, chQuit, &wg)
+
+	wg.Add(1)
+	go c.detectObstacles(chOp, chQuit, &wg)
 
 	wg.Wait()
+	close(chQuit)
 }
 
-func (c *Car) detectObstacles(chOp chan CarOp, quit *bool, wg *sync.WaitGroup) {
+func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for c.selfdriving || c.speechdriving {
 		for _, angle := range aheadAngles {
+			select {
+			case quit := <-chQuit:
+				if quit {
+					return
+				}
+			default:
+				// do nothing
+			}
 			c.servo.Roll(angle)
 			c.delay(100)
 			d := c.ult.Dist()
-			if *quit {
-				return
-			}
 			if d < 10 {
 				chOp <- backward
-				*quit = true
+				chQuit <- true
 				return
 			}
 			if d < 40 {
 				chOp <- stop
-				*quit = true
+				chQuit <- true
 				return
 			}
 		}
 	}
 }
 
-func (c *Car) detectCollision(chOp chan CarOp, quit *bool, wg *sync.WaitGroup) {
+func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for c.selfdriving || c.speechdriving {
-		if *quit {
-			return
+		select {
+		case quit := <-chQuit:
+			if quit {
+				return
+			}
+		default:
+			// do nothing
 		}
 		for _, cswitch := range c.cswitchs {
 			if cswitch.Collided() {
-				if *quit {
-					return
-				}
 				chOp <- backward
 				go c.horn.Beep(1, 100)
 				log.Printf("cswitch: crashed")
-				*quit = true
+				chQuit <- true
 				return
 			}
 		}
