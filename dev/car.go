@@ -386,9 +386,6 @@ func (c *Car) selfDrivingOn() {
 		select {
 		case p := <-chOp:
 			op = p
-			for len(chOp) > 0 {
-				_ = <-chOp
-			}
 		default:
 			// 	do nothing
 		}
@@ -460,9 +457,6 @@ func (c *Car) speechDrivingOn() {
 		select {
 		case p := <-chOp:
 			op = p
-			for len(chOp) > 0 {
-				_ = <-chOp
-			}
 		default:
 			// do nothing
 		}

@@ -49,7 +49,7 @@ var (
 // US100 ...
 type US100 struct {
 	port  *serial.Port
-	buf   [32]byte
+	buf   [4]byte
 	retry int
 }
 
@@ -77,22 +77,17 @@ func (u *US100) Dist() float64 {
 	}
 
 	// read data
-	p := 0
-	for p < 2 {
-		n, err := u.port.Read(u.buf[p:])
-		if err != nil {
-			u.Close()
-			if err := u.open(); err != nil {
-				log.Printf("failed to open serial, error: %v", err)
-			}
-			return -1
+	n, err = u.port.Read(u.buf[:])
+	if err != nil {
+		u.Close()
+		if err := u.open(); err != nil {
+			log.Printf("failed to open serial, error: %v", err)
 		}
-		p += n
-		log.Printf("[us100]read data, p=%v", p)
+		return -1
 	}
 	// check data len
-	if p != 2 {
-		log.Printf("incorrect data len, len: %v, expected: 2", p)
+	if n != 2 {
+		log.Printf("incorrect data len, len: %v, expected: 2", n)
 		return -1
 	}
 	// calc distance in cm
