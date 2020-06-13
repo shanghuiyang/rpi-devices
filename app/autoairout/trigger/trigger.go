@@ -34,14 +34,14 @@ var (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[autoairout]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
 	sw420 := dev.NewSW420(sw420Pin)
 	if sw420 == nil {
-		log.Printf("failed to new a sw420 sensor")
+		log.Printf("[autoairout]failed to new a sw420 sensor")
 		return
 	}
 
@@ -53,14 +53,14 @@ func main() {
 		shaked := sw420.KeepShaking()
 		if shaked && curState == off {
 			curState = on
-			log.Printf("state: on")
+			log.Printf("[autoairout]state: on")
 			go sendcmd(curState)
 			time.Sleep(1 * time.Second)
 			continue
 		}
 		if !shaked && curState == on {
 			curState = off
-			log.Printf("state: off")
+			log.Printf("[autoairout]state: off")
 			go sendcmd(curState)
 			time.Sleep(1 * time.Second)
 			continue
@@ -75,7 +75,7 @@ func sendcmd(s state) {
 	}
 	resp, err := http.PostForm(api, formData)
 	if err != nil {
-		log.Printf("failed to send command to server, error: %v", err)
+		log.Printf("[autoairout]failed to send command to server, error: %v", err)
 		return
 	}
 	defer resp.Body.Close()

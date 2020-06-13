@@ -31,7 +31,7 @@ type rlight struct {
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[rlight]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
@@ -54,22 +54,22 @@ func main() {
 
 	for {
 		if r.PressA() == true {
-			log.Printf("pressed A")
+			log.Printf("[rlight]pressed A")
 			go light.turn()
 			continue
 		}
 		if r.PressB() == true {
-			log.Printf("pressed B")
+			log.Printf("[rlight]pressed B")
 			go light.turn()
 			continue
 		}
 		if r.PressC() == true {
-			log.Printf("pressed C")
+			log.Printf("[rlight]pressed C")
 			go light.turn()
 			continue
 		}
 		if r.PressD() == true {
-			log.Printf("pressed D")
+			log.Printf("[rlight]pressed D")
 			go light.turn()
 			continue
 		}
@@ -81,10 +81,10 @@ func (r *rlight) turn() {
 	if r.state {
 		r.led.Off()
 		r.state = false
-		log.Printf("light off")
+		log.Printf("[rlight]light off")
 	} else {
 		r.led.On()
 		r.state = true
-		log.Printf("light on")
+		log.Printf("[rlight]light on")
 	}
 }

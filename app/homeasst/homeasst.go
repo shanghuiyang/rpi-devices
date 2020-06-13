@@ -17,7 +17,7 @@ const (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[homeasst]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
@@ -26,8 +26,8 @@ func main() {
 	led := dev.NewLed(pinLed)
 	oled, err := dev.NewOLED(128, 32)
 	if err != nil {
-		log.Printf("failed to create an oled, error: %v", err)
-		log.Printf("homeasst will work without oled")
+		log.Printf("[homeasst]failed to create an oled, error: %v", err)
+		log.Printf("[homeasst]homeasst will work without oled")
 	}
 
 	wsnCfg := &base.WsnConfig{
@@ -82,11 +82,11 @@ func (h *homeAsst) getData() {
 	for {
 		temp, err := h.temp.GetTemperature()
 		if err != nil {
-			log.Printf("failed to get temperature, error: %v", err)
+			log.Printf("[homeasst]failed to get temperature, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("temp: %v", temp)
+		log.Printf("[homeasst]temp: %v", temp)
 
 		v := &value{
 			temp: temp,
@@ -132,7 +132,7 @@ func (h *homeAsst) display() {
 			tText = fmt.Sprintf("%.0f'C", temp)
 		}
 		if err := h.oled.Display(tText, 35, 0, 35); err != nil {
-			log.Printf("display: failed to display temperature, error: %v", err)
+			log.Printf("[homeasst]display: failed to display temperature, error: %v", err)
 		}
 		time.Sleep(3 * time.Second)
 
@@ -141,7 +141,7 @@ func (h *homeAsst) display() {
 			hText = fmt.Sprintf("%.0f%%", humi)
 		}
 		if err := h.oled.Display(hText, 35, 0, 35); err != nil {
-			log.Printf("display: failed to display humidity, error: %v", err)
+			log.Printf("[homeasst]display: failed to display humidity, error: %v", err)
 		}
 		time.Sleep(3 * time.Second)
 	}
@@ -155,7 +155,7 @@ func (h *homeAsst) push() {
 				Value:  v.temp,
 			}
 			if err := h.cloud.Push(tv); err != nil {
-				log.Printf("push: failed to push temperature to cloud, error: %v", err)
+				log.Printf("[homeasst]push: failed to push temperature to cloud, error: %v", err)
 			}
 
 			hv := &iot.Value{
@@ -163,7 +163,7 @@ func (h *homeAsst) push() {
 				Value:  v.humi,
 			}
 			if err := h.cloud.Push(hv); err != nil {
-				log.Printf("push: failed to push humidity to cloud, error: %v", err)
+				log.Printf("[homeasst]push: failed to push humidity to cloud, error: %v", err)
 			}
 		}(v)
 	}

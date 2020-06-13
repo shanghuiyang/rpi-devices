@@ -83,7 +83,7 @@ func main() {
 	http.HandleFunc("/", airServer)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err.Error())
+		log.Fatal("[autoair]ListenAndServe: ", err.Error())
 	}
 }
 
@@ -101,7 +101,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		pageContext, err = ioutil.ReadFile("air.html")
 		if err != nil {
-			log.Printf("failed to read air.html")
+			log.Printf("[autoair]failed to read air.html")
 			fmt.Fprintf(w, "internal error: failed to read home page")
 			return
 		}
@@ -109,7 +109,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	ip := base.GetIP()
 	if ip == "" {
-		log.Printf("failed to get ip")
+		log.Printf("[autoair]failed to get ip")
 		fmt.Fprintf(w, "internal error: failed to get ip")
 		return
 	}
@@ -150,13 +150,13 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
 	switch op {
 	case "on":
-		log.Printf("web op: on")
+		log.Printf("[autoair]web op: on")
 		autoair.on()
 	case "off":
-		log.Printf("web op: off")
+		log.Printf("[autoair]web op: off")
 		autoair.off()
 	default:
-		log.Printf("web op: invalid operator")
+		log.Printf("[autoair]web op: invalid operator")
 	}
 }
 
@@ -193,8 +193,8 @@ func newAutoAir(air *dev.PMS7003, sg *dev.SG90, led *dev.Led, dsp *dev.LedDispla
 }
 
 func (a *autoAir) start() {
-	log.Printf("service starting")
-	log.Printf("mode: %v", a.mode)
+	log.Printf("[autoair]service starting")
+	log.Printf("[autoair]mode: %v", a.mode)
 	go a.sg.Roll(45)
 	go a.detect()
 	go a.clean()
@@ -208,7 +208,7 @@ func (a *autoAir) setMode(mode base.Mode) {
 }
 
 func (a *autoAir) detect() {
-	log.Printf("detecting pm2.5")
+	log.Printf("[autoair]detecting pm2.5")
 	for {
 		var err error
 		if a.mode == base.PrdMode {
@@ -217,12 +217,12 @@ func (a *autoAir) detect() {
 			a.pm25, a.pm10, err = a.air.Mock()
 		}
 		if err != nil {
-			log.Printf("failed to get pm2.5 and pm10, error: %v", err)
+			log.Printf("[autoair]failed to get pm2.5 and pm10, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("pm2.5: %v ug/m3", a.pm25)
-		log.Printf("pm10: %v ug/m3", a.pm10)
+		log.Printf("[autoair]pm2.5: %v ug/m3", a.pm25)
+		log.Printf("[autoair]pm10: %v ug/m3", a.pm10)
 
 		a.chClean <- a.pm25
 		a.chAlert <- a.pm25
@@ -249,7 +249,7 @@ func (a *autoAir) clean() {
 				Value:  bool2int[a.state],
 			}
 			if err := a.cloud.Push(v); err != nil {
-				log.Printf("push: failed to push the state of air-cleaner to cloud, error: %v", err)
+				log.Printf("[autoair]push: failed to push the state of air-cleaner to cloud, error: %v", err)
 			}
 		}
 	}()
@@ -258,7 +258,7 @@ func (a *autoAir) clean() {
 		hour := time.Now().Hour()
 		if pm25 < 400 && (hour >= 20 || hour < 8) {
 			// disable at 20:00-08:00
-			log.Printf("auto air-cleaner was disabled at 20:00-08:00")
+			log.Printf("[autoair]auto air-cleaner was disabled at 20:00-08:00")
 			if a.state {
 				a.off()
 			}
@@ -267,12 +267,12 @@ func (a *autoAir) clean() {
 
 		if !a.state && pm25 >= trigOnPM25 {
 			a.on()
-			log.Printf("air-cleaner was turned on")
+			log.Printf("[autoair]air-cleaner was turned on")
 			continue
 		}
 		if a.state && pm25 < trigOffPm25 {
 			a.off()
-			log.Printf("air-cleaner was turned off")
+			log.Printf("[autoair]air-cleaner was turned off")
 			continue
 		}
 	}
@@ -289,7 +289,7 @@ func (a *autoAir) push() {
 				Value:  pm25,
 			}
 			if err := a.cloud.Push(v); err != nil {
-				log.Printf("push: failed to push pm2.5 to cloud, error: %v", err)
+				log.Printf("[autoair]push: failed to push pm2.5 to cloud, error: %v", err)
 			}
 		}(pm25)
 	}

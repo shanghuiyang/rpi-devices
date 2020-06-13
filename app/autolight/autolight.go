@@ -49,7 +49,7 @@ var bool2int = map[bool]int{
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[autolight]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
@@ -57,12 +57,12 @@ func main() {
 	led := dev.NewLed(pinLed)
 	light := dev.NewLed(pinLight)
 	if light == nil {
-		log.Printf("failed to new a led light")
+		log.Printf("[autolight]failed to new a led light")
 		return
 	}
 	dist := dev.NewHCSR04(pinTrig, pinEcho)
 	if dist == nil {
-		log.Printf("failed to new a HCSR04")
+		log.Printf("[autolight]failed to new a HCSR04")
 		return
 	}
 
@@ -82,7 +82,7 @@ func main() {
 	http.HandleFunc("/", lightServer)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err.Error())
+		log.Fatal("[autolight]ListenAndServe: ", err.Error())
 	}
 }
 
@@ -100,7 +100,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		pageContext, err = ioutil.ReadFile("light.html")
 		if err != nil {
-			log.Printf("failed to read light.html")
+			log.Printf("[autolight]failed to read light.html")
 			fmt.Fprintf(w, "internal error: failed to read home page")
 			return
 		}
@@ -108,7 +108,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	ip := base.GetIP()
 	if ip == "" {
-		log.Printf("failed to get ip")
+		log.Printf("[autolight]failed to get ip")
 		fmt.Fprintf(w, "internal error: failed to get ip")
 		return
 	}
@@ -143,13 +143,13 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
 	switch op {
 	case "on":
-		log.Printf("web op: on")
+		log.Printf("[autolight]web op: on")
 		alight.on()
 	case "off":
-		log.Printf("web op: off")
+		log.Printf("[autolight]web op: off")
 		alight.off()
 	default:
-		log.Printf("web op: invalid operator")
+		log.Printf("[autolight]web op: invalid operator")
 	}
 }
 
@@ -178,7 +178,7 @@ func newAutoLight(dist *dev.HCSR04, light *dev.Led, led *dev.Led, cloud iot.Clou
 }
 
 func (a *autoLight) start() {
-	log.Printf("auto light start to service")
+	log.Printf("[autolight]start to service")
 	go a.detect()
 	go a.ctrLight()
 	go a.ctrLed()
@@ -197,7 +197,7 @@ func (a *autoLight) detect() {
 
 		t := 300 * time.Millisecond
 		if detected {
-			log.Printf("detected objects, distance = %.2fcm", d)
+			log.Printf("[autolight]detected objects, distance = %.2fcm", d)
 			// make a dalay detecting
 			t = 2 * time.Second
 		}
@@ -214,7 +214,7 @@ func (a *autoLight) ctrLight() {
 				Value:  bool2int[a.state],
 			}
 			if err := a.cloud.Push(v); err != nil {
-				log.Printf("push: failed to push the state of light to cloud, error: %v", err)
+				log.Printf("[autolight]push: failed to push the state of light to cloud, error: %v", err)
 			}
 		}
 	}()
@@ -229,7 +229,7 @@ func (a *autoLight) ctrLight() {
 		}
 		timeout := time.Now().Sub(a.trigTime).Seconds() > 45
 		if timeout && a.state {
-			log.Printf("timeout, light off")
+			log.Printf("[autolight]timeout, light off")
 			a.off()
 		}
 	}

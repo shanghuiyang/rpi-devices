@@ -66,20 +66,20 @@ const (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[autofan]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
 	temp := dev.NewDS18B20()
 	if temp == nil {
-		log.Printf("failed to new a temperature sensor")
+		log.Printf("[autofan]failed to new a temperature sensor")
 		return
 	}
 
 	r := dev.NewRelay(relayPin)
 	if r == nil {
-		log.Printf("failed to new a relay")
+		log.Printf("[autofan]failed to new a relay")
 		return
 	}
 
@@ -104,7 +104,7 @@ func (f *autoFan) start() {
 		time.Sleep(intervalTime)
 		c, err := f.temp.GetTemperature()
 		if err != nil {
-			log.Printf("failed to get temperature, error: %v", err)
+			log.Printf("[autofan]failed to get temperature, error: %v", err)
 			continue
 		}
 		if c >= triggerTemperature {

@@ -41,7 +41,7 @@ var bool2int = map[bool]int{
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[ch2omonitor]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
@@ -93,8 +93,8 @@ func newCH2OMonitor(sensor *dev.ZE08CH2O, led *dev.Led, buzzer *dev.Buzzer, dsp 
 }
 
 func (m *ch2oMonitor) start() {
-	log.Printf("service starting")
-	log.Printf("mode: %v", m.mode)
+	log.Printf("[ch2omonitor]service starting")
+	log.Printf("[ch2omonitor]mode: %v", m.mode)
 	go m.alert()
 	go m.push()
 	go m.display()
@@ -106,7 +106,7 @@ func (m *ch2oMonitor) setMode(mode base.Mode) {
 }
 
 func (m *ch2oMonitor) detect() {
-	log.Printf("detecting ch2o")
+	log.Printf("[ch2omonitor]detecting ch2o")
 	for {
 		var ch2o float64
 		var err error
@@ -116,11 +116,11 @@ func (m *ch2oMonitor) detect() {
 			ch2o, err = m.sensor.Mock()
 		}
 		if err != nil {
-			log.Printf("failed to get ch2o, error: %v", err)
+			log.Printf("[ch2omonitor]failed to get ch2o, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("ch2o: %.4f mg/m3", ch2o)
+		log.Printf("[ch2omonitor]ch2o: %.4f mg/m3", ch2o)
 
 		m.chAlert <- ch2o
 		m.chCloud <- ch2o
@@ -145,7 +145,7 @@ func (m *ch2oMonitor) push() {
 				Value:  math.Round(ch2o*10000) / 10000,
 			}
 			if err := m.cloud.Push(v); err != nil {
-				log.Printf("push: failed to push ch2o to cloud, error: %v", err)
+				log.Printf("[ch2omonitor]push: failed to push ch2o to cloud, error: %v", err)
 			}
 		}(ch2o)
 	}

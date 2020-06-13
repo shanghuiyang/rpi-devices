@@ -6,10 +6,6 @@ import (
 	"net/smtp"
 )
 
-const (
-	logTagEmail = "email"
-)
-
 var (
 	chEmail   = make(chan *EmailInfo, 4)
 	emailList []string
@@ -53,10 +49,10 @@ func NewEmail(cfg *EmailConfig) *Email {
 
 // Start ...
 func (e *Email) Start() {
-	log.Printf("[%v]start working", logTagEmail)
+	log.Printf("[email]start working")
 	for info := range chEmail {
 		if err := e.Send(info); err != nil {
-			log.Printf("[%v]faied to send email, error: %v", logTagEmail, err)
+			log.Printf("[email]faied to send email, error: %v", err)
 		}
 	}
 	return

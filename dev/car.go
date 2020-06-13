@@ -216,26 +216,26 @@ func (c *Car) start() {
 		case speechdrivingoff:
 			go c.speechDrivingOff()
 		default:
-			log.Printf("car: invalid op")
+			log.Printf("[car]invalid op")
 		}
 	}
 }
 
 // forward ...
 func (c *Car) forward() {
-	log.Printf("car: forward")
+	log.Printf("[car]forward")
 	c.engine.Forward()
 }
 
 // backward ...
 func (c *Car) backward() {
-	log.Printf("car: backward")
+	log.Printf("[car]backward")
 	c.engine.Backward()
 }
 
 // left ...
 func (c *Car) left() {
-	log.Printf("car: left")
+	log.Printf("[car]left")
 	c.engine.Left()
 	c.delay(200)
 	c.engine.Stop()
@@ -243,7 +243,7 @@ func (c *Car) left() {
 
 // right ...
 func (c *Car) right() {
-	log.Printf("car: right")
+	log.Printf("[car]right")
 	c.engine.Right()
 	c.delay(200)
 	c.engine.Stop()
@@ -251,7 +251,7 @@ func (c *Car) right() {
 
 // stop ...
 func (c *Car) stop() {
-	log.Printf("car: stop")
+	log.Printf("[car]stop")
 	c.engine.Stop()
 }
 
@@ -261,7 +261,7 @@ func (c *Car) speed(s uint32) {
 
 // beep ...
 func (c *Car) beep() {
-	log.Printf("car: beep")
+	log.Printf("[car]beep")
 	if c.horn == nil {
 		return
 	}
@@ -279,7 +279,7 @@ func (c *Car) blink() {
 }
 
 func (c *Car) lightOn() {
-	log.Printf("car: light on")
+	log.Printf("[car]light on")
 	if c.light == nil {
 		return
 	}
@@ -287,7 +287,7 @@ func (c *Car) lightOn() {
 }
 
 func (c *Car) lightOff() {
-	log.Printf("car: light off")
+	log.Printf("[car]light off")
 	if c.light == nil {
 		return
 	}
@@ -300,7 +300,7 @@ func (c *Car) servoLeft() {
 		angle = -90
 	}
 	c.servoAngle = angle
-	log.Printf("servo: %v", angle)
+	log.Printf("[car]servo roll %v", angle)
 	if c.servo == nil {
 		return
 	}
@@ -313,7 +313,7 @@ func (c *Car) servoRight() {
 		angle = 90
 	}
 	c.servoAngle = angle
-	log.Printf("servo: %v", angle)
+	log.Printf("[car]servo roll %v", angle)
 	if c.servo == nil {
 		return
 	}
@@ -322,7 +322,7 @@ func (c *Car) servoRight() {
 
 func (c *Car) servoAhead() {
 	c.servoAngle = 0
-	log.Printf("servo: %v", 0)
+	log.Printf("[car]servo roll %v", 0)
 	if c.servo == nil {
 		return
 	}
@@ -359,9 +359,9 @@ func (c *Car) selfDrivingOn() {
 		return
 	}
 
-	log.Printf("car: self-drving on")
+	log.Printf("[car]self-drving on")
 	if c.ult == nil {
-		log.Printf("can't self-driving without the distance sensor")
+		log.Printf("[car]can't self-driving without the distance sensor")
 		return
 	}
 
@@ -389,7 +389,7 @@ func (c *Car) selfDrivingOn() {
 		default:
 			// 	do nothing
 		}
-		log.Printf("op: %v", op)
+		log.Printf("[car]op: %v", op)
 
 		switch op {
 		case backward:
@@ -409,7 +409,7 @@ func (c *Car) selfDrivingOn() {
 		case scan:
 			fwd = false
 			mind, maxd, mindAngle, maxdAngle = c.scan()
-			log.Printf("mind=%.0f, maxd=%.0f, mindAngle=%v, maxdAngle=%v", mind, maxd, mindAngle, maxdAngle)
+			log.Printf("[car]mind=%.0f, maxd=%.0f, mindAngle=%v, maxdAngle=%v", mind, maxd, mindAngle, maxdAngle)
 			if mind < 10 && mindAngle != 90 && mindAngle != -90 && retry < 4 {
 				chOp <- backward
 				retry++
@@ -442,7 +442,7 @@ func (c *Car) speechDrivingOn() {
 	if c.speechdriving {
 		return
 	}
-	log.Printf("car: speech-drving on")
+	log.Printf("[car]speech-drving on")
 	c.speechdriving = true
 	c.selfdriving = false
 
@@ -460,7 +460,7 @@ func (c *Car) speechDrivingOn() {
 		default:
 			// do nothing
 		}
-		log.Printf("op: %v", op)
+		log.Printf("[car]op: %v", op)
 
 		switch op {
 		case forward:
@@ -509,12 +509,12 @@ func (c *Car) speechDrivingOn() {
 
 func (c *Car) selfDrivingOff() {
 	c.selfdriving = false
-	log.Printf("car: self-drving off")
+	log.Printf("[car]self-drving off")
 }
 
 func (c *Car) speechDrivingOff() {
 	c.speechdriving = false
-	log.Printf("car: speech-drving off")
+	log.Printf("[car]speech-drving off")
 }
 
 func (c *Car) detecting(chOp chan CarOp) {
@@ -578,7 +578,7 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 			if cswitch.Collided() {
 				chOp <- backward
 				go c.horn.Beep(1, 100)
-				log.Printf("cswitch: crashed")
+				log.Printf("[car]crashed")
 				chQuit <- true
 				return
 			}
@@ -599,22 +599,22 @@ func (c *Car) detectSpeech(chOp chan CarOp) {
 		// -c 1:		1 channel
 		// -f S16_LE:	Signed 16 bit Little Endian
 		cmd := `sudo arecord -D "plughw:1,0" -d 2 -t wav -r 16000 -c 1 -f S16_LE car.wav`
-		log.Printf("start recording")
+		log.Printf("[car]start recording")
 		go c.led.On()
 		_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 		if err != nil {
-			log.Printf("failed to record the speech: %v", err)
+			log.Printf("[car]failed to record the speech: %v", err)
 			continue
 		}
 		go c.led.Off()
-		log.Printf("stop recording")
+		log.Printf("[car]stop recording")
 
 		text, err := asrEngine.ToText("car.wav")
 		if err != nil {
-			log.Printf("failed to recognize the speech, error: %v", err)
+			log.Printf("[car]failed to recognize the speech, error: %v", err)
 			continue
 		}
-		log.Printf("speech: %v", text)
+		log.Printf("[car]speech: %v", text)
 
 		switch {
 		case strings.Index(text, "前") >= 0:
@@ -652,7 +652,7 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 		if d < 0 {
 			continue
 		}
-		log.Printf("scan: angle %v, dist: %.0f", ang, d)
+		log.Printf("[car]scan: angle %v, dist: %.0f", ang, d)
 		if d < mind {
 			mind = d
 			mindAngle = ang
@@ -670,7 +670,7 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 func (c *Car) turn(angle int) {
 	n, ok := turnAngleCounts[angle]
 	if !ok {
-		log.Printf("invalid angle: %d", angle)
+		log.Printf("[car]invalid angle: %d", angle)
 		return
 	}
 	if angle < 0 {

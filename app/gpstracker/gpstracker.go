@@ -12,12 +12,12 @@ import (
 func main() {
 	gps := dev.NewGPS()
 	if gps == nil {
-		log.Printf("failed to new a gps device")
+		log.Printf("[gpstracker]failed to new a gps device")
 		return
 	}
 	logger := dev.NewGPSLogger()
 	if logger == nil {
-		log.Printf("failed to new a tracker")
+		log.Printf("[gpstracker]failed to new a tracker")
 		return
 	}
 	oneNetCfg := &base.OneNetConfig{
@@ -26,7 +26,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
-		log.Printf("failed to new OneNet iot cloud")
+		log.Printf("[gpstracker]failed to new OneNet iot cloud")
 		return
 	}
 	t := &gpsTracker{
@@ -46,13 +46,13 @@ type gpsTracker struct {
 }
 
 func (t *gpsTracker) start() {
-	log.Printf("gps tracker start working")
+	log.Printf("[gpstracker]start working")
 	for {
 		time.Sleep(2 * time.Second)
 		// pt, err := t.gps.MockLocFromCSV()
 		pt, err := t.gps.Loc()
 		if err != nil {
-			log.Printf("failed to get gps locations: %v", err)
+			log.Printf("[gpstracker]failed to get gps locations: %v", err)
 			continue
 		}
 		t.logger.AddPoint(pt)

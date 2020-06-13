@@ -22,7 +22,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 	if cloud == nil {
-		log.Printf("failed to new OneNet iot cloud")
+		log.Printf("cpumonitor]failed to new OneNet iot cloud")
 		return
 	}
 	monitor := &cpuMonitor{
@@ -37,11 +37,11 @@ type cpuMonitor struct {
 
 // Start ...
 func (c *cpuMonitor) start() {
-	log.Printf("cpu monitor start working")
+	log.Printf("[cpumonitor]cpu monitor start working")
 	for {
 		f, err := c.idle()
 		if err != nil {
-			log.Printf("failed to get cpu idle, error: %v", err)
+			log.Printf("[cpumonitor]failed to get cpu idle, error: %v", err)
 			time.Sleep(30 * time.Second)
 			continue
 		}

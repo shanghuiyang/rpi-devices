@@ -19,7 +19,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
-		log.Printf("failed to new OneNet iot cloud")
+		log.Printf("[heartbeat]failed to new OneNet iot cloud")
 		return
 	}
 	h := &heartBeat{
@@ -34,7 +34,7 @@ type heartBeat struct {
 
 // Start ...
 func (h *heartBeat) start() {
-	log.Printf("heart beat start working")
+	log.Printf("[heartbeat]start working")
 	b := 0
 	for {
 		time.Sleep(heartBeatInterval)

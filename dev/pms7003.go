@@ -37,8 +37,7 @@ import (
 )
 
 const (
-	logTagPMS7003 = "PMS7003"
-	maxDeltaPM25  = 150
+	maxDeltaPM25 = 150
 )
 
 var (
@@ -79,7 +78,7 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 				// try to reopen serial
 				p.port.Close()
 				if err := p.open(); err != nil {
-					log.Printf("[%v]failed open serial, error: %v", logTagPMS7003, err)
+					log.Printf("[psm7003]failed open serial, error: %v", err)
 				}
 				return 0, 0, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
 			}
@@ -87,11 +86,11 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 		}
 
 		if a != 32 {
-			log.Printf("[%v]incorrect data len: %v, expected 32", logTagPMS7003, a)
+			log.Printf("[psm7003]incorrect data len: %v, expected 32", a)
 			continue
 		}
 		if p.buf[0] != 0x42 && p.buf[1] != 0x4d && p.buf[2] != 0 && p.buf[3] != 28 {
-			log.Printf("[%v]incorrect data in byte 1~4", logTagPMS7003)
+			log.Printf("[psm7003]incorrect data in byte 1~4")
 			continue
 		}
 		checksum := uint16(0)
@@ -99,14 +98,14 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 			checksum += uint16(p.buf[i])
 		}
 		if checksum != (uint16(p.buf[30])<<8)|uint16(p.buf[31]) {
-			log.Printf("[%v]checksum failure", logTagPMS7003)
+			log.Printf("[psm7003]checksum failure")
 			continue
 		}
 
 		pm25 := (uint16(p.buf[6]) << 8) | uint16(p.buf[7])
 		pm10 := (uint16(p.buf[8]) << 8) | uint16(p.buf[9])
 		if !p.checkDelta(pm25) {
-			log.Printf("[%v]check delta failed, discard current data. pm2.5: %v", logTagPMS7003, pm25)
+			log.Printf("[psm7003]check delta failed, discard current data. pm2.5: %v", pm25)
 			continue
 		}
 		return pm25, pm10, nil

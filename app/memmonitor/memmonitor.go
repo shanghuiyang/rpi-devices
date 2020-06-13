@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	logTagMemory   = "memory"
 	memoryInterval = 10 * time.Minute
 )
 
@@ -23,7 +22,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 	if cloud == nil {
-		log.Printf("failed to new OneNet iot cloud")
+		log.Printf("[memmonitor]failed to new OneNet iot cloud")
 		return
 	}
 
@@ -38,11 +37,11 @@ type memMonitor struct {
 }
 
 func (m *memMonitor) start() {
-	log.Printf("memory monitor start working")
+	log.Printf("[memmonitor]start working")
 	for {
 		f, err := m.free()
 		if err != nil {
-			log.Printf("[%v]failed to get free memory, error: %v", logTagMemory, err)
+			log.Printf("[memmonitor]failed to get free memory, error: %v", err)
 			time.Sleep(30 * time.Second)
 			continue
 		}

@@ -36,7 +36,7 @@ const (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[doordog]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
@@ -50,7 +50,7 @@ func main() {
 	btn := dev.NewButton(pinBtn)
 	dist := dev.NewHCSR04(pinTrig, pinEcho)
 	if dist == nil {
-		log.Printf("failed to new a HCSR04")
+		log.Printf("[doordog]failed to new a HCSR04")
 		return
 	}
 
@@ -83,7 +83,7 @@ func newDoordog(dist *dev.HCSR04, buzzer *dev.Buzzer, led *dev.Led, btn *dev.But
 }
 
 func (d *doordog) start() {
-	log.Printf("doordog start to service")
+	log.Printf("[doordog]start to service")
 	go d.alert()
 	go d.stopAlert()
 	d.detect()
@@ -101,7 +101,7 @@ func (d *doordog) detect() {
 
 		t := 100 * time.Millisecond
 		if detected {
-			log.Printf("detected objects, distance = %.2fcm", dist)
+			log.Printf("[doordog]detected objects, distance = %.2fcm", dist)
 			// make a dalay detecting
 			t = 1 * time.Second
 		}
@@ -129,7 +129,7 @@ func (d *doordog) alert() {
 		}
 		timeout := time.Now().Sub(trigTime).Seconds() > alertTime
 		if timeout && d.alerting {
-			log.Printf("timeout, stop alert")
+			log.Printf("[doordog]timeout, stop alert")
 			d.alerting = false
 		}
 	}
@@ -139,7 +139,7 @@ func (d *doordog) stopAlert() {
 	for {
 		pressed := d.button.Pressed()
 		if pressed {
-			log.Printf("the button was pressed")
+			log.Printf("[doordog]the button was pressed")
 			if d.alerting {
 				d.alerting = false
 			}

@@ -37,8 +37,7 @@ import (
 )
 
 const (
-	logTagZE08CH2O = "ZE08CH2O"
-	maxDeltaCH2O   = 0.06
+	maxDeltaCH2O = 0.06
 )
 
 var (
@@ -79,7 +78,7 @@ func (p *ZE08CH2O) Get() (float64, error) {
 				// try to reopen serial
 				p.port.Close()
 				if err := p.open(); err != nil {
-					log.Printf("[%v]failed open serial, error: %v", logTagZE08CH2O, err)
+					log.Printf("[ze08ch2o]failed open serial, error: %v", err)
 				}
 				return 0, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
 			}
@@ -87,20 +86,20 @@ func (p *ZE08CH2O) Get() (float64, error) {
 		}
 
 		if a != 9 {
-			log.Printf("[%v]incorrect data len: %v, expected: 9", logTagZE08CH2O, a)
+			log.Printf("[ze08ch2o]incorrect data len: %v, expected: 9", a)
 			continue
 		}
 
 		checksum := ^(p.buf[1] + p.buf[2] + p.buf[3] + p.buf[4] + p.buf[5] + p.buf[6] + p.buf[7]) + 1
 		if checksum != p.buf[8] {
-			log.Printf("[%v]checksum failure", logTagZE08CH2O)
+			log.Printf("[ze08ch2o]checksum failure")
 			continue
 		}
 		ppm := (uint16(p.buf[4]) << 8) | uint16(p.buf[5])
 		ch2o := float64(ppm) * 0.001228 // convert ppm to mg/m3
 
 		if !p.checkDelta(ch2o) {
-			log.Printf("[%v]check delta failed, discard current data. CH2O: %v mg/m3", logTagZE08CH2O, ch2o)
+			log.Printf("[ze08ch2o]check delta failed, discard current data. CH2O: %v mg/m3", ch2o)
 			continue
 		}
 		return ch2o, nil

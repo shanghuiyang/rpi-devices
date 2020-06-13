@@ -46,7 +46,7 @@ type carServer struct {
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[carapp]failed to open rpio, error: %v", err)
 		os.Exit(1)
 	}
 	defer rpio.Close()
@@ -57,53 +57,53 @@ func main() {
 
 	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
-		log.Fatal("failed to new a L298N as engine, a car can't without any engine")
+		log.Fatal("[carapp]failed to new a L298N as engine, a car can't without any engine")
 		os.Exit(1)
 	}
 
 	ult := dev.NewUS100()
 	if ult == nil {
-		log.Printf("failed to new a HCSR04, will build a car without ultrasonic distance meter")
+		log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
 
 	encoder := dev.NewEncoder(pinEncoder)
 	if encoder == nil {
-		log.Printf("failed to new a encoder, will build a car without encoder")
+		log.Printf("[carapp]failed to new a encoder, will build a car without encoder")
 	}
 
 	cswitchL := dev.NewCollisionSwitch(pinCSwaitchL)
 	if cswitchL == nil {
-		log.Printf("failed to new a collision switch, will build a car without collision switchs")
+		log.Printf("[carapp]failed to new a collision switch, will build a car without collision switchs")
 	}
 
 	cswitchR := dev.NewCollisionSwitch(pinCSwaitchR)
 	if cswitchL == nil {
-		log.Printf("failed to new a collision switch, will build a car without collision switchs")
+		log.Printf("[carapp]failed to new a collision switch, will build a car without collision switchs")
 	}
 	cswitchs := []*dev.CollisionSwitch{cswitchL, cswitchR}
 
 	horn := dev.NewBuzzer(pinBzr)
 	if horn == nil {
-		log.Printf("failed to new a buzzer, will build a car without horns")
+		log.Printf("[carapp]failed to new a buzzer, will build a car without horns")
 	}
 
 	led := dev.NewLed(pinLed)
 	if led == nil {
-		log.Printf("failed to new a led, will build a car without leds")
+		log.Printf("[carapp]failed to new a led, will build a car without leds")
 	}
 
 	light := dev.NewLed(pinLight)
 	if light == nil {
-		log.Printf("failed to new a light, will build a car without lights")
+		log.Printf("[carapp]failed to new a light, will build a car without lights")
 	}
 
 	servo := dev.NewSG90(pinSG)
 	if servo == nil {
-		log.Printf("failed to new a sg90, will build a car without servo")
+		log.Printf("[carapp]failed to new a sg90, will build a car without servo")
 	}
 	cam := dev.NewCamera()
 	if cam == nil {
-		log.Printf("failed to new a camera, will build a car without cameras")
+		log.Printf("[carapp]failed to new a camera, will build a car without cameras")
 	}
 
 	car := dev.NewCar(
@@ -128,7 +128,7 @@ func main() {
 		rpio.Close()
 	})
 	if err := server.start(); err != nil {
-		log.Printf("failed to start car server, error: %v", err)
+		log.Printf("[carapp]failed to start car server, error: %v", err)
 		os.Exit(1)
 	}
 	os.Exit(0)
@@ -148,7 +148,7 @@ func (s *carServer) start() error {
 	if err := s.car.Start(); err != nil {
 		return err
 	}
-	log.Printf("car started successfully")
+	log.Printf("[carapp]car started successfully")
 
 	http.HandleFunc("/", s.handler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -209,7 +209,7 @@ func tuningTurnAngle(eng *dev.L298N) {
 		var ms int
 		fmt.Printf(">>ms: ")
 		if n, err := fmt.Scanf("%d", &ms); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
+			log.Printf("[carapp]invalid operator, error: %v", err)
 			continue
 		}
 		if ms < 0 {
@@ -237,7 +237,7 @@ func tuningEncoder(eng *dev.L298N, encoder *dev.Encoder) {
 		var count int
 		fmt.Printf(">>count: ")
 		if n, err := fmt.Scanf("%d", &count); n != 1 || err != nil {
-			log.Printf("invalid count, error: %v", err)
+			log.Printf("[carapp]invalid count, error: %v", err)
 			continue
 		}
 		if count == 0 {

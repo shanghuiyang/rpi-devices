@@ -61,41 +61,41 @@ var (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[vmonitor]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
 	hServo := dev.NewSG90(pinSGH)
 	if hServo == nil {
-		log.Printf("failed to new a sg90")
+		log.Printf("[vmonitor]failed to new a sg90")
 		return
 	}
 
 	vServo := dev.NewSG90(pinSGV)
 	if vServo == nil {
-		log.Printf("failed to new a sg90")
+		log.Printf("[vmonitor]failed to new a sg90")
 		return
 	}
 
 	led := dev.NewLed(pinLed)
 	if led == nil {
-		log.Printf("failed to new a led, will run the monitor without led")
+		log.Printf("[vmonitor]failed to new a led, will run the monitor without led")
 	}
 
 	bzr := dev.NewBuzzer(pinBzr)
 	if bzr == nil {
-		log.Printf("failed to new a buzzer, will run the monitor without buzzer")
+		log.Printf("[vmonitor]failed to new a buzzer, will run the monitor without buzzer")
 	}
 
 	btn := dev.NewButton(pinBtn)
 	if btn == nil {
-		log.Printf("failed to new a button, will run the monitor without button")
+		log.Printf("[vmonitor]failed to new a button, will run the monitor without button")
 	}
 
 	server := newVideoServer(hServo, vServo, led, bzr, btn)
 	if server == nil {
-		log.Printf("failed to new the video server")
+		log.Printf("[vmonitor]failed to new the video server")
 		return
 	}
 
@@ -104,7 +104,7 @@ func main() {
 		rpio.Close()
 	})
 
-	log.Printf("video server started")
+	log.Printf("[vmonitor]video server started")
 	server.start()
 }
 
@@ -234,7 +234,7 @@ func (v *videoServer) do(op string) {
 	case "beep":
 		go v.beep(5, 100)
 	default:
-		log.Printf("invalid operator: %v", op)
+		log.Printf("[vmonitor]invalid operator: %v", op)
 	}
 }
 
@@ -244,51 +244,51 @@ func (v *videoServer) stop() {
 }
 
 func (v *videoServer) left() {
-	log.Printf("op: left")
+	log.Printf("[vmonitor]op: left")
 	angle := v.hAngle - 15
 	if angle < -90 {
 		return
 	}
 	v.hAngle = angle
-	log.Printf("servo: %v", angle)
+	log.Printf("[vmonitor]servo: %v", angle)
 	v.hServo.Roll(angle)
 }
 
 func (v *videoServer) right() {
-	log.Printf("op: right")
+	log.Printf("[vmonitor]op: right")
 	angle := v.hAngle + 15
 	if angle > 75 {
 		return
 	}
 	v.hAngle = angle
-	log.Printf("servo: %v", angle)
+	log.Printf("[vmonitor]servo: %v", angle)
 	v.hServo.Roll(angle)
 }
 
 func (v *videoServer) up() {
-	log.Printf("op: up")
+	log.Printf("[vmonitor]op: up")
 	angle := v.vAngle + 15
 	if angle > 90 {
 		return
 	}
 	v.vAngle = angle
-	log.Printf("servo: %v", angle)
+	log.Printf("[vmonitor]servo: %v", angle)
 	v.vServo.Roll(angle)
 }
 
 func (v *videoServer) down() {
-	log.Printf("op: down")
+	log.Printf("[vmonitor]op: down")
 	angle := v.vAngle - 15
 	if angle < -30 {
 		return
 	}
 	v.vAngle = angle
-	log.Printf("servo: %v", angle)
+	log.Printf("[vmonitor]servo: %v", angle)
 	v.vServo.Roll(angle)
 }
 
 func (v *videoServer) beep(n int, interval int) {
-	log.Printf("op: beep")
+	log.Printf("[vmonitor]op: beep")
 	if v.buzzer == nil {
 		return
 	}
@@ -300,7 +300,7 @@ func (v *videoServer) detectConnecting() {
 		time.Sleep(5 * time.Second)
 		n, err := v.getConCount()
 		if err != nil {
-			log.Printf("failed to get users count, err: %v", err)
+			log.Printf("[vmonitor]failed to get users count, err: %v", err)
 			continue
 		}
 		v.chAlert <- n
@@ -355,7 +355,7 @@ func (v *videoServer) detectServing() {
 		}
 		if v.outOfService() {
 			if v.inServing {
-				log.Printf("out of service, stop motion")
+				log.Printf("[vmonitor]out of service, stop motion")
 				v.stopMotion()
 				v.inServing = false
 			}
@@ -363,7 +363,7 @@ func (v *videoServer) detectServing() {
 		}
 
 		if !v.inServing {
-			log.Printf("in service time, start motion")
+			log.Printf("[vmonitor]in service time, start motion")
 			v.startMotion()
 			v.inServing = true
 		}
@@ -393,7 +393,7 @@ func (v *videoServer) detectingMode() {
 		}
 
 		count = 0
-		log.Printf("the button was pressed")
+		log.Printf("[vmonitor]the button was pressed")
 		go v.led.Blink(2, 100)
 		lastMode := v.mode
 		if v.mode == normalMode {
@@ -406,15 +406,15 @@ func (v *videoServer) detectingMode() {
 			continue
 		}
 		if err := v.loadHomePage(); err != nil {
-			log.Printf("failed to load home page, error: %v", err)
+			log.Printf("[vmonitor]failed to load home page, error: %v", err)
 			continue
 		}
 		if err := v.restartMotion(); err != nil {
-			log.Printf("failed to restart motion, error: %v", err)
+			log.Printf("[vmonitor]failed to restart motion, error: %v", err)
 			continue
 		}
 		go v.led.Blink(5, 100)
-		log.Printf("mode changed: %v --> %v", lastMode, v.mode)
+		log.Printf("[vmonitor]mode changed: %v --> %v", lastMode, v.mode)
 	}
 }
 

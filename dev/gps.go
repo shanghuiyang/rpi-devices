@@ -72,10 +72,6 @@ import (
 )
 
 const (
-	logTagGPS = "gps"
-)
-
-const (
 	// Recommended Minimum Specific Data from GPS
 	gpsRMC = "$GPRMC"
 	// Recommended Minimum Specific Data from GPS & Beidou/China
@@ -115,7 +111,7 @@ func (g *GPS) Loc() (*base.Point, error) {
 			// try to reopen serial
 			g.port.Close()
 			if err := g.open(); err != nil {
-				log.Printf("[%v]failed open serial, error: %v", logTagGPS, err)
+				log.Printf("[gps]failed open serial, error: %v", err)
 			}
 			return nil, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
 		}
@@ -195,7 +191,7 @@ func (g *GPS) MockLocFromGPX() (*base.Point, error) {
 				continue
 			}
 			if n, err := fmt.Sscanf(line, `<trkpt lat="%f" lon="%f">`, &lat, &lon); n != 2 || err != nil {
-				log.Printf("[%v]failed to parse lat/lon, error: %v", logTagGPS, err)
+				log.Printf("[gps]failed to parse lat/lon, error: %v", err)
 				continue
 			}
 			pt := &base.Point{
@@ -233,7 +229,7 @@ func (g *GPS) MockLocFromCSV() (*base.Point, error) {
 			var timestamp string
 			var lat, lon float32
 			if _, err := fmt.Sscanf(line, "%19s,%f,%f\n", &timestamp, &lat, &lon); err != nil {
-				log.Printf("[%v]failed to parse lat/lon, error: %v", logTagGPS, err)
+				log.Printf("[gps]failed to parse lat/lon, error: %v", err)
 			}
 			pt := &base.Point{
 				Lat: lat,

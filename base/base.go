@@ -69,7 +69,7 @@ func WaitQuit(beforeQuitFunc func()) {
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-c
-		log.Printf("received signal: %v, will quit\n", sig)
+		log.Printf("[base]received signal: %v, will quit\n", sig)
 		beforeQuitFunc()
 		os.Exit(0)
 	}()

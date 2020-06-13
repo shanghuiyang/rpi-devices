@@ -21,19 +21,19 @@ const (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[tempmonitor]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
 	temp := dev.NewDS18B20()
 	if temp == nil {
-		log.Printf("failed to new temperature sensor")
+		log.Printf("[tempmonitor]failed to new temperature sensor")
 		return
 	}
 	led := dev.NewLed(ledPin)
 	if led == nil {
-		log.Printf("failed to new led")
+		log.Printf("[tempmonitor]failed to new led")
 		return
 	}
 
@@ -43,7 +43,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {
-		log.Printf("failed to new OneNet iot cloud")
+		log.Printf("[tempmonitor]failed to new OneNet iot cloud")
 		return
 	}
 
@@ -71,7 +71,7 @@ func (m *tempMonitor) start() {
 		time.Sleep(intervalTime)
 		c, err := m.temp.GetTemperature()
 		if err != nil {
-			log.Printf("failed to get temperature, error: %v", err)
+			log.Printf("[tempmonitor]failed to get temperature, error: %v", err)
 			continue
 		}
 
@@ -91,7 +91,7 @@ func (m *tempMonitor) start() {
 func (m *tempMonitor) notitfy(temperatue float32) {
 	_, err := exec.LookPath("mutt")
 	if err != nil {
-		log.Printf("need to install mutt for email notification")
+		log.Printf("[tempmonitor]need to install mutt for email notification")
 		return
 	}
 	subject := "Low Temperature Warning"
@@ -101,7 +101,7 @@ func (m *tempMonitor) notitfy(temperatue float32) {
 	subject = fmt.Sprintf("%v: %.2f C", subject, temperatue)
 	cmd := exec.Command("mutt", "-s", subject, "youremail@xxx.com")
 	if err := cmd.Run(); err != nil {
-		log.Printf("failed to send email")
+		log.Printf("[tempmonitor]failed to send email")
 	}
 	return
 }

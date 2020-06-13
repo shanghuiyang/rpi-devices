@@ -23,7 +23,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 	if cloud == nil {
-		log.Printf("failed to new OneNet iot cloud")
+		log.Printf("[ip]failed to new OneNet iot cloud")
 		return
 	}
 
@@ -32,28 +32,28 @@ func main() {
 		time.Sleep(10 * time.Second)
 		ip, err := getIP()
 		if err != nil {
-			log.Printf("failed to get ip address, error: %v", err)
-			log.Printf("retry %v...", n+1)
+			log.Printf("[ip]failed to get ip address, error: %v", err)
+			log.Printf("[ip]retry %v...", n+1)
 			continue
 		}
-		log.Printf("ip: %.6f", ip)
+		log.Printf("[ip]ip: %.6f", ip)
 
 		v := &iot.Value{
 			Device: "5e076e86e4b04a9a92a70f95",
 			Value:  fmt.Sprintf("%.6f", ip),
 		}
 		if err := cloud.Push(v); err != nil {
-			log.Printf("failed to push ip address to cloud, error: %v", err)
-			log.Printf("retry %v...", n+1)
+			log.Printf("[ip]failed to push ip address to cloud, error: %v", err)
+			log.Printf("[ip]retry %v...", n+1)
 			continue
 		}
 		break
 	}
 	if n >= maxRetry {
-		log.Printf("failed to get ip address")
+		log.Printf("[ip]failed to get ip address")
 		return
 	}
-	log.Printf("success")
+	log.Printf("[ip]success")
 }
 
 func getIP() (float64, error) {

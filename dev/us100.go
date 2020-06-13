@@ -38,10 +38,6 @@ import (
 	"github.com/tarm/serial"
 )
 
-const (
-	logTagUS100 = "US100"
-)
-
 var (
 	trigData = []byte{0x55}
 )
@@ -67,7 +63,7 @@ func NewUS100() *US100 {
 // Dist is to measure the distance in cm
 func (u *US100) Dist() float64 {
 	if err := u.port.Flush(); err != nil {
-		log.Printf("failed to flush serial, error: %v", err)
+		log.Printf("[us100]failed to flush serial, error: %v", err)
 		return -1
 	}
 	// send trigger data
@@ -81,13 +77,13 @@ func (u *US100) Dist() float64 {
 	if err != nil {
 		u.Close()
 		if err := u.open(); err != nil {
-			log.Printf("failed to open serial, error: %v", err)
+			log.Printf("[us100]failed to open serial, error: %v", err)
 		}
 		return -1
 	}
 	// check data len
 	if n != 2 {
-		log.Printf("incorrect data len, len: %v, expected: 2", n)
+		log.Printf("[us100]incorrect data len, len: %v, expected: 2", n)
 		return -1
 	}
 	// calc distance in cm

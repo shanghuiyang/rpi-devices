@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	angleEachStep   = 0.087
-	logTagStepMotor = "stepmotor"
+	angleEachStep = 0.087
 )
 
 var (
@@ -67,7 +66,7 @@ func NewStepMotor(in1, in2, in3, in4 uint8) *StepMotor {
 
 // Start ...
 func (s *StepMotor) start() {
-	log.Printf("[%v]start working", logTagStepMotor)
+	log.Printf("[stepmotor]start working")
 	for angle := range s.chAngles {
 		s.roll(angle)
 	}

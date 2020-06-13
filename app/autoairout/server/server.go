@@ -30,18 +30,18 @@ var (
 
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[autoairout]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
 	sg := dev.NewSG90(pinSG)
 	if sg == nil {
-		log.Printf("failed to new a sg90, will build a car without servo")
+		log.Printf("[autoairout]failed to new a sg90, will build a car without servo")
 	}
 	fan = newAuotFan(sg)
 
-	log.Printf("fan server started")
+	log.Printf("[autoairout]fan server started")
 
 	base.WaitQuit(func() {
 		rpio.Close()
@@ -50,7 +50,7 @@ func main() {
 	http.HandleFunc("/", fanServer)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err.Error())
+		log.Fatal("[autoairout]ListenAndServe: ", err.Error())
 	}
 }
 
@@ -81,7 +81,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		pageContext, err = ioutil.ReadFile("home.html")
 		if err != nil {
-			log.Printf("failed to read home.html")
+			log.Printf("[autoairout]failed to read home.html")
 			fmt.Fprintf(w, "internal error: failed to read home page")
 			return
 		}
@@ -89,7 +89,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	ip := base.GetIP()
 	if ip == "" {
-		log.Printf("failed to get ip")
+		log.Printf("[autoairout]failed to get ip")
 		fmt.Fprintf(w, "internal error: failed to get ip")
 		return
 	}
@@ -122,7 +122,7 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 func operationHandler(w http.ResponseWriter, r *http.Request) {
 	op := r.FormValue("op")
-	log.Printf("op: %v", op)
+	log.Printf("[autoairout]op: %v", op)
 	switch op {
 	case "on":
 		if fan.state != "on" {
@@ -137,6 +137,6 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 			fan.state = "off"
 		}
 	default:
-		log.Printf("invaild op: %v", op)
+		log.Printf("[autoairout]invaild op: %v", op)
 	}
 }
