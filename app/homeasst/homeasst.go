@@ -22,7 +22,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	dht11 := dev.NewDHT11()
+	temp := dev.NewDS18B20()
 	led := dev.NewLed(pinLed)
 	oled, err := dev.NewOLED(128, 32)
 	if err != nil {
@@ -36,7 +36,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	asst := newHomeAsst(dht11, oled, led, cloud)
+	asst := newHomeAsst(temp, oled, led, cloud)
 	base.WaitQuit(func() {
 		asst.stop()
 		rpio.Close()
@@ -45,12 +45,12 @@ func main() {
 }
 
 type value struct {
-	temp float64
-	humi float64
+	temp float32
+	humi float32
 }
 
 type homeAsst struct {
-	dht11     *dev.DHT11
+	temp      *dev.DS18B20
 	oled      *dev.OLED
 	led       *dev.Led
 	cloud     iot.Cloud
@@ -59,9 +59,9 @@ type homeAsst struct {
 	chAlert   chan *value // for alerting
 }
 
-func newHomeAsst(dht11 *dev.DHT11, oled *dev.OLED, led *dev.Led, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(temp *dev.DS18B20, oled *dev.OLED, led *dev.Led, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
-		dht11:     dht11,
+		temp:      temp,
 		oled:      oled,
 		led:       led,
 		cloud:     cloud,
@@ -80,17 +80,17 @@ func (h *homeAsst) start() {
 
 func (h *homeAsst) getData() {
 	for {
-		temp, humi, err := h.dht11.TempHumidity()
+		temp, err := h.temp.GetTemperature()
 		if err != nil {
-			log.Printf("temp|humidity: failed to get temp and humidity, error: %v", err)
+			log.Printf("failed to get temperature, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("temp|humidity: temp: %v, humidity: %v", temp, humi)
+		log.Printf("temp: %v", temp)
 
 		v := &value{
 			temp: temp,
-			humi: humi,
+			humi: -1,
 		}
 		h.chDisplay <- v
 		h.chCloud <- v
@@ -100,7 +100,7 @@ func (h *homeAsst) getData() {
 }
 
 func (h *homeAsst) display() {
-	var temp, humi float64 = -999, -999
+	var temp, humi float32 = -999, -999
 	on := true
 	for {
 		select {
@@ -170,7 +170,7 @@ func (h *homeAsst) push() {
 }
 
 func (h *homeAsst) alert() {
-	var temp, humi float64 = -999, -999
+	var temp, humi float32 = -999, -999
 	for {
 		select {
 		case v := <-h.chAlert:
