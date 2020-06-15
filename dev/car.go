@@ -58,7 +58,7 @@ var (
 		75:  13,
 		90:  17,
 	}
-	aheadAngles = []int{0, -10, 0, 10}
+	aheadAngles = []int{0, -15, 0, 15}
 )
 
 type (
@@ -386,6 +386,10 @@ func (c *Car) selfDrivingOn() {
 		select {
 		case p := <-chOp:
 			op = p
+			for len(chOp) > 0 {
+				// log.Printf("[car]len(chOp)=%v, op=%v", len(chOp), <-chOp)
+				_ = <-chOp
+			}
 		default:
 			// 	do nothing
 		}
@@ -457,6 +461,10 @@ func (c *Car) speechDrivingOn() {
 		select {
 		case p := <-chOp:
 			op = p
+			for len(chOp) > 0 {
+				// log.Printf("[car]len(chOp)=%v", len(chOp))
+				_ = <-chOp
+			}
 		default:
 			// do nothing
 		}
@@ -546,7 +554,7 @@ func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 				// do nothing
 			}
 			c.servo.Roll(angle)
-			c.delay(100)
+			c.delay(70)
 			d := c.ult.Dist()
 			if d < 10 {
 				chOp <- backward
@@ -643,16 +651,16 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 	maxd = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
-		c.delay(100)
+		c.delay(120)
 		d := c.ult.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
-			c.delay(100)
+			c.delay(120)
 			d = c.ult.Dist()
 		}
 		if d < 0 {
 			continue
 		}
-		log.Printf("[car]scan: angle %v, dist: %.0f", ang, d)
+		log.Printf("[car]scan: angle=%v, dist=%.0f", ang, d)
 		if d < mind {
 			mind = d
 			mindAngle = ang

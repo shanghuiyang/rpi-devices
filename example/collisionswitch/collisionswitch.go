@@ -28,8 +28,6 @@ func main() {
 		collided := cswitch.Collided()
 		if collided {
 			log.Printf("collided")
-			time.Sleep(1 * time.Second)
-			continue
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
