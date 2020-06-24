@@ -2,6 +2,7 @@ package dev
 
 import (
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -11,11 +12,15 @@ import (
 	"github.com/shanghuiyang/go-speech/oauth"
 )
 
-const chSize = 8
-
 const (
-	appKey    = "your app key"
-	secretKey = "your secret key"
+	chSize                  = 8
+	envBaiduSpeechAppKey    = "BAIDU_SPEECH_APP_KEY"
+	envBaiduSpeechSecretKey = "BAIDU_SPEECH_SECRET_KEY"
+)
+
+var (
+	baiduAppKey    = "your_app_key"
+	baiduSecretKey = "your_secret_key"
 )
 
 const (
@@ -596,7 +601,13 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 }
 
 func (c *Car) detectSpeech(chOp chan CarOp) {
-	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
+	if baiduAppKey == "your_app_key" {
+		baiduAppKey = os.Getenv(envBaiduSpeechAppKey)
+	}
+	if baiduSecretKey == "your_secret_key" {
+		baiduSecretKey = os.Getenv(envBaiduSpeechSecretKey)
+	}
+	auth := oauth.New(baiduAppKey, baiduSecretKey, oauth.NewCacheMan())
 	asrEngine := asr.NewEngine(auth)
 
 	for c.speechdriving {
