@@ -2,14 +2,23 @@
 
 import sys
 import os
-usage = '[usage] deploy.py -f test.go -o test'
+usage = '[usage] deploy.py -h 192.168.1.1 -f test.go -o test'
+host = ''
 file = ''
 bin = ''
 for i in range(1, len(sys.argv)):
+    if sys.argv[i] == '-h':
+        host = sys.argv[i+1]
     if sys.argv[i] == '-f':
         file = sys.argv[i+1]
     if sys.argv[i] == '-o':
         bin = sys.argv[i+1]
+
+if host == '':
+    print('\033[1;31mmiss -f\033[0m')  # highlight in red
+    print('\033[93m{}\033[0m'.format(usage)) # highlight in yellow
+    exit(-1)
+
 if file == '':
     print('\033[1;31mmiss -f\033[0m')  # highlight in red
     print('\033[93m{}\033[0m'.format(usage)) # highlight in yellow
@@ -29,8 +38,8 @@ if res != 0:
 
 print('\033[1;32m[success]\033[0m') # highlight in green
 
-print("deploying {}...".format(bin))
-res = os.system('scp {} pi@192.168.31.235:/home/pi'.format(bin))
+print("deploying {} to {} ...".format(bin, host))
+res = os.system('scp {} pi@{}:/home/pi'.format(bin, host))
 if res == 0:
     print('\033[1;32m[success]\033[0m') # highlight in green
     exit(0)

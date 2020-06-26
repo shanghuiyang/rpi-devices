@@ -1,8 +1,9 @@
 package dev
 
 import (
+	"errors"
+	"io/ioutil"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -10,17 +11,25 @@ import (
 
 	"github.com/shanghuiyang/go-speech/asr"
 	"github.com/shanghuiyang/go-speech/oauth"
+	"github.com/shanghuiyang/go-speech/tts"
+	imgoauth "github.com/shanghuiyang/image-recognizer/oauth"
+	"github.com/shanghuiyang/image-recognizer/recognizer"
 )
 
 const (
-	chSize                  = 8
-	envBaiduSpeechAppKey    = "BAIDU_SPEECH_APP_KEY"
-	envBaiduSpeechSecretKey = "BAIDU_SPEECH_SECRET_KEY"
+	chSize        = 8
+	imageFile     = "/var/lib/motion/lastsnap.jpg"
+	letMeThinkWav = "let_me_think.wav"
+	thisIsXWav    = "this_is_x.wav"
+	iDontKnowWav  = "i_dont_know.wav"
 )
 
 var (
-	baiduAppKey    = "your_app_key"
-	baiduSecretKey = "your_secret_key"
+	baiduSpeechAppKey    = "your_speech_app_key"
+	baiduSpeechSecretKey = "your_speech_secret_key"
+
+	baiduImgRecognitionAppKey    = "your_image_recognition_app_key"
+	baiduImgRecognitionSecretKey = "your_image_recognition_secrect_key"
 )
 
 const (
@@ -138,15 +147,20 @@ func WithCamera(cam *Camera) Option {
 
 // Car ...
 type Car struct {
-	engine        *L298N
-	servo         *SG90
-	ult           *US100
-	encoder       *Encoder
-	cswitchs      []*CollisionSwitch
-	horn          *Buzzer
-	led           *Led
-	light         *Led
-	camera        *Camera
+	engine   *L298N
+	servo    *SG90
+	ult      *US100
+	encoder  *Encoder
+	cswitchs []*CollisionSwitch
+	horn     *Buzzer
+	led      *Led
+	light    *Led
+	camera   *Camera
+
+	asrEng *asr.Engine
+	ttsEng *tts.Engine
+	imgr   *recognizer.Recognizer
+
 	servoAngle    int
 	selfdriving   bool
 	speechdriving bool
@@ -601,14 +615,12 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 }
 
 func (c *Car) detectSpeech(chOp chan CarOp) {
-	if baiduAppKey == "your_app_key" {
-		baiduAppKey = os.Getenv(envBaiduSpeechAppKey)
-	}
-	if baiduSecretKey == "your_secret_key" {
-		baiduSecretKey = os.Getenv(envBaiduSpeechSecretKey)
-	}
-	auth := oauth.New(baiduAppKey, baiduSecretKey, oauth.NewCacheMan())
-	asrEngine := asr.NewEngine(auth)
+	speechOauth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
+	c.asrEng = asr.NewEngine(speechOauth)
+	c.ttsEng = tts.NewEngine(speechOauth)
+
+	imageOauth := imgoauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, imgoauth.NewCacheMan())
+	c.imgr = recognizer.New(imageOauth)
 
 	for c.speechdriving {
 		// -D:			device
@@ -628,7 +640,7 @@ func (c *Car) detectSpeech(chOp chan CarOp) {
 		go c.led.Off()
 		log.Printf("[car]stop recording")
 
-		text, err := asrEngine.ToText("car.wav")
+		text, err := c.asrEng.ToText("car.wav")
 		if err != nil {
 			log.Printf("[car]failed to recognize the speech, error: %v", err)
 			continue
@@ -646,6 +658,8 @@ func (c *Car) detectSpeech(chOp chan CarOp) {
 			chOp <- right
 		case strings.Index(text, "停") >= 0:
 			chOp <- stop
+		case strings.Index(text, "是什么") >= 0:
+			// c.recognize()
 		default:
 			// do nothing
 		}
@@ -706,4 +720,70 @@ func (c *Car) turn(angle int) {
 
 func (c *Car) delay(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
+}
+
+func (c *Car) recognize() error {
+	go c.play(letMeThinkWav)
+
+	log.Printf("[car]take photo")
+	c.camera.TakePhoto()
+
+	log.Printf("[car]recognize object")
+	objname, err := c.recognizeObj(imageFile)
+	if err != nil {
+		log.Printf("[car]failed to recognize object, error: %v", err)
+		c.play(iDontKnowWav)
+		return err
+	}
+	log.Printf("[car]object: %v", objname)
+
+	wav, err := c.tts("这是" + objname)
+	if err != nil {
+		log.Printf("[car]failed to tts, error: %v", err)
+		return err
+	}
+
+	if err := c.play(wav); err != nil {
+		log.Printf("[car]failed to play wav: %v, error: %v", wav, err)
+		return err
+	}
+
+	return nil
+}
+
+func (c *Car) play(wav string) error {
+	// omxplayer -o local test.wav
+	cmd := exec.Command("omxplayer", "-o", "local", wav)
+	out, err := cmd.CombinedOutput()
+	log.Printf("[car]omxplayer output: %v", err)
+	if err != nil {
+		log.Printf("[car]failed to exec omxplayer, output: %v, error: %v", string(out), err)
+		return err
+	}
+	return nil
+}
+
+func (c *Car) recognizeObj(image string) (string, error) {
+	if c.imgr == nil {
+		return "", errors.New("invalid image recognizer")
+	}
+	name, err := c.imgr.Recognize(image)
+	if err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
+func (c *Car) tts(text string) (string, error) {
+	data, err := c.ttsEng.ToSpeech(text)
+	if err != nil {
+		log.Printf("failed to convert text to speech, error: %v", err)
+		return "", err
+	}
+
+	if err := ioutil.WriteFile(thisIsXWav, data, 0644); err != nil {
+		log.Printf("failed to save test.wav, error: %v", err)
+		return "", err
+	}
+	return thisIsXWav, nil
 }
