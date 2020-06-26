@@ -9,10 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shanghuiyang/go-speech/asr"
 	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/go-speech/tts"
-	imgoauth "github.com/shanghuiyang/image-recognizer/oauth"
+	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 )
 
@@ -157,9 +155,9 @@ type Car struct {
 	light    *Led
 	camera   *Camera
 
-	asrEng *asr.Engine
-	ttsEng *tts.Engine
-	imgr   *recognizer.Recognizer
+	asr  *speech.ASR
+	tts  *speech.TTS
+	imgr *recognizer.Recognizer
 
 	servoAngle    int
 	selfdriving   bool
@@ -615,12 +613,12 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 }
 
 func (c *Car) detectSpeech(chOp chan CarOp) {
-	speechOauth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
-	c.asrEng = asr.NewEngine(speechOauth)
-	c.ttsEng = tts.NewEngine(speechOauth)
+	speechAuth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
+	c.asr = speech.NewASR(speechAuth)
+	c.tts = speech.NewTTS(speechAuth)
 
-	imageOauth := imgoauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, imgoauth.NewCacheMan())
-	c.imgr = recognizer.New(imageOauth)
+	imgAuth := oauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, oauth.NewCacheMan())
+	c.imgr = recognizer.New(imgAuth)
 
 	for c.speechdriving {
 		// -D:			device
@@ -640,7 +638,7 @@ func (c *Car) detectSpeech(chOp chan CarOp) {
 		go c.led.Off()
 		log.Printf("[car]stop recording")
 
-		text, err := c.asrEng.ToText("car.wav")
+		text, err := c.asr.ToText("car.wav")
 		if err != nil {
 			log.Printf("[car]failed to recognize the speech, error: %v", err)
 			continue
@@ -737,7 +735,7 @@ func (c *Car) recognize() error {
 	}
 	log.Printf("[car]object: %v", objname)
 
-	wav, err := c.tts("这是" + objname)
+	wav, err := c.toSpeech("这是" + objname)
 	if err != nil {
 		log.Printf("[car]failed to tts, error: %v", err)
 		return err
@@ -774,8 +772,8 @@ func (c *Car) recognizeObj(image string) (string, error) {
 	return name, nil
 }
 
-func (c *Car) tts(text string) (string, error) {
-	data, err := c.ttsEng.ToSpeech(text)
+func (c *Car) toSpeech(text string) (string, error) {
+	data, err := c.tts.ToSpeech(text)
 	if err != nil {
 		log.Printf("failed to convert text to speech, error: %v", err)
 		return "", err

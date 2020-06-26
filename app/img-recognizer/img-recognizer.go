@@ -6,10 +6,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/shanghuiyang/go-speech/asr"
 	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/go-speech/tts"
-	imgoauth "github.com/shanghuiyang/image-recognizer/oauth"
+	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
@@ -29,20 +27,20 @@ const (
 )
 
 var (
-	asrEng *asr.Engine
-	ttsEng *tts.Engine
-	imgr   *recognizer.Recognizer
-	cam    *dev.Camera
+	asr  *speech.ASR
+	tts  *speech.TTS
+	imgr *recognizer.Recognizer
+	cam  *dev.Camera
 )
 
 func main() {
 
-	speechOauth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
-	asrEng = asr.NewEngine(speechOauth)
-	ttsEng = tts.NewEngine(speechOauth)
+	speechAuth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
+	asr = speech.NewASR(speechAuth)
+	tts = speech.NewTTS(speechAuth)
 
-	imageOauth := imgoauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, imgoauth.NewCacheMan())
-	imgr = recognizer.New(imageOauth)
+	imageAuth := oauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, oauth.NewCacheMan())
+	imgr = recognizer.New(imageAuth)
 
 	cam = dev.NewCamera()
 
@@ -94,7 +92,7 @@ func recognize(image string) (string, error) {
 }
 
 func tospeech(text string) (string, error) {
-	data, err := ttsEng.ToSpeech(text)
+	data, err := tts.ToSpeech(text)
 	if err != nil {
 		log.Printf("[imgr]failed to convert text to speech, error: %v", err)
 		return "", err
