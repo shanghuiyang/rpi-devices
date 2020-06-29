@@ -471,9 +471,11 @@ func (c *Car) speechDrivingOn() {
 		op   = stop
 		fwd  = false
 		chOp = make(chan CarOp, 4)
+		wg   sync.WaitGroup
 	)
 
-	go c.detectSpeech(chOp)
+	wg.Add(1)
+	go c.detectSpeech(chOp, &wg)
 	for c.speechdriving {
 		select {
 		case p := <-chOp:
@@ -528,7 +530,7 @@ func (c *Car) speechDrivingOn() {
 		}
 	}
 	c.stop()
-	c.delay(500)
+	wg.Wait()
 	close(chOp)
 }
 
@@ -612,7 +614,9 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 	}
 }
 
-func (c *Car) detectSpeech(chOp chan CarOp) {
+func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	speechAuth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
 	c.asr = speech.NewASR(speechAuth)
 	c.tts = speech.NewTTS(speechAuth)
@@ -657,7 +661,7 @@ func (c *Car) detectSpeech(chOp chan CarOp) {
 		case strings.Index(text, "停") >= 0:
 			chOp <- stop
 		case strings.Index(text, "是什么") >= 0:
-			// c.recognize()
+			c.recognize()
 		default:
 			// do nothing
 		}
@@ -721,7 +725,7 @@ func (c *Car) delay(ms int) {
 }
 
 func (c *Car) recognize() error {
-	go c.play(letMeThinkWav)
+	c.play(letMeThinkWav)
 
 	log.Printf("[car]take photo")
 	c.camera.TakePhoto()
@@ -750,8 +754,8 @@ func (c *Car) recognize() error {
 }
 
 func (c *Car) play(wav string) error {
-	// omxplayer -o local test.wav
-	cmd := exec.Command("omxplayer", "-o", "local", wav)
+	// aplay test.wav
+	cmd := exec.Command("aplay", wav)
 	out, err := cmd.CombinedOutput()
 	log.Printf("[car]omxplayer output: %v", err)
 	if err != nil {

@@ -73,8 +73,8 @@ func main() {
 }
 
 func play(wav string) error {
-	// omxplayer -o local test.wav
-	cmd := exec.Command("omxplayer", "-o", "local", wav)
+	// aplay test.wav
+	cmd := exec.Command("aplay", wav)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("[imgr]failed to exec omxplayer, output: %v, error: %v", string(out), err)
