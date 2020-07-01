@@ -16,10 +16,10 @@ import (
 
 const (
 	chSize        = 8
-	imageFile     = "/var/lib/motion/lastsnap.jpg"
 	letMeThinkWav = "let_me_think.wav"
 	thisIsXWav    = "this_is_x.wav"
 	iDontKnowWav  = "i_dont_know.wav"
+	errorWav      = "error.wav"
 )
 
 var (
@@ -662,6 +662,8 @@ func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 			chOp <- stop
 		case strings.Index(text, "是什么") >= 0:
 			c.recognize()
+		case strings.Index(text, "唱歌") >= 0:
+			go c.play("./music/xiaomaolv.wav")
 		default:
 			// do nothing
 		}
@@ -728,25 +730,23 @@ func (c *Car) recognize() error {
 	c.play(letMeThinkWav)
 
 	log.Printf("[car]take photo")
-	c.camera.TakePhoto()
-
-	log.Printf("[car]recognize object")
-	objname, err := c.recognizeObj(imageFile)
+	imagef, err := c.camera.TakePhoto()
 	if err != nil {
-		log.Printf("[car]failed to recognize object, error: %v", err)
-		c.play(iDontKnowWav)
+		log.Printf("[car]failed to take phote, error: %v", err)
+		return err
+	}
+
+	log.Printf("[car]recognize image")
+	objname, err := c.recognizeImg(imagef)
+	if err != nil {
+		log.Printf("[car]failed to recognize image, error: %v", err)
+		c.play(errorWav)
 		return err
 	}
 	log.Printf("[car]object: %v", objname)
 
-	wav, err := c.toSpeech("这是" + objname)
-	if err != nil {
-		log.Printf("[car]failed to tts, error: %v", err)
-		return err
-	}
-
-	if err := c.play(wav); err != nil {
-		log.Printf("[car]failed to play wav: %v, error: %v", wav, err)
+	if err := c.playText("这是" + objname); err != nil {
+		log.Printf("[car]failed to play text, error: %v", err)
 		return err
 	}
 
@@ -757,7 +757,6 @@ func (c *Car) play(wav string) error {
 	// aplay test.wav
 	cmd := exec.Command("aplay", wav)
 	out, err := cmd.CombinedOutput()
-	log.Printf("[car]omxplayer output: %v", err)
 	if err != nil {
 		log.Printf("[car]failed to exec omxplayer, output: %v, error: %v", string(out), err)
 		return err
@@ -765,11 +764,11 @@ func (c *Car) play(wav string) error {
 	return nil
 }
 
-func (c *Car) recognizeObj(image string) (string, error) {
+func (c *Car) recognizeImg(imageFile string) (string, error) {
 	if c.imgr == nil {
 		return "", errors.New("invalid image recognizer")
 	}
-	name, err := c.imgr.Recognize(image)
+	name, err := c.imgr.Recognize(imageFile)
 	if err != nil {
 		return "", err
 	}
@@ -788,4 +787,18 @@ func (c *Car) toSpeech(text string) (string, error) {
 		return "", err
 	}
 	return thisIsXWav, nil
+}
+
+func (c *Car) playText(text string) error {
+	wav, err := c.toSpeech(text)
+	if err != nil {
+		log.Printf("[car]failed to tts, error: %v", err)
+		return err
+	}
+
+	if err := c.play(wav); err != nil {
+		log.Printf("[car]failed to play wav: %v, error: %v", wav, err)
+		return err
+	}
+	return err
 }
