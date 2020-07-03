@@ -727,14 +727,13 @@ func (c *Car) delay(ms int) {
 }
 
 func (c *Car) recognize() error {
-	c.play(letMeThinkWav)
-
 	log.Printf("[car]take photo")
 	imagef, err := c.camera.TakePhoto()
 	if err != nil {
 		log.Printf("[car]failed to take phote, error: %v", err)
 		return err
 	}
+	c.play(letMeThinkWav)
 
 	log.Printf("[car]recognize image")
 	objname, err := c.recognizeImg(imagef)

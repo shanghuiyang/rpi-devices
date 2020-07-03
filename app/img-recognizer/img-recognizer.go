@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
@@ -13,7 +14,6 @@ import (
 )
 
 const (
-	imageFile     = "/var/lib/motion/lastsnap.jpg"
 	wavLetMeThink = "let_me_think.wav"
 	wavThisIsX    = "this_is_x.wav"
 	wavIDontKnow  = "i_dont_know.wav"
@@ -36,37 +36,42 @@ var (
 func main() {
 
 	speechAuth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
+	imageAuth := oauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, oauth.NewCacheMan())
 	asr = speech.NewASR(speechAuth)
 	tts = speech.NewTTS(speechAuth)
-
-	imageAuth := oauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, oauth.NewCacheMan())
 	imgr = recognizer.New(imageAuth)
-
 	cam = dev.NewCamera()
 
-	go play(wavLetMeThink)
+	for {
+		log.Printf("[imgr]take photo")
+		imgf, err := cam.TakePhoto()
+		if err != nil {
+			log.Printf("[imgr]failed to take phote, error: %v", err)
+			os.Exit(1)
+		}
+		play(wavLetMeThink)
 
-	log.Printf("[imgr]take photo")
-	cam.TakePhoto()
+		log.Printf("[imgr]recognize image")
+		objname, err := recognize(imgf)
+		if err != nil {
+			log.Printf("[imgr]failed to recognize image, error: %v", err)
+			play(wavIDontKnow)
+			os.Exit(1)
+		}
+		log.Printf("[imgr]object: %v", objname)
 
-	log.Printf("[imgr]recognize object")
-	objname, err := recognize(imageFile)
-	if err != nil {
-		log.Printf("[imgr]failed to recognize object, error: %v", err)
-		play(wavIDontKnow)
-		os.Exit(1)
-	}
-	log.Printf("[imgr]object: %v", objname)
+		wav, err := tospeech("这是" + objname)
+		if err != nil {
+			log.Printf("[imgr]failed to tts, error: %v", err)
+			os.Exit(1)
+		}
 
-	wav, err := tospeech("这是" + objname)
-	if err != nil {
-		log.Printf("[imgr]failed to tts, error: %v", err)
-		os.Exit(1)
-	}
+		if err := play(wav); err != nil {
+			log.Printf("[imgr]failed to play wav: %v, error: %v", wav, err)
+			os.Exit(1)
+		}
 
-	if err := play(wav); err != nil {
-		log.Printf("[imgr]failed to play wav: %v, error: %v", wav, err)
-		os.Exit(1)
+		time.Sleep(10 * time.Second)
 	}
 
 	os.Exit(0)
