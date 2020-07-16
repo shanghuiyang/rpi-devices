@@ -15,31 +15,19 @@ import (
 
 // CollisionSwitch ...
 type CollisionSwitch struct {
-	pin  rpio.Pin
-	flag bool
+	pin rpio.Pin
 }
 
 // NewCollisionSwitch ...
 func NewCollisionSwitch(pin uint8) *CollisionSwitch {
 	c := &CollisionSwitch{
-		pin:  rpio.Pin(pin),
-		flag: true,
+		pin: rpio.Pin(pin),
 	}
 	c.pin.Input()
-	c.pin.PullUp()
-	c.pin.Detect(rpio.FallEdge)
 	return c
 }
 
 // Collided ...
 func (c *CollisionSwitch) Collided() bool {
-	collided := c.pin.EdgeDetected()
-	if collided {
-		if c.flag {
-			c.flag = false
-			return true
-		}
-		c.flag = true
-	}
-	return false
+	return c.pin.Read() == rpio.Low
 }

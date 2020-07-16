@@ -254,7 +254,7 @@ func (c *Car) backward() {
 func (c *Car) left() {
 	log.Printf("[car]left")
 	c.engine.Left()
-	c.delay(200)
+	c.delay(250)
 	c.engine.Stop()
 }
 
@@ -262,7 +262,7 @@ func (c *Car) left() {
 func (c *Car) right() {
 	log.Printf("[car]right")
 	c.engine.Right()
-	c.delay(200)
+	c.delay(250)
 	c.engine.Stop()
 }
 
@@ -503,7 +503,7 @@ func (c *Car) speechDrivingOn() {
 			c.stop()
 			c.delay(20)
 			c.backward()
-			c.delay(500)
+			c.delay(600)
 			chOp <- stop
 			continue
 		case left:
