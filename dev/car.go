@@ -2,6 +2,7 @@ package dev
 
 import (
 	"errors"
+	"image"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -12,6 +13,7 @@ import (
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
+	"gocv.io/x/gocv"
 )
 
 const (
@@ -555,6 +557,9 @@ func (c *Car) detecting(chOp chan CarOp) {
 	wg.Add(1)
 	go c.detectObstacles(chOp, chQuit, &wg)
 
+	wg.Add(1)
+	go c.detectBalls(chOp, chQuit, &wg)
+
 	wg.Wait()
 	close(chQuit)
 }
@@ -611,6 +616,81 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 			}
 		}
 		c.delay(10)
+	}
+}
+
+func (c *Car) detectBalls(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	// rcolor := color.RGBA{G: 255, A: 255}
+	// lcolor := color.RGBA{R: 255, A: 255}
+
+	// the red ball
+	lhsv := gocv.Scalar{Val1: 0, Val2: 100, Val3: 100}
+	hhsv := gocv.Scalar{Val1: 42, Val2: 255, Val3: 255}
+
+	size := image.Point{X: 600, Y: 600}
+	blur := image.Point{X: 11, Y: 11}
+
+	img := gocv.NewMat()
+	mask := gocv.NewMat()
+	frame := gocv.NewMat()
+	hsv := gocv.NewMat()
+	kernel := gocv.NewMat()
+	defer img.Close()
+	defer mask.Close()
+	defer frame.Close()
+	defer hsv.Close()
+	defer kernel.Close()
+
+	video, _ := gocv.OpenVideoCapture(0)
+	defer video.Close()
+
+	for c.selfdriving {
+		select {
+		case quit := <-chQuit:
+			if quit {
+				return
+			}
+		default:
+			// do nothing
+		}
+
+		if !video.Read(&img) {
+			continue
+		}
+		gocv.Flip(img, &img, 1)
+		gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
+		gocv.GaussianBlur(img, &frame, blur, 0, 0, gocv.BorderReflect101)
+		gocv.CvtColor(frame, &hsv, gocv.ColorBGRToHSV)
+		gocv.InRangeWithScalar(hsv, lhsv, hhsv, &mask)
+		gocv.Erode(mask, &mask, kernel)
+		gocv.Dilate(mask, &mask, kernel)
+		cnt := bestContour(mask, 200)
+		if len(cnt) == 0 {
+			continue
+		}
+		chQuit <- true
+		chOp <- stop
+
+		rect := gocv.BoundingRect(cnt)
+		// ---
+		// gocv.Rectangle(&img, rect, rcolor, 2)
+		// imgf := fmt.Sprintf("test%v.jpg", i+100000)
+		// gocv.IMWrite(imgf, img)
+		// i++
+		// ---
+		x, y := middle(rect)
+		log.Printf("[car]ball at: (%v, %v)\n", x, y)
+		dx := x - 300
+		for dx < -50 {
+			c.left()
+		}
+		for dx > 50 {
+			c.right()
+		}
+		chOp <- forward
+		return
 	}
 }
 
@@ -800,4 +880,24 @@ func (c *Car) playText(text string) error {
 		return err
 	}
 	return nil
+}
+
+func bestContour(frame gocv.Mat, minArea float64) []image.Point {
+	cnts := gocv.FindContours(frame, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+	var (
+		bestCnt  []image.Point
+		bestArea = minArea
+	)
+	for _, cnt := range cnts {
+		if area := gocv.ContourArea(cnt); area > bestArea {
+			bestArea = area
+			bestCnt = cnt
+		}
+	}
+	return bestCnt
+}
+
+// middle calculates the middle x and y of a rectangle.
+func middle(rect image.Rectangle) (x int, y int) {
+	return (rect.Max.X-rect.Min.X)/2 + rect.Min.X, (rect.Max.Y-rect.Min.Y)/2 + rect.Min.Y
 }
