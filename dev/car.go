@@ -22,7 +22,7 @@ const (
 	errorWav      = "error.wav"
 )
 
-var (
+const (
 	baiduSpeechAppKey    = "your_speech_app_key"
 	baiduSpeechSecretKey = "your_speech_secret_key"
 
@@ -757,7 +757,7 @@ func (c *Car) play(wav string) error {
 	cmd := exec.Command("aplay", wav)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Printf("[car]failed to exec omxplayer, output: %v, error: %v", string(out), err)
+		log.Printf("[car]failed to exec aplay, output: %v, error: %v", string(out), err)
 		return err
 	}
 	return nil
@@ -777,12 +777,12 @@ func (c *Car) recognizeImg(imageFile string) (string, error) {
 func (c *Car) toSpeech(text string) (string, error) {
 	data, err := c.tts.ToSpeech(text)
 	if err != nil {
-		log.Printf("failed to convert text to speech, error: %v", err)
+		log.Printf("[car]failed to convert text to speech, error: %v", err)
 		return "", err
 	}
 
 	if err := ioutil.WriteFile(thisIsXWav, data, 0644); err != nil {
-		log.Printf("failed to save test.wav, error: %v", err)
+		log.Printf("[car]failed to save %v, error: %v", thisIsXWav, err)
 		return "", err
 	}
 	return thisIsXWav, nil
@@ -799,5 +799,5 @@ func (c *Car) playText(text string) error {
 		log.Printf("[car]failed to play wav: %v, error: %v", wav, err)
 		return err
 	}
-	return err
+	return nil
 }
