@@ -16,23 +16,30 @@
             margin-top: 5px;
             margin-left: 10px;
             margin-right: 10px;
+            width: 95%;
+            max-width: 95%;
         }
+
         #send {
             margin-top: 5px;
             margin-left: 10px;
             margin-bottom: 3px;
             padding: 8px 32px;
+            font-size: 20px;
         }
+
         #clear {
             margin-top: 5px;
             margin-left: 5px;
             margin-bottom: 3px;
             padding: 8px 32px;
+            font-size: 20px;
+            color: gray;
         }
     </style>
 
     <script>
-        var url = "http://((000.000.000.000)):8088"
+        var url = "http://((000.000.000.000)):8082"
         $(function () {
             // send
             $('#send').bind("touchstart", function (e) {
@@ -49,10 +56,10 @@
 </head>
 
 <body>
-    <textarea autofocus id="text" name="text" rows="20" maxlength="50" style="width: 95%; max-width: 95%;" placeholder="input in some words..."></textarea>
+    <textarea autofocus id="text" name="text" rows="20" maxlength="2000" placeholder="input in some words..."></textarea>
     <br><br>
-    <button id="send" class="btn btn-lg btn-primary" style="font-size:20px">Send</button>
-    <button id="clear" class="btn btn-lg btn-default" style="font-size:20px; color: gray">Clear</button>
+    <button id="send" class="btn btn-lg btn-primary">Send</button>
+    <button id="clear" class="btn btn-lg btn-default">Clear</button>
 </body>
 
 </html>

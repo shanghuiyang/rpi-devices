@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	baiduSpeechAppKey    = "Rz83wRmyDlC9ZLVYMcsB53g9"
-	baiduSpeechSecretKey = "Fx8Zp9gktUzyEELPhbsCh46SQm1wZhQy"
+	baiduSpeechAppKey    = "your_speech_app_key"
+	baiduSpeechSecretKey = "your_speech_secret_key"
 	ttsWav               = "tts.wav"
 	ipPattern            = "((000.000.000.000))"
 )
@@ -53,7 +53,7 @@ func (s *ttsServer) start() error {
 
 	log.Printf("[tts]tts server started successfully")
 	http.HandleFunc("/", s.handler)
-	if err := http.ListenAndServe(":8088", nil); err != nil {
+	if err := http.ListenAndServe(":8082", nil); err != nil {
 		return err
 	}
 	return nil
@@ -103,20 +103,20 @@ func (s *ttsServer) playText(text string) error {
 	if text == "" {
 		return nil
 	}
-	log.Printf("[tts]convert to speech...")
+	log.Printf("[tts]converting text to speech...")
 	wav, err := s.toSpeech(text)
 	if err != nil {
-		log.Printf("[tts]failed to tts, error: %v", err)
+		log.Printf("[tts]failed to convert test to speech, error: %v", err)
 		return err
 	}
-	log.Printf("[tts]to speech success")
+	log.Printf("[tts]converted in success")
 
-	log.Printf("[tts]play wav...")
+	log.Printf("[tts]playing wav...")
 	if err := s.play(wav); err != nil {
 		log.Printf("[tts]failed to play wav: %v, error: %v", wav, err)
 		return err
 	}
-	log.Printf("[tts]play wav success")
+	log.Printf("[tts]played in success")
 	return nil
 }
 
