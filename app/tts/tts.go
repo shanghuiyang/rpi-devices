@@ -93,7 +93,7 @@ func (s *ttsServer) handler(w http.ResponseWriter, r *http.Request) {
 		w.Write(s.pageContext)
 	case "POST":
 		txt := r.FormValue("text")
-		log.Printf("receive text: %v", txt)
+		log.Printf("[tts]receive text: %v", txt)
 		go s.playText(txt)
 
 	}
