@@ -7,6 +7,6 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	s := newTTSServer("app_key", "secret key")
+	s := newTTSServer("app_key", "secret_key")
 	assert.NotNil(t, s)
 }
