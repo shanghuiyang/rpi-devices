@@ -73,17 +73,19 @@ func tracking() {
 
 	n := 0
 	i := 0
-	for n < 40 {
+	for true {
+
 		n++
 		i++
 
+		video.Grab(6)
 		if !video.Read(&img) {
 			log.Printf("[tracking]failed to read image")
 			continue
 		}
-		imgf := fmt.Sprintf("img%v.jpg", i+100000)
-		log.Printf("save %v", imgf)
-		gocv.IMWrite(imgf, img)
+		// imgf := fmt.Sprintf("img%v.jpg", i+100000)
+		// log.Printf("save %v", imgf)
+		// gocv.IMWrite(imgf, img)
 
 		gocv.Flip(img, &img, 1)
 		gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
@@ -93,9 +95,9 @@ func tracking() {
 		gocv.Erode(mask, &mask, kernel)
 		gocv.Dilate(mask, &mask, kernel)
 
-		imgf = fmt.Sprintf("img%v.jpg", i+200000)
-		log.Printf("save %v", imgf)
-		gocv.IMWrite(imgf, img)
+		// imgf = fmt.Sprintf("img%v.jpg", i+200000)
+		// log.Printf("save %v", imgf)
+		// gocv.IMWrite(imgf, img)
 
 		cnt := bestContour(mask, 200)
 		if len(cnt) == 0 {
@@ -104,36 +106,33 @@ func tracking() {
 		}
 
 		rect := gocv.BoundingRect(cnt)
-		// rect := image.Rectangle{
-		// 	Min: image.Point{
-		// 		X: 100,
-		// 		Y: 100,
-		// 	},
-		// 	Max: image.Point{
-		// 		X: 120,
-		// 		Y: 120,
-		// 	},
-		// }
+		fmt.Printf("rect w=%v, h=%v\n", rect.Dx(), rect.Dy())
+		fmt.Printf("rect max y=%v\n", rect.Max.Y)
+
+		if rect.Max.Y > 560 {
+			stop()
+			continue
+		}
+
 		gocv.Rectangle(&img, rect, rcolor, 2)
-		imgf = fmt.Sprintf("img%v.jpg", i+300000)
+		imgf := fmt.Sprintf("img%v.jpg", i+300000)
 		log.Printf("save %v", imgf)
 		gocv.IMWrite(imgf, img)
 		// ---
-		time.Sleep(250 * time.Millisecond)
+
 		x, y := middle(rect)
 		log.Printf("[tracking]]ball at: (%v, %v)\n", x, y)
 		if x < 200 {
-			// right()
+			right()
 			log.Printf("car right, sleep 3s")
-			// time.Sleep(3*time.Second)
 			continue
 		}
 		if x > 400 {
-			// left()
+			left()
 			log.Printf("car left, sleep 3s")
-			// time.Sleep(3*time.Second)
 			continue
 		}
+		forward()
 		continue
 	}
 }
@@ -160,13 +159,23 @@ func middle(rect image.Rectangle) (x int, y int) {
 
 func left() {
 	eng.Left()
-	time.Sleep(250 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	eng.Stop()
 }
 
-// right ...
 func right() {
 	eng.Right()
-	time.Sleep(250 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
+	eng.Stop()
+}
+
+func forward() {
+	eng.Forward()
+	time.Sleep(200 * time.Millisecond)
+	eng.Stop()
+	// time.Sleep(1000 * time.Millisecond)
+}
+
+func stop() {
 	eng.Stop()
 }

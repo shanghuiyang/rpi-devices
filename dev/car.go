@@ -38,6 +38,7 @@ const (
 	left     CarOp = "left"
 	right    CarOp = "right"
 	stop     CarOp = "stop"
+	pause    CarOp = "pause"
 	turn     CarOp = "turn"
 	scan     CarOp = "scan"
 
@@ -454,6 +455,10 @@ func (c *Car) selfDrivingOn() {
 			}
 			c.delay(50)
 			continue
+		case pause:
+			fwd = false
+			c.delay(500)
+			continue
 		}
 	}
 	c.stop()
@@ -548,7 +553,7 @@ func (c *Car) speechDrivingOff() {
 
 func (c *Car) detecting(chOp chan CarOp) {
 
-	chQuit := make(chan bool, 2)
+	chQuit := make(chan bool, 4)
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -558,7 +563,7 @@ func (c *Car) detecting(chOp chan CarOp) {
 	go c.detectObstacles(chOp, chQuit, &wg)
 
 	wg.Add(1)
-	go c.detectBalls(chOp, chQuit, &wg)
+	go c.detectBall(chOp, chQuit, &wg)
 
 	wg.Wait()
 	close(chQuit)
@@ -583,10 +588,12 @@ func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 			if d < 10 {
 				chOp <- backward
 				chQuit <- true
+				chQuit <- true
 				return
 			}
 			if d < 40 {
 				chOp <- stop
+				chQuit <- true
 				chQuit <- true
 				return
 			}
@@ -612,6 +619,7 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 				go c.horn.Beep(1, 100)
 				log.Printf("[car]crashed")
 				chQuit <- true
+				chQuit <- true
 				return
 			}
 		}
@@ -619,15 +627,12 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 	}
 }
 
-func (c *Car) detectBalls(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	// rcolor := color.RGBA{G: 255, A: 255}
-	// lcolor := color.RGBA{R: 255, A: 255}
-
-	// the red ball
-	lhsv := gocv.Scalar{Val1: 0, Val2: 100, Val3: 100}
-	hhsv := gocv.Scalar{Val1: 42, Val2: 255, Val3: 255}
+	// the yellow ball
+	lhsv := gocv.Scalar{Val1: 33, Val2: 108, Val3: 138}
+	hhsv := gocv.Scalar{Val1: 61, Val2: 255, Val3: 255}
 
 	size := image.Point{X: 600, Y: 600}
 	blur := image.Point{X: 11, Y: 11}
@@ -643,8 +648,12 @@ func (c *Car) detectBalls(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 	defer hsv.Close()
 	defer kernel.Close()
 
-	video, _ := gocv.OpenVideoCapture(0)
-	defer video.Close()
+	cam, err := gocv.OpenVideoCapture(0)
+	if err != nil {
+		log.Printf("[car]failed to open video for capturing")
+		return
+	}
+	defer cam.Close()
 
 	for c.selfdriving {
 		select {
@@ -656,7 +665,8 @@ func (c *Car) detectBalls(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 			// do nothing
 		}
 
-		if !video.Read(&img) {
+		cam.Grab(6)
+		if !cam.Read(&img) {
 			continue
 		}
 		gocv.Flip(img, &img, 1)
@@ -670,27 +680,61 @@ func (c *Car) detectBalls(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 		if len(cnt) == 0 {
 			continue
 		}
-		chQuit <- true
-		chOp <- stop
 
-		rect := gocv.BoundingRect(cnt)
-		// ---
-		// gocv.Rectangle(&img, rect, rcolor, 2)
-		// imgf := fmt.Sprintf("test%v.jpg", i+100000)
-		// gocv.IMWrite(imgf, img)
-		// i++
-		// ---
-		x, y := middle(rect)
-		log.Printf("[car]ball at: (%v, %v)\n", x, y)
-		dx := x - 300
-		for dx < -50 {
-			c.left()
+		// found a ball
+		log.Printf("[car]found a ball")
+		chQuit <- true
+		chQuit <- true
+		chOp <- pause
+		c.stop()
+		c.horn.Beep(2, 100)
+		c.delay(1000)
+
+		for c.selfdriving {
+			cam.Grab(6)
+			if !cam.Read(&img) {
+				continue
+			}
+			gocv.Flip(img, &img, 1)
+			gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
+			gocv.GaussianBlur(img, &frame, blur, 0, 0, gocv.BorderReflect101)
+			gocv.CvtColor(frame, &hsv, gocv.ColorBGRToHSV)
+			gocv.InRangeWithScalar(hsv, lhsv, hhsv, &mask)
+			gocv.Erode(mask, &mask, kernel)
+			gocv.Dilate(mask, &mask, kernel)
+			cnt := bestContour(mask, 200)
+			if len(cnt) == 0 {
+				// lost the ball
+				chOp <- turn
+				return
+			}
+			rect := gocv.BoundingRect(cnt)
+			if rect.Max.Y > 580 {
+				c.stop()
+				c.horn.Beep(1, 300)
+				continue
+			}
+			x, y := middle(rect)
+			log.Printf("[car]found a ball at: (%v, %v)", x, y)
+			if x < 200 {
+				log.Printf("[car]turn right forward to the ball")
+				c.engine.Right()
+				c.delay(100)
+				c.engine.Stop()
+				continue
+			}
+			if x > 400 {
+				log.Printf("[car]turn left forward to the ball")
+				c.engine.Left()
+				c.delay(100)
+				c.engine.Stop()
+				continue
+			}
+			c.engine.Forward()
+			c.delay(200)
+			c.engine.Stop()
 		}
-		for dx > 50 {
-			c.right()
-		}
-		chOp <- forward
-		return
+
 	}
 }
 
