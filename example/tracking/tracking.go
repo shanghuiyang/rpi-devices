@@ -5,9 +5,11 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/hybridgroup/mjpeg"
 	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
@@ -21,9 +23,12 @@ const (
 	pinIn4 = 22
 	pinENA = 13
 	pinENB = 19
+
+	host = "0.0.0.0:8088"
 )
 
 var eng *dev.L298N
+var stream *mjpeg.Stream
 
 func main() {
 	if err := rpio.Open(); err != nil {
@@ -42,7 +47,14 @@ func main() {
 		rpio.Close()
 	})
 
-	tracking()
+	stream = mjpeg.NewStream()
+
+	// start capturing
+	// go mjpegCapture()
+	go tracking()
+	http.Handle("/", stream)
+	log.Fatal(http.ListenAndServe(host, nil))
+
 	os.Exit(0)
 }
 
@@ -68,7 +80,11 @@ func tracking() {
 	defer hsv.Close()
 	defer kernel.Close()
 
-	video, _ := gocv.OpenVideoCapture(0)
+	video, err := gocv.OpenVideoCapture(0)
+	if err != nil {
+		log.Printf("failed to open video")
+		return
+	}
 	defer video.Close()
 
 	n := 0
@@ -102,6 +118,8 @@ func tracking() {
 		cnt := bestContour(mask, 200)
 		if len(cnt) == 0 {
 			log.Printf("[tracking]len(cnt)==0")
+			buf, _ := gocv.IMEncode(".jpg", img)
+			stream.UpdateJPEG(buf)
 			continue
 		}
 
@@ -109,15 +127,18 @@ func tracking() {
 		fmt.Printf("rect w=%v, h=%v\n", rect.Dx(), rect.Dy())
 		fmt.Printf("rect max y=%v\n", rect.Max.Y)
 
+		gocv.Rectangle(&img, rect, rcolor, 2)
+		// imgf := fmt.Sprintf("img%v.jpg", i+300000)
+		// log.Printf("save %v", imgf)
+		// gocv.IMWrite(imgf, img)
+		buf, _ := gocv.IMEncode(".jpg", img)
+		stream.UpdateJPEG(buf)
+
 		if rect.Max.Y > 560 {
 			stop()
 			continue
 		}
 
-		gocv.Rectangle(&img, rect, rcolor, 2)
-		imgf := fmt.Sprintf("img%v.jpg", i+300000)
-		log.Printf("save %v", imgf)
-		gocv.IMWrite(imgf, img)
 		// ---
 
 		x, y := middle(rect)

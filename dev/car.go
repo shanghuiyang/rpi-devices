@@ -2,7 +2,6 @@ package dev
 
 import (
 	"errors"
-	"image"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -13,7 +12,7 @@ import (
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
-	"gocv.io/x/gocv"
+	"github.com/shanghuiyang/rpi-devices/cv"
 )
 
 const (
@@ -74,6 +73,16 @@ var (
 		90:  17,
 	}
 	aheadAngles = []int{0, -15, 0, 15}
+)
+
+var (
+	// the hsv of a tennis
+	lh = float64(33)
+	ls = float64(108)
+	lv = float64(138)
+	hh = float64(61)
+	hs = float64(255)
+	hv = float64(255)
 )
 
 type (
@@ -563,7 +572,7 @@ func (c *Car) detecting(chOp chan CarOp) {
 	go c.detectObstacles(chOp, chQuit, &wg)
 
 	wg.Add(1)
-	go c.detectBall(chOp, chQuit, &wg)
+	go c.trackingObj(chOp, chQuit, &wg)
 
 	wg.Wait()
 	close(chQuit)
@@ -627,33 +636,15 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 	}
 }
 
-func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	// the yellow ball
-	lhsv := gocv.Scalar{Val1: 33, Val2: 108, Val3: 138}
-	hhsv := gocv.Scalar{Val1: 61, Val2: 255, Val3: 255}
-
-	size := image.Point{X: 600, Y: 600}
-	blur := image.Point{X: 11, Y: 11}
-
-	img := gocv.NewMat()
-	mask := gocv.NewMat()
-	frame := gocv.NewMat()
-	hsv := gocv.NewMat()
-	kernel := gocv.NewMat()
-	defer img.Close()
-	defer mask.Close()
-	defer frame.Close()
-	defer hsv.Close()
-	defer kernel.Close()
-
-	cam, err := gocv.OpenVideoCapture(0)
+	tracker, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
+	log.Printf("using tracker")
 	if err != nil {
-		log.Printf("[car]failed to open video for capturing")
 		return
 	}
-	defer cam.Close()
+	defer tracker.Close()
 
 	for c.selfdriving {
 		select {
@@ -665,19 +656,8 @@ func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) 
 			// do nothing
 		}
 
-		cam.Grab(6)
-		if !cam.Read(&img) {
-			continue
-		}
-		gocv.Flip(img, &img, 1)
-		gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
-		gocv.GaussianBlur(img, &frame, blur, 0, 0, gocv.BorderReflect101)
-		gocv.CvtColor(frame, &hsv, gocv.ColorBGRToHSV)
-		gocv.InRangeWithScalar(hsv, lhsv, hhsv, &mask)
-		gocv.Erode(mask, &mask, kernel)
-		gocv.Dilate(mask, &mask, kernel)
-		cnt := bestContour(mask, 200)
-		if len(cnt) == 0 {
+		ok, _ := tracker.Locate()
+		if !ok {
 			continue
 		}
 
@@ -691,30 +671,18 @@ func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) 
 		c.delay(1000)
 
 		for c.selfdriving {
-			cam.Grab(6)
-			if !cam.Read(&img) {
-				continue
-			}
-			gocv.Flip(img, &img, 1)
-			gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
-			gocv.GaussianBlur(img, &frame, blur, 0, 0, gocv.BorderReflect101)
-			gocv.CvtColor(frame, &hsv, gocv.ColorBGRToHSV)
-			gocv.InRangeWithScalar(hsv, lhsv, hhsv, &mask)
-			gocv.Erode(mask, &mask, kernel)
-			gocv.Dilate(mask, &mask, kernel)
-			cnt := bestContour(mask, 200)
-			if len(cnt) == 0 {
+			ok, rect := tracker.Locate()
+			if !ok {
 				// lost the ball
 				chOp <- turn
 				return
 			}
-			rect := gocv.BoundingRect(cnt)
-			if rect.Max.Y > 580 {
+			if rect.Max.Y > 540 {
 				c.stop()
 				c.horn.Beep(1, 300)
 				continue
 			}
-			x, y := middle(rect)
+			x, y := tracker.MiddleXY(rect)
 			log.Printf("[car]found a ball at: (%v, %v)", x, y)
 			if x < 200 {
 				log.Printf("[car]turn right forward to the ball")
@@ -737,6 +705,76 @@ func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) 
 
 	}
 }
+
+// func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+// 	defer wg.Done()
+
+// 	cam, err := gocv.OpenVideoCapture(0)
+// 	if err != nil {
+// 		log.Printf("[car]failed to open video for capturing")
+// 		return
+// 	}
+// 	defer cam.Close()
+
+// 	for c.selfdriving {
+// 		select {
+// 		case quit := <-chQuit:
+// 			if quit {
+// 				return
+// 			}
+// 		default:
+// 			// do nothing
+// 		}
+
+// 		ok, _ := c.locateBall(cam)
+// 		if !ok {
+// 			continue
+// 		}
+
+// 		// found a ball
+// 		log.Printf("[car]found a ball")
+// 		chQuit <- true
+// 		chQuit <- true
+// 		chOp <- pause
+// 		c.stop()
+// 		c.horn.Beep(2, 100)
+// 		c.delay(1000)
+
+// 		for c.selfdriving {
+// 			ok, rect := c.locateBall(cam)
+// 			if !ok {
+// 				// lost the ball
+// 				chOp <- turn
+// 				return
+// 			}
+// 			if rect.Max.Y > 580 {
+// 				c.stop()
+// 				c.horn.Beep(1, 300)
+// 				continue
+// 			}
+// 			x, y := c.middle(rect)
+// 			log.Printf("[car]found a ball at: (%v, %v)", x, y)
+// 			if x < 200 {
+// 				log.Printf("[car]turn right forward to the ball")
+// 				c.engine.Right()
+// 				c.delay(100)
+// 				c.engine.Stop()
+// 				continue
+// 			}
+// 			if x > 400 {
+// 				log.Printf("[car]turn left forward to the ball")
+// 				c.engine.Left()
+// 				c.delay(100)
+// 				c.engine.Stop()
+// 				continue
+// 			}
+// 			c.engine.Forward()
+// 			c.delay(200)
+// 			c.engine.Stop()
+// 		}
+
+// 	}
+// }
 
 func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -926,22 +964,59 @@ func (c *Car) playText(text string) error {
 	return nil
 }
 
-func bestContour(frame gocv.Mat, minArea float64) []image.Point {
-	cnts := gocv.FindContours(frame, gocv.RetrievalExternal, gocv.ChainApproxSimple)
-	var (
-		bestCnt  []image.Point
-		bestArea = minArea
-	)
-	for _, cnt := range cnts {
-		if area := gocv.ContourArea(cnt); area > bestArea {
-			bestArea = area
-			bestCnt = cnt
-		}
-	}
-	return bestCnt
-}
+// func (c *Car) locateBall(cam *gocv.VideoCapture) (bool, *image.Rectangle) {
+// 	// the tennis ball
+// 	lhsv := gocv.Scalar{Val1: 33, Val2: 108, Val3: 138}
+// 	hhsv := gocv.Scalar{Val1: 61, Val2: 255, Val3: 255}
 
-// middle calculates the middle x and y of a rectangle.
-func middle(rect image.Rectangle) (x int, y int) {
-	return (rect.Max.X-rect.Min.X)/2 + rect.Min.X, (rect.Max.Y-rect.Min.Y)/2 + rect.Min.Y
-}
+// 	size := image.Point{X: 600, Y: 600}
+// 	blur := image.Point{X: 11, Y: 11}
+
+// 	img := gocv.NewMat()
+// 	mask := gocv.NewMat()
+// 	frame := gocv.NewMat()
+// 	hsv := gocv.NewMat()
+// 	kernel := gocv.NewMat()
+// 	defer img.Close()
+// 	defer mask.Close()
+// 	defer frame.Close()
+// 	defer hsv.Close()
+// 	defer kernel.Close()
+
+// 	cam.Grab(6)
+// 	if !cam.Read(&img) {
+// 		return false, nil
+// 	}
+// 	gocv.Flip(img, &img, 1)
+// 	gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
+// 	gocv.GaussianBlur(img, &frame, blur, 0, 0, gocv.BorderReflect101)
+// 	gocv.CvtColor(frame, &hsv, gocv.ColorBGRToHSV)
+// 	gocv.InRangeWithScalar(hsv, lhsv, hhsv, &mask)
+// 	gocv.Erode(mask, &mask, kernel)
+// 	gocv.Dilate(mask, &mask, kernel)
+// 	cnt := c.bestContour(mask, 200)
+// 	if len(cnt) == 0 {
+// 		return false, nil
+// 	}
+// 	r := gocv.BoundingRect(cnt)
+// 	return true, &r
+// }
+
+// func (c *Car) bestContour(frame gocv.Mat, minArea float64) []image.Point {
+// 	cnts := gocv.FindContours(frame, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+// 	var (
+// 		bestCnt  []image.Point
+// 		bestArea = minArea
+// 	)
+// 	for _, cnt := range cnts {
+// 		if area := gocv.ContourArea(cnt); area > bestArea {
+// 			bestArea = area
+// 			bestCnt = cnt
+// 		}
+// 	}
+// 	return bestCnt
+// }
+
+// func (c *Car) middle(rect *image.Rectangle) (x int, y int) {
+// 	return (rect.Max.X-rect.Min.X)/2 + rect.Min.X, (rect.Max.Y-rect.Min.Y)/2 + rect.Min.Y
+// }
