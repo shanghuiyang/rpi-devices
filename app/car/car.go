@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
@@ -37,6 +38,16 @@ const (
 	pin33v = 5
 
 	ipPattern = "((000.000.000.000))"
+)
+
+var (
+	// the hsv of a tennis
+	lh = float64(33)
+	ls = float64(108)
+	lv = float64(138)
+	hh = float64(61)
+	hs = float64(255)
+	hv = float64(255)
 )
 
 type carServer struct {
@@ -106,6 +117,11 @@ func main() {
 		log.Printf("[carapp]failed to new a camera, will build a car without cameras")
 	}
 
+	t, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
+	if err != nil {
+		log.Printf("[carapp]failed to new a tracker, will build a car without trankers")
+	}
+
 	car := dev.NewCar(
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
@@ -116,6 +132,7 @@ func main() {
 		dev.WithLed(led),
 		dev.WithLight(light),
 		dev.WithCamera(cam),
+		dev.WithTracker(t),
 	)
 	if car == nil {
 		log.Fatal("failed to new a car")

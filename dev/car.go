@@ -75,16 +75,6 @@ var (
 	aheadAngles = []int{0, -15, 0, 15}
 )
 
-var (
-	// the hsv of a tennis
-	lh = float64(33)
-	ls = float64(108)
-	lv = float64(138)
-	hh = float64(61)
-	hs = float64(255)
-	hv = float64(255)
-)
-
 type (
 	// CarOp ...
 	CarOp string
@@ -155,6 +145,13 @@ func WithCamera(cam *Camera) Option {
 	}
 }
 
+// WithTracker ...
+func WithTracker(t *cv.Tracker) Option {
+	return func(c *Car) {
+		c.tracker = t
+	}
+}
+
 // Car ...
 type Car struct {
 	engine   *L298N
@@ -167,9 +164,10 @@ type Car struct {
 	light    *Led
 	camera   *Camera
 
-	asr  *speech.ASR
-	tts  *speech.TTS
-	imgr *recognizer.Recognizer
+	asr     *speech.ASR
+	tts     *speech.TTS
+	imgr    *recognizer.Recognizer
+	tracker *cv.Tracker
 
 	servoAngle    int
 	selfdriving   bool
@@ -208,6 +206,7 @@ func (c *Car) Stop() error {
 	close(c.chOp)
 	c.engine.Stop()
 	c.encoder.Close()
+	c.tracker.Close()
 	return nil
 }
 
@@ -416,8 +415,8 @@ func (c *Car) selfDrivingOn() {
 		case p := <-chOp:
 			op = p
 			for len(chOp) > 0 {
-				// log.Printf("[car]len(chOp)=%v, op=%v", len(chOp), <-chOp)
-				_ = <-chOp
+				log.Printf("[car]skip op: %v", <-chOp)
+				// _ = <-chOp
 			}
 		default:
 			// 	do nothing
@@ -639,13 +638,6 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	tracker, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
-	log.Printf("using tracker")
-	if err != nil {
-		return
-	}
-	defer tracker.Close()
-
 	for c.selfdriving {
 		select {
 		case quit := <-chQuit:
@@ -656,7 +648,7 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 			// do nothing
 		}
 
-		ok, _ := tracker.Locate()
+		ok, _ := c.tracker.Locate()
 		if !ok {
 			continue
 		}
@@ -668,13 +660,14 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 		chOp <- pause
 		c.stop()
 		c.horn.Beep(2, 100)
-		c.delay(1000)
+		// c.delay(1000)
 
 		for c.selfdriving {
-			ok, rect := tracker.Locate()
+			ok, rect := c.tracker.Locate()
 			if !ok {
 				// lost the ball
-				chOp <- turn
+				log.Printf("[car]lost the ball")
+				chOp <- scan
 				return
 			}
 			if rect.Max.Y > 540 {
@@ -682,99 +675,30 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 				c.horn.Beep(1, 300)
 				continue
 			}
-			x, y := tracker.MiddleXY(rect)
+			x, y := c.tracker.MiddleXY(rect)
 			log.Printf("[car]found a ball at: (%v, %v)", x, y)
 			if x < 200 {
-				log.Printf("[car]turn right forward to the ball")
+				log.Printf("[car]turn right to the ball")
 				c.engine.Right()
 				c.delay(100)
 				c.engine.Stop()
 				continue
 			}
 			if x > 400 {
-				log.Printf("[car]turn left forward to the ball")
+				log.Printf("[car]turn left to the ball")
 				c.engine.Left()
 				c.delay(100)
 				c.engine.Stop()
 				continue
 			}
+			log.Printf("[car]forward to the ball")
 			c.engine.Forward()
-			c.delay(200)
+			c.delay(100)
 			c.engine.Stop()
 		}
 
 	}
 }
-
-// func (c *Car) detectBall(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
-// 	defer wg.Done()
-
-// 	cam, err := gocv.OpenVideoCapture(0)
-// 	if err != nil {
-// 		log.Printf("[car]failed to open video for capturing")
-// 		return
-// 	}
-// 	defer cam.Close()
-
-// 	for c.selfdriving {
-// 		select {
-// 		case quit := <-chQuit:
-// 			if quit {
-// 				return
-// 			}
-// 		default:
-// 			// do nothing
-// 		}
-
-// 		ok, _ := c.locateBall(cam)
-// 		if !ok {
-// 			continue
-// 		}
-
-// 		// found a ball
-// 		log.Printf("[car]found a ball")
-// 		chQuit <- true
-// 		chQuit <- true
-// 		chOp <- pause
-// 		c.stop()
-// 		c.horn.Beep(2, 100)
-// 		c.delay(1000)
-
-// 		for c.selfdriving {
-// 			ok, rect := c.locateBall(cam)
-// 			if !ok {
-// 				// lost the ball
-// 				chOp <- turn
-// 				return
-// 			}
-// 			if rect.Max.Y > 580 {
-// 				c.stop()
-// 				c.horn.Beep(1, 300)
-// 				continue
-// 			}
-// 			x, y := c.middle(rect)
-// 			log.Printf("[car]found a ball at: (%v, %v)", x, y)
-// 			if x < 200 {
-// 				log.Printf("[car]turn right forward to the ball")
-// 				c.engine.Right()
-// 				c.delay(100)
-// 				c.engine.Stop()
-// 				continue
-// 			}
-// 			if x > 400 {
-// 				log.Printf("[car]turn left forward to the ball")
-// 				c.engine.Left()
-// 				c.delay(100)
-// 				c.engine.Stop()
-// 				continue
-// 			}
-// 			c.engine.Forward()
-// 			c.delay(200)
-// 			c.engine.Stop()
-// 		}
-
-// 	}
-// }
 
 func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 	defer wg.Done()
