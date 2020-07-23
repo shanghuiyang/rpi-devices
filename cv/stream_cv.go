@@ -1,5 +1,3 @@
-// +build gocv
-
 package cv
 
 import (
@@ -17,7 +15,7 @@ type Stream struct {
 	stream *mjpeg.Stream
 }
 
-// NewTracker ...
+// NewStream ...
 func NewStream(cam *gocv.VideoCapture, host string) *Stream {
 	return &Stream{
 		host:   host,
@@ -26,21 +24,28 @@ func NewStream(cam *gocv.VideoCapture, host string) *Stream {
 	}
 }
 
-// Locate ...
-func (s *Stream) StartService() {
-	http.Handle("/video", s.stream)
-	if err := http.ListenAndServe(s.host, nil); err != nil {
-		log.Printf("[stream]failed to listen and serve, err: %v", err)
-		return
-	}
+// Start ...
+func (s *Stream) Start() {
+	go func() {
+		http.Handle("/video", s.stream)
+		if err := http.ListenAndServe(s.host, nil); err != nil {
+			log.Printf("[stream]failed to listen and serve, err: %v", err)
+			return
+		}
+	}()
 
-}
-
-func (s *Stream) Push(img *gocv.Mat) {
-	buf, err := gocv.IMEncode(".jpg", *img)
-	if err != nil {
-		log.Printf("[stream]failed to push image, err: %v", err)
-		return
+	img := gocv.NewMat()
+	defer img.Close()
+	for true {
+		s.cam.Grab(6)
+		if !s.cam.Read(&img) {
+			continue
+		}
+		buf, err := gocv.IMEncode(".jpg", img)
+		if err != nil {
+			log.Printf("[stream]failed to push image, err: %v", err)
+			continue
+		}
+		s.stream.UpdateJPEG(buf)
 	}
-	s.stream.UpdateJPEG(buf)
 }
