@@ -461,7 +461,7 @@ func (c *Car) selfDrivingOn() {
 				fwd = true
 				go c.detecting(chOp)
 			}
-			c.delay(50)
+			// c.delay(50)
 			continue
 		case pause:
 			fwd = false
@@ -637,7 +637,7 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 
 func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
-
+	angle := 0
 	for c.selfdriving {
 		select {
 		case quit := <-chQuit:
@@ -660,16 +660,22 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 		chOp <- pause
 		c.stop()
 		c.horn.Beep(2, 100)
-		// c.delay(1000)
 
 		for c.selfdriving {
 			ok, rect := c.tracker.Locate()
 			if !ok {
-				// lost the ball
+				// lost the ball, looking for it by turning 360 degree
 				log.Printf("[car]lost the ball")
+				if angle < 360 {
+					c.turn(30)
+					angle += 30
+					c.delay(200)
+					continue
+				}
 				chOp <- scan
 				return
 			}
+			angle = 0
 			if rect.Max.Y > 540 {
 				c.stop()
 				c.horn.Beep(1, 300)
