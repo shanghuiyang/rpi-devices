@@ -1,3 +1,5 @@
+// +build gocv
+
 package cv
 
 import (

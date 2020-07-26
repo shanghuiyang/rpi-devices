@@ -676,7 +676,7 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 				return
 			}
 			angle = 0
-			if rect.Max.Y > 540 {
+			if rect.Max.Y > 580 {
 				c.stop()
 				c.horn.Beep(1, 300)
 				continue
