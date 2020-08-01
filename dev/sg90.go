@@ -12,18 +12,21 @@ package dev
 import (
 	"time"
 
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/stianeikeland/go-rpio"
 )
 
 // SG90 ...
 type SG90 struct {
 	pin rpio.Pin
+	rpi base.RpiModel
 }
 
 // NewSG90 ...
 func NewSG90(pin uint8) *SG90 {
 	s := &SG90{
 		pin: rpio.Pin(pin),
+		rpi: base.GetRpiModel(),
 	}
 	s.pin.Pwm()
 	s.pin.Freq(50)
@@ -50,7 +53,11 @@ func (s *SG90) Roll(angle int) {
 		return
 	}
 	duty := uint32(10.0 - float32(angle)/15.0)
-	s.pin.DutyCycle(duty, 100)
+	if s.rpi == base.Rpi4 {
+		// Rpi4 uses a BCM 2711, which is different from the early rpi like rpi3, rpi2, rpiA and rpi0
+		duty = uint32(26.5 - 39*float32(angle)/180)
+	}
+	s.pin.DutyCycle(uint32(duty), 100)
 	time.Sleep(100 * time.Millisecond)
 	s.pin.DutyCycle(0, 100)
 }

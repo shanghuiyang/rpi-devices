@@ -25,7 +25,7 @@ func NewEncoder(pin uint8) *Encoder {
 	}
 	e.pin.Input()
 	e.pin.PullDown()
-	e.pin.Detect(rpio.RiseEdge)
+	e.pin.Detect(rpio.NoEdge)
 	return e
 }
 
@@ -42,7 +42,12 @@ func (e *Encoder) Count1() int {
 	return 0
 }
 
-// Close ...
-func (e *Encoder) Close() {
+// Start ...
+func (e *Encoder) Start() {
+	e.pin.Detect(rpio.RiseEdge)
+}
+
+// Stop ...
+func (e *Encoder) Stop() {
 	e.pin.Detect(rpio.NoEdge)
 }

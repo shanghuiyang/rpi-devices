@@ -266,12 +266,14 @@ func tuningEncoder(eng *dev.L298N, encoder *dev.Encoder) {
 		} else {
 			eng.Right()
 		}
+
+		encoder.Start()
 		for i := 0; i < count; {
 			i += encoder.Count1()
 		}
 		eng.Stop()
+		encoder.Stop()
 	}
 	eng.Stop()
-	encoder.Close()
 	return
 }

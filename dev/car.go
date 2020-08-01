@@ -205,7 +205,6 @@ func (c *Car) Do(op CarOp) {
 func (c *Car) Stop() error {
 	close(c.chOp)
 	c.engine.Stop()
-	c.encoder.Close()
 	c.tracker.Close()
 	return nil
 }
@@ -461,7 +460,7 @@ func (c *Car) selfDrivingOn() {
 				fwd = true
 				go c.detecting(chOp)
 			}
-			// c.delay(50)
+			c.delay(50)
 			continue
 		case pause:
 			fwd = false
@@ -807,6 +806,10 @@ func (c *Car) turn(angle int) {
 	} else {
 		c.engine.Right()
 	}
+
+	c.encoder.Start()
+	defer c.encoder.Stop()
+
 	for i := 0; i < n; {
 		i += c.encoder.Count1()
 	}
@@ -893,60 +896,3 @@ func (c *Car) playText(text string) error {
 	}
 	return nil
 }
-
-// func (c *Car) locateBall(cam *gocv.VideoCapture) (bool, *image.Rectangle) {
-// 	// the tennis ball
-// 	lhsv := gocv.Scalar{Val1: 33, Val2: 108, Val3: 138}
-// 	hhsv := gocv.Scalar{Val1: 61, Val2: 255, Val3: 255}
-
-// 	size := image.Point{X: 600, Y: 600}
-// 	blur := image.Point{X: 11, Y: 11}
-
-// 	img := gocv.NewMat()
-// 	mask := gocv.NewMat()
-// 	frame := gocv.NewMat()
-// 	hsv := gocv.NewMat()
-// 	kernel := gocv.NewMat()
-// 	defer img.Close()
-// 	defer mask.Close()
-// 	defer frame.Close()
-// 	defer hsv.Close()
-// 	defer kernel.Close()
-
-// 	cam.Grab(6)
-// 	if !cam.Read(&img) {
-// 		return false, nil
-// 	}
-// 	gocv.Flip(img, &img, 1)
-// 	gocv.Resize(img, &img, size, 0, 0, gocv.InterpolationLinear)
-// 	gocv.GaussianBlur(img, &frame, blur, 0, 0, gocv.BorderReflect101)
-// 	gocv.CvtColor(frame, &hsv, gocv.ColorBGRToHSV)
-// 	gocv.InRangeWithScalar(hsv, lhsv, hhsv, &mask)
-// 	gocv.Erode(mask, &mask, kernel)
-// 	gocv.Dilate(mask, &mask, kernel)
-// 	cnt := c.bestContour(mask, 200)
-// 	if len(cnt) == 0 {
-// 		return false, nil
-// 	}
-// 	r := gocv.BoundingRect(cnt)
-// 	return true, &r
-// }
-
-// func (c *Car) bestContour(frame gocv.Mat, minArea float64) []image.Point {
-// 	cnts := gocv.FindContours(frame, gocv.RetrievalExternal, gocv.ChainApproxSimple)
-// 	var (
-// 		bestCnt  []image.Point
-// 		bestArea = minArea
-// 	)
-// 	for _, cnt := range cnts {
-// 		if area := gocv.ContourArea(cnt); area > bestArea {
-// 			bestArea = area
-// 			bestCnt = cnt
-// 		}
-// 	}
-// 	return bestCnt
-// }
-
-// func (c *Car) middle(rect *image.Rectangle) (x int, y int) {
-// 	return (rect.Max.X-rect.Min.X)/2 + rect.Min.X, (rect.Max.Y-rect.Min.Y)/2 + rect.Min.Y
-// }
