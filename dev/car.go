@@ -2,6 +2,7 @@ package dev
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -54,6 +55,9 @@ const (
 	selfdrivingon  CarOp = "selfdrivingon"
 	selfdrivingoff CarOp = "selfdrivingoff"
 
+	selftrackingon  CarOp = "selftrackingon"
+	selftrackingoff CarOp = "selftrackingoff"
+
 	speechdrivingon  CarOp = "speechdrivingon"
 	speechdrivingoff CarOp = "speechdrivingoff"
 )
@@ -73,6 +77,16 @@ var (
 		90:  17,
 	}
 	aheadAngles = []int{0, -15, 0, 15}
+)
+
+var (
+	// the hsv of a tennis
+	lh = float64(33)
+	ls = float64(108)
+	lv = float64(138)
+	hh = float64(61)
+	hs = float64(255)
+	hv = float64(255)
 )
 
 type (
@@ -145,13 +159,6 @@ func WithCamera(cam *Camera) Option {
 	}
 }
 
-// WithTracker ...
-func WithTracker(t *cv.Tracker) Option {
-	return func(c *Car) {
-		c.tracker = t
-	}
-}
-
 // Car ...
 type Car struct {
 	engine   *L298N
@@ -172,6 +179,7 @@ type Car struct {
 	servoAngle    int
 	selfdriving   bool
 	speechdriving bool
+	selftracking  bool
 	chOp          chan CarOp
 }
 
@@ -205,8 +213,12 @@ func (c *Car) Do(op CarOp) {
 func (c *Car) Stop() error {
 	close(c.chOp)
 	c.engine.Stop()
-	c.tracker.Close()
 	return nil
+}
+
+// GetState ...
+func (c *Car) GetState() (selfDriving, selfTracking, speechDriving bool) {
+	return c.selfdriving, c.selftracking, c.speechdriving
 }
 
 func (c *Car) start() {
@@ -238,6 +250,10 @@ func (c *Car) start() {
 			go c.selfDrivingOn()
 		case selfdrivingoff:
 			go c.selfDrivingOff()
+		case selftrackingon:
+			go c.selfTrackingOn()
+		case selftrackingoff:
+			go c.selfTrackingOff()
 		case speechdrivingon:
 			go c.speechDrivingOn()
 		case speechdrivingoff:
@@ -381,12 +397,7 @@ func (c *Car) servoAhead() {
 
 
 */
-func (c *Car) selfDrivingOn() {
-	if c.selfdriving {
-		return
-	}
-
-	log.Printf("[car]self-drving on")
+func (c *Car) selfDriving() {
 	if c.ult == nil {
 		log.Printf("[car]can't self-driving without the distance sensor")
 		return
@@ -395,9 +406,6 @@ func (c *Car) selfDrivingOn() {
 	// make a warning before running into self-driving mode
 	c.horn.Beep(3, 300)
 
-	// start self-driving
-	c.selfdriving = true
-	c.speechdriving = false
 	var (
 		fwd       bool
 		retry     int
@@ -409,7 +417,7 @@ func (c *Car) selfDrivingOn() {
 		chOp      = make(chan CarOp, 4)
 	)
 
-	for c.selfdriving {
+	for c.selfdriving || c.selftracking {
 		select {
 		case p := <-chOp:
 			op = p
@@ -473,14 +481,7 @@ func (c *Car) selfDrivingOn() {
 	close(chOp)
 }
 
-func (c *Car) speechDrivingOn() {
-	if c.speechdriving {
-		return
-	}
-	log.Printf("[car]speech-drving on")
-	c.speechdriving = true
-	c.selfdriving = false
-
+func (c *Car) speechDriving() {
 	var (
 		op   = stop
 		fwd  = false
@@ -548,9 +549,67 @@ func (c *Car) speechDrivingOn() {
 	close(chOp)
 }
 
+func (c *Car) selfDrivingOn() {
+	if c.selfdriving {
+		return
+	}
+	c.selftracking = false
+	c.speechdriving = false
+	c.delay(1000) // wait for self-tracking and speech-driving quit
+
+	c.selfdriving = true
+	log.Printf("[car]self-drving on")
+	c.selfDriving()
+}
+
 func (c *Car) selfDrivingOff() {
 	c.selfdriving = false
 	log.Printf("[car]self-drving off")
+}
+
+func (c *Car) selfTrackingOn() {
+	if c.selftracking {
+		return
+	}
+	c.stopMotion()
+	c.selfdriving = false
+	c.speechdriving = false
+	c.delay(1000) // wait to quit self-driving & speech-driving
+
+	// start slef-tracking
+	t, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
+	if err != nil {
+		log.Printf("[carapp]failed to create a tracker, error: %v", err)
+		return
+	}
+	c.tracker = t
+	c.selftracking = true
+	log.Printf("[car]self-tracking on")
+	c.selfDriving()
+}
+
+func (c *Car) selfTrackingOff() {
+	c.selftracking = false
+	c.tracker.Close()
+	c.delay(500)
+
+	if err := c.startMotion(); err != nil {
+		log.Printf("[car]failed to start motion, error: %v", err)
+	}
+	log.Printf("[car]self-tracking off")
+}
+
+func (c *Car) speechDrivingOn() {
+	if c.speechdriving {
+		return
+	}
+	c.selfdriving = false
+	c.selftracking = false
+	c.delay(1000) // wait for self-driving and self-tracking quit
+
+	c.speechdriving = true
+	log.Printf("[car]speech-drving on")
+	c.speechDriving()
 }
 
 func (c *Car) speechDrivingOff() {
@@ -569,8 +628,10 @@ func (c *Car) detecting(chOp chan CarOp) {
 	wg.Add(1)
 	go c.detectObstacles(chOp, chQuit, &wg)
 
-	wg.Add(1)
-	go c.trackingObj(chOp, chQuit, &wg)
+	if c.selftracking {
+		wg.Add(1)
+		go c.trackingObj(chOp, chQuit, &wg)
+	}
 
 	wg.Wait()
 	close(chQuit)
@@ -579,7 +640,7 @@ func (c *Car) detecting(chOp chan CarOp) {
 func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	for c.selfdriving || c.speechdriving {
+	for c.selfdriving || c.selftracking || c.speechdriving {
 		for _, angle := range aheadAngles {
 			select {
 			case quit := <-chQuit:
@@ -611,7 +672,7 @@ func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	for c.selfdriving || c.speechdriving {
+	for c.selfdriving || c.selftracking || c.speechdriving {
 		select {
 		case quit := <-chQuit:
 			if quit {
@@ -637,7 +698,7 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	angle := 0
-	for c.selfdriving {
+	for c.selftracking {
 		select {
 		case quit := <-chQuit:
 			if quit {
@@ -658,13 +719,14 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 		chQuit <- true
 		chOp <- pause
 		c.stop()
-		c.horn.Beep(2, 100)
 
-		for c.selfdriving {
+		firstTime := true // see a ball at the first time
+		for c.selftracking {
 			ok, rect := c.tracker.Locate()
 			if !ok {
 				// lost the ball, looking for it by turning 360 degree
 				log.Printf("[car]lost the ball")
+				firstTime = true
 				if angle < 360 {
 					c.turn(30)
 					angle += 30
@@ -680,6 +742,10 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 				c.horn.Beep(1, 300)
 				continue
 			}
+			if firstTime {
+				go c.horn.Beep(2, 100)
+			}
+			firstTime = false
 			x, y := c.tracker.MiddleXY(rect)
 			log.Printf("[car]found a ball at: (%v, %v)", x, y)
 			if x < 200 {
@@ -894,5 +960,22 @@ func (c *Car) playText(text string) error {
 		log.Printf("[car]failed to play wav: %v, error: %v", wav, err)
 		return err
 	}
+	return nil
+}
+
+func (c *Car) stopMotion() error {
+	cmd := "sudo killall motion"
+	exec.Command("bash", "-c", cmd).CombinedOutput()
+	time.Sleep(1 * time.Second)
+	return nil
+}
+
+func (c *Car) startMotion() error {
+	cmd := fmt.Sprintf("sudo motion")
+	_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	if err != nil {
+		return err
+	}
+	time.Sleep(1 * time.Second)
 	return nil
 }

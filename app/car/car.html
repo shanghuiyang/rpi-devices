@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Control the Car</title>
+    <title>Smart Car</title>
     <link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <script src="http://code.jquery.com/jquery.js"></script>
 
@@ -146,16 +146,36 @@
             $('#selfdriving').change(function () {
                 if ($(this).prop('checked')) {
                     $.post(url, { "op": "selfdrivingon" }, function (data, status) { });
+                    $('#selftracking').bootstrapToggle('disable')
+                    $('#speechdriving').bootstrapToggle('disable')
                 } else {
                     $.post(url, { "op": "selfdrivingoff" }, function (data, status) { });
+                    $('#selftracking').bootstrapToggle('enable')
+                    $('#speechdriving').bootstrapToggle('enable')
+                }
+            })
+            // self-tracking
+            $('#selftracking').change(function () {
+                if ($(this).prop('checked')) {
+                    $.post(url, { "op": "selftrackingon" }, function (data, status) { });
+                    $('#selfdriving').bootstrapToggle('disable')
+                    $('#speechdriving').bootstrapToggle('disable')
+                } else {
+                    $.post(url, { "op": "selftrackingoff" }, function (data, status) { });
+                    $('#selfdriving').bootstrapToggle('enable')
+                    $('#speechdriving').bootstrapToggle('enable')
                 }
             })
             // speech-driving
             $('#speechdriving').change(function () {
                 if ($(this).prop('checked')) {
                     $.post(url, { "op": "speechdrivingon" }, function (data, status) { });
+                    $('#selfdriving').bootstrapToggle('disable')
+                    $('#selftracking').bootstrapToggle('disable')
                 } else {
                     $.post(url, { "op": "speechdrivingoff" }, function (data, status) { });
+                    $('#selfdriving').bootstrapToggle('enable')
+                    $('#selftracking').bootstrapToggle('enable')
                 }
             })
         });
@@ -191,14 +211,18 @@
         </div>
         <br /><br /><br />
         <div>
-            <input id="selfdriving" type="checkbox" uncheckbox data-toggle="toggle" data-on="Self-Driving"
-                data-off="Self-Driving" data-onstyle="warning" data-width="120" data-height="45">
-            <input id="speechdriving" type="checkbox" uncheckbox data-toggle="toggle" data-on="Speech-Driving"
-                data-off="Speech-Driving" data-onstyle="warning" data-width="130" data-height="45">
-            <input id="light" type="checkbox" uncheckbox data-toggle="toggle" data-on="Light" data-off="Light"
-                data-onstyle="warning" data-width="120" data-height="45">
+            <input id="selfdriving" type="checkbox" ((selfdriving-state)) ((selfdriving-enabled)) data-toggle="toggle" data-on="Self-Driving"
+                data-off="Self-Driving" data-onstyle="warning" data-width="130" data-height="45">
+            <input id="selftracking" type="checkbox" ((selftracking-state)) ((selftracking-enabled)) data-toggle="toggle" data-on="Self-Tracking"
+                data-off="Self-Tracking" data-onstyle="warning" data-width="130" data-height="45">
         </div>
         <br />
+        <div>
+            <input id="speechdriving" type="checkbox" ((speechdriving-state)) ((speechdriving-enabled)) data-toggle="toggle" data-on="Speech-Driving"
+                data-off="Speech-Driving" data-onstyle="warning" data-width="130" data-height="45">
+            <input id="light" type="checkbox" ((light-state)) data-toggle="toggle" data-on="Light" data-off="Light"
+                data-onstyle="warning" data-width="130" data-height="45">
+        </div>
     </div>
 </body>
 

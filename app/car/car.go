@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
-	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
@@ -37,17 +36,14 @@ const (
 	// if all 3.3v pins were used
 	pin33v = 5
 
-	ipPattern = "((000.000.000.000))"
-)
+	ipPattern          = "((000.000.000.000))"
+	selfDrivingState   = "((selfdriving-state))"
+	selfTrackingState  = "((selftracking-state))"
+	speechDrivingState = "((speechdriving-state))"
 
-var (
-	// the hsv of a tennis
-	lh = float64(33)
-	ls = float64(108)
-	lv = float64(138)
-	hh = float64(61)
-	hs = float64(255)
-	hv = float64(255)
+	selfDrivingEnabled   = "((selfdriving-enabled))"
+	selfTrackingEnabled  = "((selftracking-enabled))"
+	speechDrivingEnabled = "((speechdriving-enabled))"
 )
 
 type carServer struct {
@@ -117,11 +113,6 @@ func main() {
 		log.Printf("[carapp]failed to new a camera, will build a car without cameras")
 	}
 
-	t, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
-	if err != nil {
-		log.Printf("[carapp]failed to new a tracker, will build a car without trankers")
-	}
-
 	car := dev.NewCar(
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
@@ -132,7 +123,6 @@ func main() {
 		dev.WithLed(led),
 		dev.WithLight(light),
 		dev.WithCamera(cam),
-		dev.WithTracker(t),
 	)
 	if car == nil {
 		log.Fatal("failed to new a car")
@@ -158,10 +148,6 @@ func newCarServer(car *dev.Car) *carServer {
 }
 
 func (s *carServer) start() error {
-	if err := s.loadHomePage(); err != nil {
-		return err
-	}
-
 	if err := s.car.Start(); err != nil {
 		return err
 	}
@@ -178,10 +164,13 @@ func (s *carServer) stop() error {
 	return s.car.Stop()
 }
 
-func (s *carServer) loadHomePage() error {
-	data, err := ioutil.ReadFile("car.html")
-	if err != nil {
-		return errors.New("internal error: failed to read car.html")
+func (s *carServer) loadHomePage(w http.ResponseWriter, r *http.Request) error {
+	if len(s.pageContext) == 0 {
+		var err error
+		s.pageContext, err = ioutil.ReadFile("car.html")
+		if err != nil {
+			return errors.New("internal error: failed to read car.html")
+		}
 	}
 
 	ip := base.GetIP()
@@ -189,27 +178,77 @@ func (s *carServer) loadHomePage() error {
 		return errors.New("internal error: failed to get ip")
 	}
 
-	rbuf := bytes.NewBuffer(data)
+	rbuf := bytes.NewBuffer(s.pageContext)
 	wbuf := bytes.NewBuffer([]byte{})
 	for {
 		line, err := rbuf.ReadBytes('\n')
 		if err == io.EOF {
 			break
 		}
-		s := string(line)
-		if strings.Index(s, ipPattern) >= 0 {
-			s = strings.Replace(s, ipPattern, ip, 1)
+		sline := string(line)
+
+		disabled := false
+		selfDriving, selfTracking, speechDriving := s.car.GetState()
+		if selfDriving || selfTracking || speechDriving {
+			disabled = true
 		}
-		wbuf.Write([]byte(s))
+
+		if strings.Index(sline, ipPattern) >= 0 {
+			sline = strings.Replace(sline, ipPattern, ip, 1)
+		}
+
+		if strings.Index(sline, selfDrivingState) >= 0 {
+			state := "unchecked"
+			if selfDriving {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, selfDrivingState, state, 1)
+
+			able := "enabled"
+			if state == "unchecked" && disabled {
+				able = "disabled"
+			}
+			sline = strings.Replace(sline, selfDrivingEnabled, able, 1)
+		}
+
+		if strings.Index(sline, selfTrackingState) >= 0 {
+			state := "unchecked"
+			if selfTracking {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, selfTrackingState, state, 1)
+
+			able := "enabled"
+			if state == "unchecked" && disabled {
+				able = "disabled"
+			}
+			sline = strings.Replace(sline, selfTrackingEnabled, able, 1)
+		}
+
+		if strings.Index(sline, speechDrivingState) >= 0 {
+			state := "unchecked"
+			if speechDriving {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, speechDrivingState, state, 1)
+
+			able := "enabled"
+			if state == "unchecked" && disabled {
+				able = "disabled"
+			}
+			sline = strings.Replace(sline, speechDrivingEnabled, able, 1)
+		}
+
+		wbuf.Write([]byte(sline))
 	}
-	s.pageContext = wbuf.Bytes()
+	w.Write(wbuf.Bytes())
 	return nil
 }
 
 func (s *carServer) handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		w.Write(s.pageContext)
+		s.loadHomePage(w, r)
 	case "POST":
 		op := r.FormValue("op")
 		s.car.Do(dev.CarOp(op))
