@@ -5,7 +5,13 @@ go:
 before_install:
   - go get -u -d gocv.io/x/gocv
   - cd $GOPATH/src/gocv.io/x/gocv
-  - make install_all
+  - make install
+
+install:
+  - true
+
+script:
+  - go test -v ./...
 
 notifications:
   slack: grab:OVbEkJH3R10nkyKfwT996cB5
