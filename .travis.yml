@@ -1,12 +1,11 @@
 language: go
 go:
-  - 1.12.x
   - master
 
 before_install:
   - go get -u -d gocv.io/x/gocv
   - cd $GOPATH/src/gocv.io/x/gocv
-  - make install
+  - make install_all
 
 notifications:
   slack: grab:OVbEkJH3R10nkyKfwT996cB5
