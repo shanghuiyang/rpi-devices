@@ -3,35 +3,10 @@ go:
   - 1.12.x
   - master
 
-addons:
-  apt:
-    packages:
-    - libgmp-dev
-    - build-essential
-    - cmake
-    - git
-    - libgtk2.0-dev
-    - pkg-config
-    - libavcodec-dev
-    - libavformat-dev
-    - libswscale-dev
-    - libtbb2
-    - libtbb-dev
-    - libjpeg-dev
-    - libpng-dev
-    - libtiff-dev
-    - libjasper-dev
-    - libdc1394-22-dev
-    - xvfb
-
 before_install:
-  - ./travis_build_opencv.sh
-  - export PKG_CONFIG_PATH=$(pkg-config --variable pc_path pkg-config):$HOME/usr/lib/pkgconfig
-  - export INCLUDE_PATH=$HOME/usr/include:${INCLUDE_PATH}
-  - export LD_LIBRARY_PATH=$HOME/usr/lib:${LD_LIBRARY_PATH}
-  - sudo ln /dev/null /dev/raw1394
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+  - go get -u -d gocv.io/x/gocv
+  - cd $GOPATH/src/gocv.io/x/gocv
+  - make install
 
 notifications:
   slack: grab:OVbEkJH3R10nkyKfwT996cB5
