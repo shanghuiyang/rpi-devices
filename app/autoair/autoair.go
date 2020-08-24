@@ -5,13 +5,10 @@ Auto-Air opens the air-cleaner automatically when the pm2.5 >= 130.
 package main
 
 import (
-	"bytes"
-	"fmt"
-	"io"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
@@ -21,13 +18,7 @@ import (
 )
 
 const (
-	pinBzr = 10
-	pinSG  = 18
-	pinLed = 26
-
-	dioPin  = 9
-	rclkPin = 10
-	sclkPin = 11
+	pinSG = 18
 )
 
 const (
@@ -35,18 +26,8 @@ const (
 	trigOffPm25 = 100
 )
 
-const (
-	statePattern    = "((state))"
-	ipPattern       = "((000.000.000.000))"
-	pm25Pattern     = "((PM2.5))"
-	pm10Pattern     = "((PM10))"
-	datetimePattern = "((yyyy-mm-dd hh:mm:ss))"
-	datetimeFormat  = "2006-01-02 15:04:05"
-)
-
 var (
-	autoair     *autoAir
-	pageContext []byte
+	autoair *autoAir
 )
 
 var bool2int = map[bool]int{
@@ -54,186 +35,71 @@ var bool2int = map[bool]int{
 	true:  1,
 }
 
+type pm25Response struct {
+	PM25     uint16 `json:"pm25"`
+	ErrorMsg string `json:"error_msg"`
+}
+
+type autoAir struct {
+	sg      *dev.SG90
+	cloud   iot.Cloud
+	state   bool        // true: turn on, false: turn off
+	chClean chan uint16 // for turning on/off the air-cleaner
+	chCloud chan uint16 // for pushing to iot cloud
+}
+
 func main() {
 	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
+		log.Fatalf("[autoair]failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
-	air := dev.NewPMS7003()
 	sg := dev.NewSG90(pinSG)
-	led := dev.NewLed(pinLed)
-	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
-
-	wsnCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	onenetCfg := &base.OneNetConfig{
+		Token: base.OneNetToken,
+		API:   base.OneNetAPI,
 	}
-	cloud := iot.NewCloud(wsnCfg)
+	cloud := iot.NewCloud(onenetCfg)
 
-	autoair = newAutoAir(air, sg, led, dsp, cloud)
-	// autoair.setMode(base.DevMode)
+	autoair = newAutoAir(sg, cloud)
 	base.WaitQuit(func() {
 		autoair.stop()
 		rpio.Close()
 	})
 	autoair.start()
-
-	http.HandleFunc("/", airServer)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("[autoair]ListenAndServe: ", err.Error())
-	}
 }
 
-func airServer(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		homePageHandler(w, r)
-	case "POST":
-		operationHandler(w, r)
-	}
-}
-
-func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	if len(pageContext) == 0 {
-		var err error
-		pageContext, err = ioutil.ReadFile("air.html")
-		if err != nil {
-			log.Printf("[autoair]failed to read air.html")
-			fmt.Fprintf(w, "internal error: failed to read home page")
-			return
-		}
-	}
-
-	ip := base.GetIP()
-	if ip == "" {
-		log.Printf("[autoair]failed to get ip")
-		fmt.Fprintf(w, "internal error: failed to get ip")
-		return
-	}
-
-	wbuf := bytes.NewBuffer([]byte{})
-	rbuf := bytes.NewBuffer(pageContext)
-	for {
-		line, err := rbuf.ReadBytes('\n')
-		if err == io.EOF {
-			break
-		}
-		s := string(line)
-		switch {
-		case strings.Index(s, ipPattern) >= 0:
-			s = strings.Replace(s, ipPattern, ip, 1)
-		case strings.Index(s, pm25Pattern) >= 0:
-			pm25 := fmt.Sprintf("%v", autoair.pm25)
-			s = strings.Replace(s, pm25Pattern, pm25, 1)
-		case strings.Index(s, pm10Pattern) >= 0:
-			pm10 := fmt.Sprintf("%v", autoair.pm10)
-			s = strings.Replace(s, pm10Pattern, pm10, 1)
-		case strings.Index(s, datetimePattern) >= 0:
-			datetime := time.Now().Format(datetimeFormat)
-			s = strings.Replace(s, datetimePattern, datetime, 1)
-		case strings.Index(s, statePattern) >= 0:
-			state := "unchecked"
-			if autoair.state {
-				state = "checked"
-			}
-			s = strings.Replace(s, statePattern, state, 1)
-		}
-		wbuf.Write([]byte(s))
-	}
-	w.Write(wbuf.Bytes())
-}
-
-func operationHandler(w http.ResponseWriter, r *http.Request) {
-	op := r.FormValue("op")
-	switch op {
-	case "on":
-		log.Printf("[autoair]web op: on")
-		autoair.on()
-	case "off":
-		log.Printf("[autoair]web op: off")
-		autoair.off()
-	default:
-		log.Printf("[autoair]web op: invalid operator")
-	}
-}
-
-type autoAir struct {
-	air       *dev.PMS7003
-	sg        *dev.SG90
-	led       *dev.Led
-	dsp       *dev.LedDisplay
-	cloud     iot.Cloud
-	mode      base.Mode
-	state     bool // true: turn on, false: turn off
-	pm25      uint16
-	pm10      uint16
-	chClean   chan uint16 // for turning on/off the air-cleaner
-	chAlert   chan uint16 // for alerting
-	chDisplay chan uint16
-	chCloud   chan uint16 // for pushing to iot cloud
-}
-
-func newAutoAir(air *dev.PMS7003, sg *dev.SG90, led *dev.Led, dsp *dev.LedDisplay, cloud iot.Cloud) *autoAir {
+func newAutoAir(sg *dev.SG90, cloud iot.Cloud) *autoAir {
 	return &autoAir{
-		air:       air,
-		sg:        sg,
-		led:       led,
-		dsp:       dsp,
-		cloud:     cloud,
-		mode:      base.PrdMode,
-		state:     false,
-		chClean:   make(chan uint16, 4),
-		chAlert:   make(chan uint16, 4),
-		chDisplay: make(chan uint16, 4),
-		chCloud:   make(chan uint16, 4),
+		sg:      sg,
+		cloud:   cloud,
+		state:   false,
+		chClean: make(chan uint16, 4),
+		chCloud: make(chan uint16, 4),
 	}
 }
 
 func (a *autoAir) start() {
 	log.Printf("[autoair]service starting")
-	log.Printf("[autoair]mode: %v", a.mode)
 	go a.sg.Roll(45)
-	go a.detect()
 	go a.clean()
-	go a.alert()
-	go a.push()
-	go a.display()
-}
-
-func (a *autoAir) setMode(mode base.Mode) {
-	a.mode = mode
+	a.detect()
 }
 
 func (a *autoAir) detect() {
 	log.Printf("[autoair]detecting pm2.5")
 	for {
-		var err error
-		if a.mode == base.PrdMode {
-			a.pm25, a.pm10, err = a.air.Get()
-		} else {
-			a.pm25, a.pm10, err = a.air.Mock()
-		}
+		pm25, err := a.getPM25()
 		if err != nil {
-			log.Printf("[autoair]failed to get pm2.5 and pm10, error: %v", err)
+			log.Printf("[autoair]failed to get pm2.5, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("[autoair]pm2.5: %v ug/m3", a.pm25)
-		log.Printf("[autoair]pm10: %v ug/m3", a.pm10)
+		log.Printf("[autoair]pm2.5: %v ug/m3", pm25)
 
-		a.chClean <- a.pm25
-		a.chAlert <- a.pm25
-		a.chCloud <- a.pm25
-		a.chDisplay <- a.pm25
-
-		sec := 60 * time.Second
-		if a.mode != base.PrdMode {
-			sec = 15 * time.Second
-		}
-		time.Sleep(sec)
+		a.chClean <- pm25
+		time.Sleep(60 * time.Second)
 	}
 }
 
@@ -241,11 +107,8 @@ func (a *autoAir) clean() {
 	go func() {
 		for {
 			time.Sleep(60 * time.Second)
-			if a.mode != base.PrdMode {
-				continue
-			}
 			v := &iot.Value{
-				Device: "5e00eb8fe4b04a9a92a6b3fc",
+				Device: "air-cleaner",
 				Value:  bool2int[a.state],
 			}
 			if err := a.cloud.Push(v); err != nil {
@@ -278,84 +141,32 @@ func (a *autoAir) clean() {
 	}
 }
 
-func (a *autoAir) push() {
-	for pm25 := range a.chCloud {
-		if a.mode != base.PrdMode {
-			continue
-		}
-		go func(pm25 uint16) {
-			v := &iot.Value{
-				Device: "5df507c4e4b04a9a92a64928",
-				Value:  pm25,
-			}
-			if err := a.cloud.Push(v); err != nil {
-				log.Printf("[autoair]push: failed to push pm2.5 to cloud, error: %v", err)
-			}
-		}(pm25)
+func (a *autoAir) getPM25() (uint16, error) {
+	resp, err := http.Get("http://localhost:8000/pm25")
+	if err != nil {
+		log.Printf("[autoair]failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
+		return 0, err
 	}
-}
+	defer resp.Body.Close()
 
-func (a *autoAir) alert() {
-	var pm25 uint16
-	for {
-		select {
-		case v := <-a.chAlert:
-			pm25 = v
-		default:
-			// do nothing
-		}
-
-		if pm25 >= trigOnPM25 {
-			// interval := 1000 - int(pm25)
-			// if interval < 0 {
-			// 	interval = 200
-			// }
-			// a.led.Blink(1, interval)
-			// continue
-		}
-		time.Sleep(1 * time.Second)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[autoair]failed to read resp body, err: %v", err)
+		return 0, err
 	}
-}
 
-func (a *autoAir) display() {
-	var pm25 uint16
-	a.dsp.Open()
-	opened := true
-	for {
-		select {
-		case v := <-a.chDisplay:
-			pm25 = v
-		default:
-			// do nothing, just use the latest temp
-		}
-
-		if a.dsp == nil {
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
-		hour := time.Now().Hour()
-		if hour >= 20 || hour < 8 {
-			// turn off oled at 20:00-08:00
-			if opened {
-				a.dsp.Close()
-				opened = false
-			}
-			time.Sleep(10 * time.Second)
-			continue
-		}
-
-		if !opened {
-			a.dsp.Open()
-			opened = true
-		}
-		text := "----"
-		if pm25 > 0 {
-			text = fmt.Sprintf("%d", pm25)
-		}
-		a.dsp.Display(text)
-		time.Sleep(3 * time.Second)
+	var pm25Resp pm25Response
+	if err := json.Unmarshal(body, &pm25Resp); err != nil {
+		log.Printf("[autoair]failed to unmarshal resp, err: %v", err)
+		return 0, err
 	}
+
+	if pm25Resp.ErrorMsg != "" {
+		log.Printf("[autoair]failed to get pm2.5 from sensers server, status: %v, err msg: %v", resp.Status, pm25Resp.ErrorMsg)
+		return 0, err
+	}
+
+	return pm25Resp.PM25, nil
 }
 
 func (a *autoAir) on() {
@@ -374,6 +185,4 @@ func (a *autoAir) off() {
 
 func (a *autoAir) stop() {
 	a.sg.Roll(45)
-	a.led.Off()
-	a.dsp.Close()
 }

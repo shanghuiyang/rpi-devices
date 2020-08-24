@@ -16,11 +16,11 @@ const (
 )
 
 func main() {
-	wsnCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	onenetCfg := &base.OneNetConfig{
+		Token: base.OneNetToken,
+		API:   base.OneNetAPI,
 	}
-	cloud := iot.NewCloud(wsnCfg)
+	cloud := iot.NewCloud(onenetCfg)
 	if cloud == nil {
 		log.Printf("cpumonitor]failed to new OneNet iot cloud")
 		return
@@ -47,7 +47,7 @@ func (c *cpuMonitor) start() {
 		}
 
 		v := &iot.Value{
-			Device: "5d4c25b1e4b074c40dfe4cbe",
+			Device: "cpu",
 			Value:  f,
 		}
 		go c.cloud.Push(v)

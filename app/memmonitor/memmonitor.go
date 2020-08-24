@@ -16,11 +16,11 @@ const (
 )
 
 func main() {
-	wsnCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	onenetCfg := &base.OneNetConfig{
+		Token: base.OneNetToken,
+		API:   base.OneNetAPI,
 	}
-	cloud := iot.NewCloud(wsnCfg)
+	cloud := iot.NewCloud(onenetCfg)
 	if cloud == nil {
 		log.Printf("[memmonitor]failed to new OneNet iot cloud")
 		return
@@ -46,7 +46,7 @@ func (m *memMonitor) start() {
 			continue
 		}
 		v := &iot.Value{
-			Device: "5d32cfdde4b04a9a929fd73f",
+			Device: "memory",
 			Value:  f,
 		}
 		go m.cloud.Push(v)

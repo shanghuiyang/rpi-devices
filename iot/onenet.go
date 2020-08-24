@@ -67,7 +67,7 @@ func (o *OneNetCloud) Push(v *Value) error {
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 15 * time.Second,
 	}
 	resp, err := client.Do(req)
 	if err != nil {

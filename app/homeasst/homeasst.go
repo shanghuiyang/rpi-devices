@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
@@ -12,8 +15,33 @@ import (
 )
 
 const (
-	pinLed = 26
+	dioPin  = 9
+	rclkPin = 10
+	sclkPin = 11
 )
+
+type value struct {
+	temp float32
+	pm25 uint16
+}
+
+type tempResponse struct {
+	Temp     float32 `json:"temp"`
+	ErrorMsg string  `json:"error_msg"`
+}
+
+type pm25Response struct {
+	PM25     uint16 `json:"pm25"`
+	ErrorMsg string `json:"error_msg"`
+}
+
+type homeAsst struct {
+	dsp       *dev.LedDisplay
+	cloud     iot.Cloud
+	chDisplay chan *value // for disploying on oled
+	chCloud   chan *value // for pushing to iot cloud
+	chAlert   chan *value // for alerting
+}
 
 func main() {
 	if err := rpio.Open(); err != nil {
@@ -22,21 +50,15 @@ func main() {
 	}
 	defer rpio.Close()
 
-	temp := dev.NewDS18B20()
-	led := dev.NewLed(pinLed)
-	oled, err := dev.NewOLED(128, 32)
-	if err != nil {
-		log.Printf("[homeasst]failed to create an oled, error: %v", err)
-		log.Printf("[homeasst]homeasst will work without oled")
-	}
+	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
-	wsnCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	onenetCfg := &base.OneNetConfig{
+		Token: base.OneNetToken,
+		API:   base.OneNetAPI,
 	}
-	cloud := iot.NewCloud(wsnCfg)
+	cloud := iot.NewCloud(onenetCfg)
 
-	asst := newHomeAsst(temp, oled, led, cloud)
+	asst := newHomeAsst(dsp, cloud)
 	base.WaitQuit(func() {
 		asst.stop()
 		rpio.Close()
@@ -44,152 +66,191 @@ func main() {
 	asst.start()
 }
 
-type value struct {
-	temp float32
-	humi float32
-}
-
-type homeAsst struct {
-	temp      *dev.DS18B20
-	oled      *dev.OLED
-	led       *dev.Led
-	cloud     iot.Cloud
-	chDisplay chan *value // for disploying on oled
-	chCloud   chan *value // for pushing to iot cloud
-	chAlert   chan *value // for alerting
-}
-
-func newHomeAsst(temp *dev.DS18B20, oled *dev.OLED, led *dev.Led, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dsp *dev.LedDisplay, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
-		temp:      temp,
-		oled:      oled,
-		led:       led,
+		dsp:       dsp,
 		cloud:     cloud,
 		chDisplay: make(chan *value, 4),
 		chCloud:   make(chan *value, 4),
-		chAlert:   make(chan *value, 4),
+		// chAlert:   make(chan *value, 4),
 	}
 }
 
 func (h *homeAsst) start() {
 	go h.display()
 	go h.push()
-	go h.alert()
+	// go h.alert()
 	h.getData()
 }
 
 func (h *homeAsst) getData() {
 	for {
-		temp, err := h.temp.GetTemperature()
+		t, err := h.getTemp()
 		if err != nil {
 			log.Printf("[homeasst]failed to get temperature, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("[homeasst]temp: %v", temp)
+		log.Printf("[homeasst]temp: %v", t)
+
+		pm25, err := h.getPM25()
+		if err != nil {
+			log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		log.Printf("[homeasst]pm2.5: %v", pm25)
 
 		v := &value{
-			temp: temp,
-			humi: -1,
+			temp: t,
+			pm25: pm25,
 		}
 		h.chDisplay <- v
 		h.chCloud <- v
-		h.chAlert <- v
+		// h.chAlert <- v
 		time.Sleep(60 * time.Second)
 	}
 }
 
 func (h *homeAsst) display() {
-	var temp, humi float32 = -999, -999
-	on := true
+	var v value
+	h.dsp.Open()
+	opened := true
 	for {
 		select {
-		case v := <-h.chDisplay:
-			temp, humi = v.temp, v.humi
+		case vv := <-h.chDisplay:
+			v = *vv
 		default:
 			// do nothing, just use the latest temp
 		}
 
-		if h.oled == nil {
+		if h.dsp == nil {
 			time.Sleep(30 * time.Second)
 			continue
 		}
 
 		hour := time.Now().Hour()
 		if hour >= 20 || hour < 8 {
-			// turn off oled at 20:00-08:00
-			if on {
-				h.oled.Off()
-				on = false
+			// turn off led display at 20:00-08:00
+			if opened {
+				h.dsp.Close()
+				opened = false
 			}
 			time.Sleep(10 * time.Second)
 			continue
 		}
 
-		on = true
-		tText := "--"
-		if temp > -273 {
-			tText = fmt.Sprintf("%.0f'C", temp)
+		if !opened {
+			h.dsp.Open()
+			opened = true
 		}
-		if err := h.oled.Display(tText, 35, 0, 35); err != nil {
-			log.Printf("[homeasst]display: failed to display temperature, error: %v", err)
-		}
-		time.Sleep(3 * time.Second)
 
-		hText := "  --"
-		if humi >= 0 {
-			hText = fmt.Sprintf("%.0f%%", humi)
-		}
-		if err := h.oled.Display(hText, 35, 0, 35); err != nil {
-			log.Printf("[homeasst]display: failed to display humidity, error: %v", err)
-		}
-		time.Sleep(3 * time.Second)
+		tText := fmt.Sprintf("%.1f", v.temp)
+		h.dsp.Display(tText)
+		time.Sleep(5 * time.Second)
+
+		pm25Text := fmt.Sprintf("%v", v.pm25)
+		h.dsp.Display(pm25Text)
+		time.Sleep(5 * time.Second)
 	}
 }
 
 func (h *homeAsst) push() {
 	for v := range h.chCloud {
 		go func(v *value) {
-			tv := &iot.Value{
-				Device: "5d3c467ce4b04a9a92a02343",
+			temp := &iot.Value{
+				Device: "temp",
 				Value:  v.temp,
 			}
-			if err := h.cloud.Push(tv); err != nil {
+			if err := h.cloud.Push(temp); err != nil {
 				log.Printf("[homeasst]push: failed to push temperature to cloud, error: %v", err)
 			}
 
-			hv := &iot.Value{
-				Device: "5d3c4627e4b04a9a92a02342",
-				Value:  v.humi,
+			pm25 := &iot.Value{
+				Device: "pm2.5",
+				Value:  v.pm25,
 			}
-			if err := h.cloud.Push(hv); err != nil {
-				log.Printf("[homeasst]push: failed to push humidity to cloud, error: %v", err)
+			if err := h.cloud.Push(pm25); err != nil {
+				log.Printf("[homeasst]push: failed to push pm2.5 to cloud, error: %v", err)
 			}
 		}(v)
 	}
 }
 
-func (h *homeAsst) alert() {
-	var temp, humi float32 = -999, -999
-	for {
-		select {
-		case v := <-h.chAlert:
-			temp, humi = v.temp, v.humi
-		default:
-			// do nothing
-		}
+// func (h *homeAsst) alert() {
+// 	var temp, humi float32 = -999, -999
+// 	for {
+// 		select {
+// 		case v := <-h.chAlert:
+// 			temp, humi = v.temp, v.humi
+// 		default:
+// 			// do nothing
+// 		}
 
-		if (temp > 0 && temp < 15) || humi > 70 {
-			h.led.Blink(1, 1000)
-			continue
-		}
-		time.Sleep(1 * time.Second)
-	}
-}
+// 		if (temp > 0 && temp < 15) || humi > 70 {
+// 			h.led.Blink(1, 1000)
+// 			continue
+// 		}
+// 		time.Sleep(1 * time.Second)
+// 	}
+// }
 
 func (h *homeAsst) stop() {
-	if h.oled != nil {
-		h.oled.Close()
+	h.dsp.Close()
+}
+
+func (h *homeAsst) getTemp() (float32, error) {
+	resp, err := http.Get("http://localhost:8000/temp")
+	if err != nil {
+		log.Printf("[homeasst]failed to get temp from sensers server, status: %v, err: %v", resp.Status, err)
+		return 0, err
 	}
-	h.led.Off()
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[homeasst]failed to read resp body, err: %v", err)
+		return 0, err
+	}
+
+	var tempResp tempResponse
+	if err := json.Unmarshal(body, &tempResp); err != nil {
+		log.Printf("[homeasst]failed to unmarshal resp, err: %v", err)
+		return 0, err
+	}
+
+	if tempResp.ErrorMsg != "" {
+		log.Printf("[homeasst]failed to get temp from sensers server, status: %v, err msg: %v", resp.Status, tempResp.ErrorMsg)
+		return 0, err
+	}
+
+	return tempResp.Temp, nil
+}
+
+func (h *homeAsst) getPM25() (uint16, error) {
+	resp, err := http.Get("http://localhost:8000/pm25")
+	if err != nil {
+		log.Printf("[homeasst]failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[homeasst]failed to read resp body, err: %v", err)
+		return 0, err
+	}
+
+	var pm25Resp pm25Response
+	if err := json.Unmarshal(body, &pm25Resp); err != nil {
+		log.Printf("[homeasst]failed to unmarshal resp, err: %v", err)
+		return 0, err
+	}
+
+	if pm25Resp.ErrorMsg != "" {
+		log.Printf("[homeasst]failed to get pm2.5 from sensers server, status: %v, err msg: %v", resp.Status, pm25Resp.ErrorMsg)
+		return 0, err
+	}
+
+	return pm25Resp.PM25, nil
 }
