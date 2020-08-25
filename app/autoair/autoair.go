@@ -27,13 +27,12 @@ const (
 )
 
 var (
-	autoair *autoAir
+	autoair  *autoAir
+	bool2int = map[bool]int{
+		false: 0,
+		true:  1,
+	}
 )
-
-var bool2int = map[bool]int{
-	false: 0,
-	true:  1,
-}
 
 type pm25Response struct {
 	PM25     uint16 `json:"pm25"`
@@ -84,6 +83,7 @@ func (a *autoAir) start() {
 	log.Printf("[autoair]service starting")
 	go a.sg.Roll(45)
 	go a.clean()
+	go a.push()
 	a.detect()
 }
 
@@ -104,19 +104,6 @@ func (a *autoAir) detect() {
 }
 
 func (a *autoAir) clean() {
-	go func() {
-		for {
-			time.Sleep(60 * time.Second)
-			v := &iot.Value{
-				Device: "air-cleaner",
-				Value:  bool2int[a.state],
-			}
-			if err := a.cloud.Push(v); err != nil {
-				log.Printf("[autoair]push: failed to push the state of air-cleaner to cloud, error: %v", err)
-			}
-		}
-	}()
-
 	for pm25 := range a.chClean {
 		hour := time.Now().Hour()
 		if pm25 < 400 && (hour >= 20 || hour < 8) {
@@ -137,6 +124,20 @@ func (a *autoAir) clean() {
 			a.off()
 			log.Printf("[autoair]air-cleaner was turned off")
 			continue
+		}
+	}
+}
+
+// push state to cloud
+func (a *autoAir) push() {
+	for {
+		time.Sleep(60 * time.Second)
+		v := &iot.Value{
+			Device: "air-cleaner",
+			Value:  bool2int[a.state],
+		}
+		if err := a.cloud.Push(v); err != nil {
+			log.Printf("[autoair]push: failed to push the state of air-cleaner to cloud, error: %v", err)
 		}
 	}
 }

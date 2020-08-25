@@ -1,3 +1,7 @@
+/*
+sserver is a sensor server which provide data from all kinds of sensors
+*/
+
 package main
 
 import (
@@ -13,10 +17,10 @@ import (
 )
 
 type (
-	option func(s *server)
+	option func(s *sserver)
 )
 
-type server struct {
+type sserver struct {
 	ds18b20 *dev.DS18B20
 	pms7003 *dev.PMS7003
 }
@@ -55,7 +59,7 @@ func main() {
 		withPMS7003(p),
 	)
 	if s == nil {
-		log.Fatal("failed to new server")
+		log.Fatal("[sensors]failed to new sserver")
 		return
 	}
 
@@ -63,33 +67,33 @@ func main() {
 		rpio.Close()
 	})
 	if err := s.start(); err != nil {
-		log.Printf("[sensors]failed to start server, error: %v", err)
+		log.Printf("[sensors]failed to start sserver, error: %v", err)
 		os.Exit(1)
 	}
 	os.Exit(0)
 }
 
 func withDS18B20(d *dev.DS18B20) option {
-	return func(s *server) {
+	return func(s *sserver) {
 		s.ds18b20 = d
 	}
 }
 
 func withPMS7003(p *dev.PMS7003) option {
-	return func(s *server) {
+	return func(s *sserver) {
 		s.pms7003 = p
 	}
 }
 
-func newServer(opts ...option) *server {
-	s := &server{}
+func newServer(opts ...option) *sserver {
+	s := &sserver{}
 	for _, opt := range opts {
 		opt(s)
 	}
 	return s
 }
 
-func (s *server) start() error {
+func (s *sserver) start() error {
 	log.Printf("[sensors]start service")
 	http.HandleFunc("/temp", s.tempHandler)
 	http.HandleFunc("/pm25", s.pm25Handler)
@@ -99,7 +103,7 @@ func (s *server) start() error {
 	return nil
 }
 
-func (s *server) respHandler(w http.ResponseWriter, resp interface{}, statusCode int) error {
+func (s *sserver) response(w http.ResponseWriter, resp interface{}, statusCode int) error {
 	w.WriteHeader(statusCode)
 	data, err := json.Marshal(resp)
 	if err != nil {
@@ -113,13 +117,13 @@ func (s *server) respHandler(w http.ResponseWriter, resp interface{}, statusCode
 	return nil
 }
 
-func (s *server) tempHandler(w http.ResponseWriter, r *http.Request) {
+func (s *sserver) tempHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[sensors]%v %v", r.Method, r.URL.Path)
 	if s.ds18b20 == nil {
 		resp := &tempResponse{
 			ErrorMsg: "invaild ds18b20 sensor",
 		}
-		s.respHandler(w, resp, http.StatusInternalServerError)
+		s.response(w, resp, http.StatusInternalServerError)
 		return
 	}
 
@@ -128,23 +132,23 @@ func (s *server) tempHandler(w http.ResponseWriter, r *http.Request) {
 		resp := &tempResponse{
 			ErrorMsg: fmt.Sprintf("failed to get temp, error: %v", err),
 		}
-		s.respHandler(w, resp, http.StatusInternalServerError)
+		s.response(w, resp, http.StatusInternalServerError)
 		return
 	}
 
 	resp := &tempResponse{
 		Temp: t,
 	}
-	s.respHandler(w, resp, http.StatusOK)
+	s.response(w, resp, http.StatusOK)
 }
 
-func (s *server) pm25Handler(w http.ResponseWriter, r *http.Request) {
+func (s *sserver) pm25Handler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[sensors]%v %v", r.Method, r.URL.Path)
 	if s.pms7003 == nil {
 		resp := &pm25Response{
 			ErrorMsg: "invaild pms7003 sensor",
 		}
-		s.respHandler(w, resp, http.StatusInternalServerError)
+		s.response(w, resp, http.StatusInternalServerError)
 		return
 	}
 
@@ -153,12 +157,12 @@ func (s *server) pm25Handler(w http.ResponseWriter, r *http.Request) {
 		resp := &pm25Response{
 			ErrorMsg: fmt.Sprintf("failed to get pm2.5, error: %v", err),
 		}
-		s.respHandler(w, resp, http.StatusInternalServerError)
+		s.response(w, resp, http.StatusInternalServerError)
 		return
 	}
 
 	resp := &pm25Response{
 		PM25: pm25,
 	}
-	s.respHandler(w, resp, http.StatusOK)
+	s.response(w, resp, http.StatusOK)
 }
