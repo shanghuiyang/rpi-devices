@@ -110,7 +110,7 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 		}
 		return pm25, pm10, nil
 	}
-	return 0, 0, fmt.Errorf("failed to get pm2.5 and pm10")
+	return 0, 0, fmt.Errorf("psm7003 is invalid currently")
 }
 
 // Close ...

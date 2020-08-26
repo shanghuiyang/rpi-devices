@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -145,26 +146,22 @@ func (a *autoAir) push() {
 func (a *autoAir) getPM25() (uint16, error) {
 	resp, err := http.Get("http://localhost:8000/pm25")
 	if err != nil {
-		log.Printf("[autoair]failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
-		return 0, err
+		return 0, fmt.Errorf("failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[autoair]failed to read resp body, err: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to read resp body, err: %v", err)
 	}
 
 	var pm25Resp pm25Response
 	if err := json.Unmarshal(body, &pm25Resp); err != nil {
-		log.Printf("[autoair]failed to unmarshal resp, err: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to unmarshal resp, err: %v", err)
 	}
 
 	if pm25Resp.ErrorMsg != "" {
-		log.Printf("[autoair]failed to get pm2.5 from sensers server, status: %v, err msg: %v", resp.Status, pm25Resp.ErrorMsg)
-		return 0, err
+		return 0, fmt.Errorf("failed to get pm2.5 from sensers server, status: %v, err msg: %v", resp.Status, pm25Resp.ErrorMsg)
 	}
 
 	return pm25Resp.PM25, nil

@@ -20,9 +20,10 @@ const (
 	sclkPin = 11
 )
 
-type value struct {
-	temp float32
-	pm25 uint16
+type data struct {
+	name  string
+	text  string
+	value interface{}
 }
 
 type tempResponse struct {
@@ -38,9 +39,9 @@ type pm25Response struct {
 type homeAsst struct {
 	dsp       *dev.LedDisplay
 	cloud     iot.Cloud
-	chDisplay chan *value // for disploying on oled
-	chCloud   chan *value // for pushing to iot cloud
-	chAlert   chan *value // for alerting
+	chDisplay chan *data // for disploying on oled
+	chCloud   chan *data // for pushing to iot cloud
+	// chAlert   chan *data // for alerting
 }
 
 func main() {
@@ -70,8 +71,8 @@ func newHomeAsst(dsp *dev.LedDisplay, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dsp:       dsp,
 		cloud:     cloud,
-		chDisplay: make(chan *value, 4),
-		chCloud:   make(chan *value, 4),
+		chDisplay: make(chan *data, 4),
+		chCloud:   make(chan *data, 4),
 		// chAlert:   make(chan *value, 4),
 	}
 }
@@ -85,41 +86,54 @@ func (h *homeAsst) start() {
 
 func (h *homeAsst) getData() {
 	for {
-		t, err := h.getTemp()
-		if err != nil {
-			log.Printf("[homeasst]failed to get temperature, error: %v", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		log.Printf("[homeasst]temp: %v", t)
+		go func() {
+			t, err := h.getTemp()
+			if err != nil {
+				log.Printf("[homeasst]failed to get temperature, error: %v", err)
+				time.Sleep(5 * time.Second)
+				return
+			}
+			log.Printf("[homeasst]temp: %v", t)
+			d := &data{
+				name:  "temp",
+				text:  fmt.Sprintf("%.1f", t),
+				value: t,
+			}
+			h.chDisplay <- d
+			h.chCloud <- d
+		}()
 
-		pm25, err := h.getPM25()
-		if err != nil {
-			log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		log.Printf("[homeasst]pm2.5: %v", pm25)
+		go func() {
+			pm25, err := h.getPM25()
+			if err != nil {
+				log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
+				time.Sleep(5 * time.Second)
+				return
+			}
+			log.Printf("[homeasst]pm2.5: %v", pm25)
 
-		v := &value{
-			temp: t,
-			pm25: pm25,
-		}
-		h.chDisplay <- v
-		h.chCloud <- v
-		// h.chAlert <- v
+			d := &data{
+				name:  "pm2.5",
+				text:  fmt.Sprintf("%v", pm25),
+				value: pm25,
+			}
+			h.chDisplay <- d
+			h.chCloud <- d
+			// h.chAlert <- v
+		}()
+
 		time.Sleep(60 * time.Second)
 	}
 }
 
 func (h *homeAsst) display() {
-	var v value
 	h.dsp.Open()
 	opened := true
+	cache := map[string]*data{}
 	for {
 		select {
-		case vv := <-h.chDisplay:
-			v = *vv
+		case d := <-h.chDisplay:
+			cache[d.name] = d
 		default:
 			// do nothing, just use the latest temp
 		}
@@ -145,35 +159,25 @@ func (h *homeAsst) display() {
 			opened = true
 		}
 
-		tText := fmt.Sprintf("%.1f", v.temp)
-		h.dsp.Display(tText)
-		time.Sleep(5 * time.Second)
-
-		pm25Text := fmt.Sprintf("%v", v.pm25)
-		h.dsp.Display(pm25Text)
-		time.Sleep(5 * time.Second)
+		for _, d := range cache {
+			h.dsp.Display(d.text)
+			time.Sleep(5 * time.Second)
+		}
 	}
 }
 
 func (h *homeAsst) push() {
-	for v := range h.chCloud {
-		go func(v *value) {
-			temp := &iot.Value{
-				Device: "temp",
-				Value:  v.temp,
+	for d := range h.chCloud {
+		go func(d *data) {
+			v := &iot.Value{
+				Device: d.name,
+				Value:  d.value,
 			}
-			if err := h.cloud.Push(temp); err != nil {
-				log.Printf("[homeasst]push: failed to push temperature to cloud, error: %v", err)
+			if err := h.cloud.Push(v); err != nil {
+				log.Printf("[homeasst]failed to push %v to cloud, error: %v", d.name, err)
+				return
 			}
-
-			pm25 := &iot.Value{
-				Device: "pm2.5",
-				Value:  v.pm25,
-			}
-			if err := h.cloud.Push(pm25); err != nil {
-				log.Printf("[homeasst]push: failed to push pm2.5 to cloud, error: %v", err)
-			}
-		}(v)
+		}(d)
 	}
 }
 
@@ -202,26 +206,22 @@ func (h *homeAsst) stop() {
 func (h *homeAsst) getTemp() (float32, error) {
 	resp, err := http.Get("http://localhost:8000/temp")
 	if err != nil {
-		log.Printf("[homeasst]failed to get temp from sensers server, status: %v, err: %v", resp.Status, err)
-		return 0, err
+		return 0, fmt.Errorf("failed to get temp from sensers server, status: %v, err: %v", resp.Status, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[homeasst]failed to read resp body, err: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to read resp body, err: %v", err)
 	}
 
 	var tempResp tempResponse
 	if err := json.Unmarshal(body, &tempResp); err != nil {
-		log.Printf("[homeasst]failed to unmarshal resp, err: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to unmarshal resp, err: %v", err)
 	}
 
 	if tempResp.ErrorMsg != "" {
-		log.Printf("[homeasst]failed to get temp from sensers server, status: %v, err msg: %v", resp.Status, tempResp.ErrorMsg)
-		return 0, err
+		return 0, fmt.Errorf("failed to get temp from sensers server, status: %v, err msg: %v", resp.Status, tempResp.ErrorMsg)
 	}
 
 	return tempResp.Temp, nil
@@ -230,26 +230,22 @@ func (h *homeAsst) getTemp() (float32, error) {
 func (h *homeAsst) getPM25() (uint16, error) {
 	resp, err := http.Get("http://localhost:8000/pm25")
 	if err != nil {
-		log.Printf("[homeasst]failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
-		return 0, err
+		return 0, fmt.Errorf("failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[homeasst]failed to read resp body, err: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to read resp body, err: %v", err)
 	}
 
 	var pm25Resp pm25Response
 	if err := json.Unmarshal(body, &pm25Resp); err != nil {
-		log.Printf("[homeasst]failed to unmarshal resp, err: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to unmarshal resp, err: %v", err)
 	}
 
 	if pm25Resp.ErrorMsg != "" {
-		log.Printf("[homeasst]failed to get pm2.5 from sensers server, status: %v, err msg: %v", resp.Status, pm25Resp.ErrorMsg)
-		return 0, err
+		return 0, fmt.Errorf("failed to get pm2.5 from sensers server, status: %v, err msg: %v", resp.Status, pm25Resp.ErrorMsg)
 	}
 
 	return pm25Resp.PM25, nil
