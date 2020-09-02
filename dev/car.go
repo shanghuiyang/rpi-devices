@@ -25,11 +25,11 @@ const (
 )
 
 const (
-	baiduSpeechAppKey    = "your_speech_app_key"
-	baiduSpeechSecretKey = "your_speech_secret_key"
+	baiduSpeechAppKey    = "Rz83wRmyDlC9ZLVYMcsB53g9"
+	baiduSpeechSecretKey = "Fx8Zp9gktUzyEELPhbsCh46SQm1wZhQy"
 
-	baiduImgRecognitionAppKey    = "your_image_recognition_app_key"
-	baiduImgRecognitionSecretKey = "your_image_recognition_secrect_key"
+	baiduImgRecognitionAppKey    = "ucHLd0VgPElQAnkKot9b05TI"
+	baiduImgRecognitionSecretKey = "2SVdSB8xd6SOs1lkg9SFEzpkVCYx6ITi"
 )
 
 const (
@@ -41,6 +41,7 @@ const (
 	pause    CarOp = "pause"
 	turn     CarOp = "turn"
 	scan     CarOp = "scan"
+	roll     CarOp = "roll"
 
 	beep  CarOp = "beep"
 	blink CarOp = "blink"
@@ -176,6 +177,7 @@ type Car struct {
 	imgr    *recognizer.Recognizer
 	tracker *cv.Tracker
 
+	volume        int
 	servoAngle    int
 	selfdriving   bool
 	speechdriving bool
@@ -201,6 +203,7 @@ func (c *Car) Start() error {
 	go c.start()
 	go c.servo.Roll(0)
 	go c.blink()
+	go c.setVolume(40)
 	return nil
 }
 
@@ -537,6 +540,12 @@ func (c *Car) speechDriving() {
 			c.delay(20)
 			chOp <- forward
 			continue
+		case roll:
+			fwd = false
+			c.engine.Left()
+			c.delay(3000)
+			chOp <- stop
+			continue
 		case stop:
 			fwd = false
 			c.stop()
@@ -817,8 +826,18 @@ func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 			chOp <- right
 		case strings.Index(text, "停") >= 0:
 			chOp <- stop
+		case strings.Index(text, "转圈") >= 0:
+			chOp <- roll
 		case strings.Index(text, "是什么") >= 0:
 			c.recognize()
+		case strings.Index(text, "开灯") >= 0:
+			c.light.On()
+		case strings.Index(text, "关灯") >= 0:
+			c.light.Off()
+		case strings.Index(text, "大声") >= 0:
+			c.volumeUp()
+		case strings.Index(text, "小声") >= 0:
+			c.volumeDown()
 		case strings.Index(text, "唱歌") >= 0:
 			go c.play("./music/xiaomaolv.wav")
 		default:
@@ -911,6 +930,36 @@ func (c *Car) recognize() error {
 	}
 
 	return nil
+}
+
+func (c *Car) setVolume(v int) error {
+	// amixer -M set PCM 20%
+	cmd := exec.Command("amixer", "-M", "set", "PCM", fmt.Sprintf("%v%%", v))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Printf("[car]failed to set volume, output: %v, error: %v", string(out), err)
+		return err
+	}
+	c.volume = v
+	return nil
+}
+
+func (c *Car) volumeUp() {
+	v := c.volume + 10
+	if v > 100 {
+		v = 100
+	}
+	c.setVolume(v)
+	go c.playText(fmt.Sprintf("音量%v%%", v))
+}
+
+func (c *Car) volumeDown() {
+	v := c.volume - 10
+	if v < 0 {
+		v = 0
+	}
+	c.setVolume(v)
+	go c.playText(fmt.Sprintf("音量%v%%", v))
 }
 
 func (c *Car) play(wav string) error {
