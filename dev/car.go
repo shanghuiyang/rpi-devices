@@ -25,11 +25,11 @@ const (
 )
 
 const (
-	baiduSpeechAppKey    = "Rz83wRmyDlC9ZLVYMcsB53g9"
-	baiduSpeechSecretKey = "Fx8Zp9gktUzyEELPhbsCh46SQm1wZhQy"
+	baiduSpeechAppKey    = "your_speech_app_key"
+	baiduSpeechSecretKey = "your_speech_secret_key"
 
-	baiduImgRecognitionAppKey    = "ucHLd0VgPElQAnkKot9b05TI"
-	baiduImgRecognitionSecretKey = "2SVdSB8xd6SOs1lkg9SFEzpkVCYx6ITi"
+	baiduImgRecognitionAppKey    = "your_image_recognition_app_key"
+	baiduImgRecognitionSecretKey = "your_image_recognition_secrect_key"
 )
 
 const (
