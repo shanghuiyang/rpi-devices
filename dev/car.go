@@ -1169,14 +1169,15 @@ func (c *Car) selfNavOn() {
 		log.Printf("[car]failed to nav, error: %v", err)
 	}
 
+	c.selfdriving = false
 	c.selftracking = false
+	c.speechdriving = false
 	c.delay(1000) // wait for self-tracking and speech-driving quit
 
 	c.selfnav = true
 	log.Printf("[car]nav on")
 	c.selfNav()
-	c.selfnav = true
-	c.selfTrackingOn()
+	c.selfnav = false
 }
 
 func (c *Car) selfNavOff() {
@@ -1252,7 +1253,7 @@ func (c *Car) selfNav() {
 			go c.horn.Beep(2, 100)
 		} else {
 			// destination
-			go c.horn.Beep(3, 300)
+			go c.horn.Beep(5, 300)
 		}
 	}
 	c.chOp <- stop
