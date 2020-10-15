@@ -1,3 +1,6 @@
+// build with tracking using open cv:
+// $ go build -tags=gocv app/car/car.go
+
 package main
 
 import (
