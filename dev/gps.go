@@ -67,7 +67,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/geo"
 	"github.com/tarm/serial"
 )
 
@@ -79,7 +79,7 @@ const (
 )
 
 var (
-	points     []*base.Point
+	points     []*geo.Point
 	pointCount int
 	index      int
 	buf        = make([]byte, 1024)
@@ -100,7 +100,7 @@ func NewGPS() *GPS {
 }
 
 // Loc ...
-func (g *GPS) Loc() (*base.Point, error) {
+func (g *GPS) Loc() (*geo.Point, error) {
 	if err := g.port.Flush(); err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (g *GPS) Loc() (*base.Point, error) {
 		return nil, fmt.Errorf("bad data from gps device")
 	}
 
-	var pt base.Point
+	var pt geo.Point
 	if _, err := fmt.Sscanf(items[3], "%f", &pt.Lat); err != nil {
 		return nil, fmt.Errorf("failed to parse lat, %v", err)
 	}
@@ -161,18 +161,18 @@ func (g *GPS) Loc() (*base.Point, error) {
 		pt.Lon = pt.Lon * (-1)
 	}
 	dd := int(pt.Lat / 100)
-	mm := pt.Lat - float32(dd*100)
-	pt.Lat = float32(dd) + mm/60
+	mm := pt.Lat - float64(dd*100)
+	pt.Lat = float64(dd) + mm/60
 
 	dd = int(pt.Lon / 100)
-	mm = pt.Lon - float32(dd*100)
-	pt.Lon = float32(dd) + mm/60
+	mm = pt.Lon - float64(dd*100)
+	pt.Lon = float64(dd) + mm/60
 
 	return &pt, nil
 }
 
 // MockLocFromGPX ...
-func (g *GPS) MockLocFromGPX() (*base.Point, error) {
+func (g *GPS) MockLocFromGPX() (*geo.Point, error) {
 	if pointCount == 0 {
 		file, err := os.Open("gps.gpx")
 		if err != nil {
@@ -185,7 +185,7 @@ func (g *GPS) MockLocFromGPX() (*base.Point, error) {
 			if err == io.EOF {
 				break
 			}
-			var lat, lon float32
+			var lat, lon float64
 			line = strings.Trim(line, " \t\n")
 			if !strings.Contains(line, "<trkpt") {
 				continue
@@ -194,7 +194,7 @@ func (g *GPS) MockLocFromGPX() (*base.Point, error) {
 				log.Printf("[gps]failed to parse lat/lon, error: %v", err)
 				continue
 			}
-			pt := &base.Point{
+			pt := &geo.Point{
 				Lat: lat,
 				Lon: lon,
 			}
@@ -213,7 +213,7 @@ func (g *GPS) MockLocFromGPX() (*base.Point, error) {
 }
 
 // MockLocFromCSV ...
-func (g *GPS) MockLocFromCSV() (*base.Point, error) {
+func (g *GPS) MockLocFromCSV() (*geo.Point, error) {
 	if pointCount == 0 {
 		file, err := os.Open("gps.csv")
 		if err != nil {
@@ -227,11 +227,11 @@ func (g *GPS) MockLocFromCSV() (*base.Point, error) {
 				break
 			}
 			var timestamp string
-			var lat, lon float32
+			var lat, lon float64
 			if _, err := fmt.Sscanf(line, "%19s,%f,%f\n", &timestamp, &lat, &lon); err != nil {
 				log.Printf("[gps]failed to parse lat/lon, error: %v", err)
 			}
-			pt := &base.Point{
+			pt := &geo.Point{
 				Lat: lat,
 				Lon: lon,
 			}

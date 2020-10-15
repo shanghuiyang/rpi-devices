@@ -14,6 +14,7 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/geo"
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -113,6 +114,12 @@ func main() {
 		log.Printf("[carapp]failed to new a camera, will build a car without cameras")
 	}
 
+	gps := dev.NewGPS()
+	if gps == nil {
+		log.Printf("[carapp]failed to new a gps sensor")
+		return
+	}
+
 	car := dev.NewCar(
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
@@ -123,6 +130,7 @@ func main() {
 		dev.WithLed(led),
 		dev.WithLight(light),
 		dev.WithCamera(cam),
+		dev.WithGPS(gps),
 	)
 	if car == nil {
 		log.Fatal("failed to new a car")
@@ -132,6 +140,18 @@ func main() {
 	server := newCarServer(car)
 	base.WaitQuit(func() {
 		server.stop()
+		if ult != nil {
+			ult.Close()
+		}
+		if horn != nil {
+			horn.Off()
+		}
+		if encoder != nil {
+			encoder.Stop()
+		}
+		if led != nil {
+			led.Off()
+		}
 		rpio.Close()
 	})
 	if err := server.start(); err != nil {
@@ -250,6 +270,20 @@ func (s *carServer) handler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		s.loadHomePage(w, r)
 	case "POST":
+		if dest := r.FormValue("dest"); dest != "" {
+			var lat, lon float64
+			n, err := fmt.Sscanf(dest, "%f,%f", &lat, &lon)
+			if err != nil || n != 2 {
+				log.Printf("invalid destination input: %v", dest)
+				return
+			}
+			destPt := &geo.Point{
+				Lat: lat,
+				Lon: lon,
+			}
+			log.Printf("dest: %v", destPt)
+			s.car.SetDest(destPt)
+		}
 		op := r.FormValue("op")
 		s.car.Do(dev.CarOp(op))
 	}

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/geo"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 // GPSLogger ...
 type GPSLogger struct {
 	f        *os.File
-	chPoints chan *base.Point
+	chPoints chan *geo.Point
 }
 
 // NewGPSLogger ...
@@ -28,7 +28,7 @@ func NewGPSLogger() *GPSLogger {
 	f.WriteString("timestamp,lat,lon\n")
 	t := &GPSLogger{
 		f:        f,
-		chPoints: make(chan *base.Point, 32),
+		chPoints: make(chan *geo.Point, 32),
 	}
 	go t.start()
 	return t
@@ -43,7 +43,10 @@ func (l *GPSLogger) start() {
 }
 
 // AddPoint ...
-func (l *GPSLogger) AddPoint(pt *base.Point) {
+func (l *GPSLogger) AddPoint(pt *geo.Point) {
+	if pt == nil {
+		return
+	}
 	l.chPoints <- pt
 }
 

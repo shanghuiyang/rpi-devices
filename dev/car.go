@@ -10,10 +10,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shanghuiyang/a-star/astar"
+	"github.com/shanghuiyang/a-star/tilemap"
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/cv"
+	"github.com/shanghuiyang/rpi-devices/geo"
 )
 
 const (
@@ -61,6 +64,9 @@ const (
 
 	speechdrivingon  CarOp = "speechdrivingon"
 	speechdrivingoff CarOp = "speechdrivingoff"
+
+	selfnavon  CarOp = "selfnavon"
+	selfnavoff CarOp = "selfnavoff"
 )
 
 var (
@@ -89,6 +95,77 @@ var (
 	hs = float64(255)
 	hv = float64(255)
 )
+
+const (
+	tilemapStr = `
+############################################
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#      ###################                 #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+#                                          #
+############################################
+	`
+
+	gridsize = float64(0.000010)
+)
+
+var bbox = &geo.Bbox{
+	Left:   116.444217,
+	Right:  116.444652,
+	Top:    39.956275,
+	Bottom: 39.955711,
+}
 
 type (
 	// CarOp ...
@@ -160,37 +237,58 @@ func WithCamera(cam *Camera) Option {
 	}
 }
 
+// WithGPS ...
+func WithGPS(gps *GPS) Option {
+	return func(c *Car) {
+		c.gps = gps
+	}
+}
+
 // Car ...
 type Car struct {
-	engine   *L298N
-	servo    *SG90
-	ult      *US100
-	encoder  *Encoder
-	cswitchs []*CollisionSwitch
-	horn     *Buzzer
-	led      *Led
-	light    *Led
-	camera   *Camera
+	engine *L298N
+	horn   *Buzzer
+	led    *Led
+	light  *Led
+	camera *Camera
+	chOp   chan CarOp
 
-	asr     *speech.ASR
-	tts     *speech.TTS
-	imgr    *recognizer.Recognizer
-	tracker *cv.Tracker
+	// self-driving
+	servo       *SG90
+	ult         *US100
+	encoder     *Encoder
+	cswitchs    []*CollisionSwitch
+	selfdriving bool
+	servoAngle  int
 
-	volume        int
-	servoAngle    int
-	selfdriving   bool
+	// speed-driving
+	asr           *speech.ASR
+	tts           *speech.TTS
+	imgr          *recognizer.Recognizer
 	speechdriving bool
-	selftracking  bool
-	chOp          chan CarOp
+	volume        int
+
+	// self-tracking
+	tracker      *cv.Tracker
+	selftracking bool
+
+	// nav
+	gps       *GPS
+	dest      *geo.Point
+	gpslogger *GPSLogger
+	lastLoc   *geo.Point
+	selfnav   bool
 }
 
 // NewCar ...
 func NewCar(opts ...Option) *Car {
 	car := &Car{
-		servoAngle:  0,
-		selfdriving: false,
-		chOp:        make(chan CarOp, chSize),
+		servoAngle:    0,
+		selfdriving:   false,
+		speechdriving: false,
+		selftracking:  false,
+		selfnav:       false,
+		chOp:          make(chan CarOp, chSize),
 	}
 	for _, opt := range opts {
 		opt(car)
@@ -222,6 +320,14 @@ func (c *Car) Stop() error {
 // GetState ...
 func (c *Car) GetState() (selfDriving, selfTracking, speechDriving bool) {
 	return c.selfdriving, c.selftracking, c.speechdriving
+}
+
+// SetDest ...
+func (c *Car) SetDest(dest *geo.Point) {
+	if c.selfnav {
+		return
+	}
+	c.dest = dest
 }
 
 func (c *Car) start() {
@@ -261,6 +367,10 @@ func (c *Car) start() {
 			go c.speechDrivingOn()
 		case speechdrivingoff:
 			go c.speechDrivingOff()
+		case selfnavon:
+			go c.selfNavOn()
+		case selfnavoff:
+			go c.selfNavOff()
 		default:
 			log.Printf("[car]invalid op")
 		}
@@ -283,16 +393,12 @@ func (c *Car) backward() {
 func (c *Car) left() {
 	log.Printf("[car]left")
 	c.engine.Left()
-	c.delay(250)
-	c.engine.Stop()
 }
 
 // right ...
 func (c *Car) right() {
 	log.Printf("[car]right")
 	c.engine.Right()
-	c.delay(250)
-	c.engine.Stop()
 }
 
 // stop ...
@@ -583,6 +689,7 @@ func (c *Car) selfTrackingOn() {
 	c.stopMotion()
 	c.selfdriving = false
 	c.speechdriving = false
+	c.selfnav = false
 	c.delay(1000) // wait to quit self-driving & speech-driving
 
 	// start slef-tracking
@@ -902,6 +1009,30 @@ func (c *Car) turn(angle int) {
 	return
 }
 
+func (c *Car) turnLeft(angle int) {
+	n := angle/5 - 1
+	c.encoder.Start()
+	defer c.encoder.Stop()
+
+	c.chOp <- left
+	for i := 0; i < n; {
+		i += c.encoder.Count1()
+	}
+	return
+}
+
+func (c *Car) turnRight(angle int) {
+	n := angle/5 - 1
+	c.encoder.Start()
+	defer c.encoder.Stop()
+
+	c.chOp <- right
+	for i := 0; i < n; {
+		i += c.encoder.Count1()
+	}
+	return
+}
+
 func (c *Car) delay(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
 }
@@ -1027,4 +1158,223 @@ func (c *Car) startMotion() error {
 	}
 	time.Sleep(1 * time.Second)
 	return nil
+}
+
+func (c *Car) selfNavOn() {
+	if c.selfnav {
+		return
+	}
+	if c.gps == nil {
+		err := errors.New("can't nav due without gps")
+		log.Printf("[car]failed to nav, error: %v", err)
+	}
+
+	c.selftracking = false
+	c.delay(1000) // wait for self-tracking and speech-driving quit
+
+	c.selfnav = true
+	log.Printf("[car]nav on")
+	c.selfNav()
+	c.selfnav = true
+	c.selfTrackingOn()
+}
+
+func (c *Car) selfNavOff() {
+	c.selfnav = false
+	log.Printf("[car]nav off")
+}
+
+func (c *Car) selfNav() {
+	if c.dest == nil {
+		log.Printf("[car]destination didn't be set, stop nav")
+		return
+	}
+
+	c.horn.Beep(3, 300)
+	if !bbox.IsInside(c.dest) {
+		log.Printf("[car]destination isn't in bbox, stop nav")
+		return
+	}
+
+	c.gpslogger = NewGPSLogger()
+	if c.gpslogger == nil {
+		log.Printf("[car]failed to new a tracker, stop nav")
+		return
+	}
+	defer c.gpslogger.Close()
+
+	var org *geo.Point
+	for c.selfnav {
+		pt, err := c.gps.Loc()
+		if err != nil {
+			log.Printf("[car]gps sensor is not ready")
+			c.delay(1000)
+			continue
+		}
+		c.gpslogger.AddPoint(org)
+		if !bbox.IsInside(pt) {
+			log.Printf("current loc(%v) isn't in bbox(%v)", pt, bbox)
+			continue
+		}
+		org = pt
+		break
+	}
+	if !c.selfnav {
+		return
+	}
+	c.lastLoc = org
+
+	path, err := c.findPath(org, c.dest)
+	if err != nil {
+		log.Printf("[car]failed to find a path, error: %v", err)
+		return
+	}
+	turns := c.turnPoints(path)
+
+	var turnPts []*geo.Point
+	var str string
+	for _, xy := range turns {
+		pt := c.xy2geo(xy)
+		str += fmt.Sprintf("(%v) ", pt)
+		turnPts = append(turnPts, pt)
+	}
+	log.Printf("[car]turn points(lat,lon): %v", str)
+
+	c.chOp <- forward
+	c.delay(1000)
+	for i, p := range turnPts {
+		if err := c.navTo(p); err != nil {
+			log.Printf("[car]failed to nav to (%v), error: %v", p, err)
+			break
+		}
+		if i < len(turnPts)-1 {
+			// turn point
+			go c.horn.Beep(2, 100)
+		} else {
+			// destination
+			go c.horn.Beep(3, 300)
+		}
+	}
+	c.chOp <- stop
+}
+
+func (c *Car) navTo(dest *geo.Point) error {
+	retry := 8
+	for c.selfnav {
+		loc, err := c.gps.Loc()
+		if err != nil {
+			c.chOp <- stop
+			log.Printf("[car]gps sensor is not ready")
+			c.delay(1000)
+			continue
+		}
+
+		if !bbox.IsInside(loc) {
+			c.chOp <- stop
+			log.Printf("current loc(%v) isn't in bbox(%v)", loc, bbox)
+			c.delay(1000)
+			continue
+		}
+
+		c.gpslogger.AddPoint(loc)
+		log.Printf("[car]current loc: %v", loc)
+
+		d := loc.DistanceWith(c.lastLoc)
+		log.Printf("[car]distance to last loc: %.2f m", d)
+		if d > 4 && retry < 5 {
+			c.chOp <- stop
+			log.Printf("[car]bad gps signal, waiting for better gps signal")
+			retry++
+			c.delay(1000)
+			continue
+		}
+
+		retry = 0
+		d = loc.DistanceWith(dest)
+		log.Printf("[car]distance to destination: %.2f m", d)
+		if d < 4 {
+			c.chOp <- stop
+			log.Printf("[car]arrived at the destination, nav done")
+			return nil
+		}
+
+		side := geo.Side(c.lastLoc, loc, dest)
+		angle := int(180 - geo.Angle(c.lastLoc, loc, dest))
+		if angle < 10 {
+			side = geo.MiddleSide
+		}
+		log.Printf("[car]nav angle: %v, side: %v", angle, side)
+
+		switch side {
+		case geo.LeftSide:
+			c.turnLeft(angle)
+		case geo.RightSide:
+			c.turnRight(angle)
+		case geo.MiddleSide:
+			// do nothing
+		}
+		c.chOp <- forward
+		c.delay(1000)
+		c.lastLoc = loc
+	}
+	c.chOp <- stop
+	return nil
+}
+
+func (c *Car) findPath(org, des *geo.Point) (astar.PList, error) {
+	m := tilemap.BuildFromStr(tilemapStr)
+
+	orgXY := c.geo2xy(org)
+	desXY := c.geo2xy(des)
+
+	a := astar.New(m)
+	path, err := a.FindPath(orgXY, desXY)
+	if err != nil {
+		log.Printf("[car]failed to find the path from A(%v) to B(%v)", org, des)
+		return nil, err
+	}
+	log.Printf("[car]path: %v", path)
+	a.Draw()
+	return path, nil
+}
+
+func (c *Car) turnPoints(path astar.PList) astar.PList {
+	if len(path) <= 2 {
+		return path
+	}
+
+	var ks []float64
+	for i := 0; i < len(path)-1; i++ {
+		k := 99999.99
+		if path[i].Y != path[i+1].Y {
+			k = float64(path[i].X-path[i+1].X) / float64(path[i].Y-path[i+1].Y)
+		}
+		ks = append(ks, k)
+	}
+	log.Printf("ks: %v\n", ks)
+
+	var turns astar.PList
+	for i := 0; i < len(ks)-1; i++ {
+		if ks[i] == ks[i+1] {
+			continue
+		}
+		turns = append(turns, path[i+1])
+	}
+	turns = append(turns, path[len(path)-1])
+	log.Printf("turn points(x,y): %v", turns)
+	return turns
+}
+
+func (c *Car) xy2geo(p *astar.Point) *geo.Point {
+	return &geo.Point{
+		Lat: bbox.Top - float64(p.X)*gridsize,
+		Lon: bbox.Left + float64(p.Y)*gridsize,
+	}
+}
+
+func (c *Car) geo2xy(p *geo.Point) *astar.Point {
+	return &astar.Point{
+		X: int((bbox.Top-p.Lat)/gridsize + 0.5),
+		Y: int((p.Lon-bbox.Left)/gridsize + 0.5),
+	}
 }
