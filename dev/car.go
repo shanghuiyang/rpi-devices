@@ -1176,7 +1176,9 @@ func (c *Car) selfNavOn() {
 
 	c.selfnav = true
 	log.Printf("[car]nav on")
-	c.selfNav()
+	if err := c.selfNav(); err != nil {
+		return
+	}
 	c.selfnav = false
 }
 
@@ -1185,22 +1187,22 @@ func (c *Car) selfNavOff() {
 	log.Printf("[car]nav off")
 }
 
-func (c *Car) selfNav() {
+func (c *Car) selfNav() error {
 	if c.dest == nil {
 		log.Printf("[car]destination didn't be set, stop nav")
-		return
+		return errors.New("destination isn't set")
 	}
 
 	c.horn.Beep(3, 300)
 	if !bbox.IsInside(c.dest) {
 		log.Printf("[car]destination isn't in bbox, stop nav")
-		return
+		return errors.New("destination isn't in bbox")
 	}
 
 	c.gpslogger = NewGPSLogger()
 	if c.gpslogger == nil {
 		log.Printf("[car]failed to new a tracker, stop nav")
-		return
+		return errors.New("gpslogger is nil")
 	}
 	defer c.gpslogger.Close()
 
@@ -1221,14 +1223,14 @@ func (c *Car) selfNav() {
 		break
 	}
 	if !c.selfnav {
-		return
+		return errors.New("nav abort")
 	}
 	c.lastLoc = org
 
 	path, err := c.findPath(org, c.dest)
 	if err != nil {
 		log.Printf("[car]failed to find a path, error: %v", err)
-		return
+		return errors.New("failed to find a path")
 	}
 	turns := c.turnPoints(path)
 
@@ -1257,6 +1259,7 @@ func (c *Car) selfNav() {
 		}
 	}
 	c.chOp <- stop
+	return nil
 }
 
 func (c *Car) navTo(dest *geo.Point) error {

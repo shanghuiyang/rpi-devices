@@ -38,6 +38,7 @@
 /rlight
 /img-recognizer
 /sserver
+/uploadsvr
 
 # Test binary, build with `go test -c`
 # *.test
