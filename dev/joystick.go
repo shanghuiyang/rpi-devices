@@ -18,18 +18,19 @@ import (
 // Joystick ...
 type Joystick struct {
 	swPin rpio.Pin
-	pcf   *PCF8591
+	ads   *ADS1015
 }
 
 // NewJoystick ...
 func NewJoystick(sw uint8) (*Joystick, error) {
-	p, err := NewPCF8591()
+	// p, err := NewPCF8591()
+	ads, err := NewADS1015()
 	if err != nil {
 		return nil, err
 	}
 	return &Joystick{
 		swPin: rpio.Pin(sw),
-		pcf:   p,
+		ads:   ads,
 	}, nil
 }
 
@@ -39,11 +40,11 @@ func NewJoystick(sw uint8) (*Joystick, error) {
 // x = 0: home
 // x < 0: right
 func (j *Joystick) X() (x int) {
-	data := j.pcf.ReadAIN0()
-	if len(data) == 0 {
+	v, err := j.ads.Read(0)
+	if err != nil {
 		return 0
 	}
-	x = int(data[0]) - 123
+	x = int(v)
 	return
 }
 
@@ -53,11 +54,11 @@ func (j *Joystick) X() (x int) {
 // y = 0: home
 // y < 0: down
 func (j *Joystick) Y() (y int) {
-	data := j.pcf.ReadAIN1()
-	if len(data) == 0 {
+	v, err := j.ads.Read(1)
+	if err != nil {
 		return 0
 	}
-	y = 131 - int(data[0])
+	y = int(v)
 	return
 }
 

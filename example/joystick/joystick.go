@@ -34,6 +34,6 @@ func main() {
 		y := j.Y()
 		z := j.Z()
 		log.Printf("x: %v, y: %v, z: %v", x, y, z)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(2000 * time.Millisecond)
 	}
 }
