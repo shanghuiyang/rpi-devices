@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	swPin = 4
+	swPin = 7
 )
 
 func main() {
@@ -34,6 +34,6 @@ func main() {
 		y := j.Y()
 		z := j.Z()
 		log.Printf("x: %v, y: %v, z: %v", x, y, z)
-		time.Sleep(2000 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 	}
 }
