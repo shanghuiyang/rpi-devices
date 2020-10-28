@@ -69,6 +69,17 @@ const (
 	selfnavoff CarOp = "selfnavoff"
 )
 
+const (
+	// joystick actions
+	gpStop           = byte(0)
+	gpForward        = byte(1)
+	gpBackward       = byte(2)
+	gpLeft           = byte(3)
+	gpRight          = byte(4)
+	gpSelfDrivingOff = byte(10)
+	gpSelfDrivingOn  = byte(11)
+)
+
 var (
 	scanningAngles  = []int{-90, -75, -60, -45, -30, 30, 45, 60, 75, 90}
 	turnAngleCounts = map[int]int{
@@ -84,6 +95,23 @@ var (
 		90:  17,
 	}
 	aheadAngles = []int{0, -15, 0, 15}
+	// gamepad2op  = map[byte]CarOp{
+	// 	gpStop:           stop,
+	// 	gpForward:        forward,
+	// 	gpBackward:       backward,
+	// 	gpLeft:           left,
+	// 	gpRight:          right,
+	// 	gpSelfDrivingOff: selfdrivingoff,
+	// 	gpSelfDrivingOn:  selfdrivingon,
+	// }
+
+	// speedcat2speed = map[byte]uint32{
+	// 	1: 20,
+	// 	2: 30,
+	// 	3: 50,
+	// 	4: 70,
+	// 	5: 90,
+	// }
 )
 
 var (
@@ -174,6 +202,18 @@ type (
 	Option func(c *Car)
 )
 
+// CarAct ...
+type CarAct struct {
+	Op    CarOp  `json:"op"`
+	Speed uint32 `json:"speed"`
+}
+
+// DistMeter ...
+type DistMeter interface {
+	Dist() float64
+	Close()
+}
+
 // WithEngine ...
 func WithEngine(engine *L298N) Option {
 	return func(c *Car) {
@@ -189,9 +229,9 @@ func WithServo(servo *SG90) Option {
 }
 
 // WithUlt ...
-func WithUlt(ult *US100) Option {
+func WithUlt(d DistMeter) Option {
 	return func(c *Car) {
-		c.ult = ult
+		c.dmeter = d
 	}
 }
 
@@ -244,6 +284,13 @@ func WithGPS(gps *GPS) Option {
 	}
 }
 
+// WithLC12S ...
+func WithLC12S(l *LC12S) Option {
+	return func(c *Car) {
+		c.lc12s = l
+	}
+}
+
 // Car ...
 type Car struct {
 	engine *L298N
@@ -251,11 +298,12 @@ type Car struct {
 	led    *Led
 	light  *Led
 	camera *Camera
+	lc12s  *LC12S
 	chOp   chan CarOp
 
 	// self-driving
 	servo       *SG90
-	ult         *US100
+	dmeter      DistMeter
 	encoder     *Encoder
 	cswitchs    []*CollisionSwitch
 	selfdriving bool
@@ -302,6 +350,7 @@ func (c *Car) Start() error {
 	go c.start()
 	go c.servo.Roll(0)
 	go c.blink()
+	go c.joystick()
 	go c.setVolume(40)
 	return nil
 }
@@ -409,6 +458,7 @@ func (c *Car) stop() {
 }
 
 func (c *Car) speed(s uint32) {
+	log.Printf("[car]speed %v%%", s)
 	c.engine.Speed(s)
 }
 
@@ -508,7 +558,7 @@ func (c *Car) servoAhead() {
 
 */
 func (c *Car) selfDriving() {
-	if c.ult == nil {
+	if c.dmeter == nil {
 		log.Printf("[car]can't self-driving without the distance sensor")
 		return
 	}
@@ -675,11 +725,13 @@ func (c *Car) selfDrivingOn() {
 
 	c.selfdriving = true
 	log.Printf("[car]self-drving on")
+	c.speed(30)
 	c.selfDriving()
 }
 
 func (c *Car) selfDrivingOff() {
 	c.selfdriving = false
+	c.servo.Roll(0)
 	log.Printf("[car]self-drving off")
 }
 
@@ -702,12 +754,14 @@ func (c *Car) selfTrackingOn() {
 	c.tracker = t
 	c.selftracking = true
 	log.Printf("[car]self-tracking on")
+	c.speed(30)
 	c.selfDriving()
 }
 
 func (c *Car) selfTrackingOff() {
 	c.selftracking = false
 	c.tracker.Close()
+	c.servo.Roll(0)
 	c.delay(500)
 
 	if err := c.startMotion(); err != nil {
@@ -726,11 +780,13 @@ func (c *Car) speechDrivingOn() {
 
 	c.speechdriving = true
 	log.Printf("[car]speech-drving on")
+	c.speed(30)
 	c.speechDriving()
 }
 
 func (c *Car) speechDrivingOff() {
 	c.speechdriving = false
+	c.servo.Roll(0)
 	log.Printf("[car]speech-drving off")
 }
 
@@ -769,8 +825,8 @@ func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 			}
 			c.servo.Roll(angle)
 			c.delay(70)
-			d := c.ult.Dist()
-			if d < 10 {
+			d := c.dmeter.Dist()
+			if d < 20 {
 				chOp <- backward
 				chQuit <- true
 				chQuit <- true
@@ -964,11 +1020,11 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 	maxd = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
-		c.delay(120)
-		d := c.ult.Dist()
+		c.delay(170)
+		d := c.dmeter.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
-			c.delay(120)
-			d = c.ult.Dist()
+			c.delay(170)
+			d = c.dmeter.Dist()
 		}
 		if d < 0 {
 			continue
@@ -1159,6 +1215,56 @@ func (c *Car) startMotion() error {
 	}
 	time.Sleep(1 * time.Second)
 	return nil
+}
+
+func (c *Car) joystick() {
+	if c.lc12s == nil {
+		return
+	}
+
+	c.lc12s.Wakeup()
+	defer c.lc12s.Sleep()
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+
+		if c.selfdriving {
+			continue
+		}
+
+		data, err := c.lc12s.Receive()
+		if err != nil {
+			log.Printf("[car]failed to receive data from LC12S, error: %v", err)
+			continue
+		}
+		log.Printf("[car]LC12S received: %v", data)
+
+		if len(data) != 1 {
+			log.Printf("[car]invalid data from LC12S, data len: %v", len(data))
+			continue
+		}
+
+		op := (data[0] >> 4)
+		speed := data[0] & 0x0F
+
+		switch op {
+		case 0:
+			c.chOp <- stop
+		case 1:
+			c.chOp <- forward
+		case 2:
+			c.chOp <- backward
+		case 3:
+			c.chOp <- left
+		case 4:
+			c.chOp <- right
+		case 5:
+			c.chOp <- selfdrivingon
+		default:
+			c.chOp <- stop
+		}
+		c.speed(uint32(speed * 10))
+	}
 }
 
 func (c *Car) selfNavOn() {

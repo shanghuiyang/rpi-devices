@@ -53,7 +53,7 @@ func NewMPU6050() (*MPU6050, error) {
 	if err != nil {
 		return nil, err
 	}
-	dev.WriteReg(0x6B, []uint8{0})
+	dev.WriteReg(0x6B, []uint8{0}) // power on
 	return &MPU6050{
 		dev: dev,
 	}, nil

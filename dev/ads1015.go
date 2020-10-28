@@ -2,7 +2,7 @@
 Package dev ...
 
 ADS1015 is the driver for ADS1015 module.
-https://wenku.baidu.com/view/8bab101feef9aef8941ea76e58fafab069dc44e7.html?re=view#
+hhttps://wenku.baidu.com/view/308f9a69a9114431b90d6c85ec3a87c240288aa7
 
 connect to raspberry pi:
 - VCC: pin 1 or any 3.3v pin
@@ -147,7 +147,8 @@ var (
 		3: MultiplexerConfigurationAIN3,
 	}
 
-	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate1600 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
+	//defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate1600 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
+	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate3300_1 | DeviceOperationModeContinous | ProgramableGainAmplifier4096
 )
 
 // ADS1015 ...
@@ -187,7 +188,7 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 		return 0, err
 	}
 
-	time.Sleep(50 * time.Microsecond)
+	time.Sleep(100 * time.Microsecond)
 	data := make([]byte, 2)
 	if err := m.dev.ReadReg(ConversionRegiserPointer, data); err != nil {
 		return 0, err
@@ -195,11 +196,12 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 
 	val := (uint32(data[0]) << 8) | uint32(data[1])
 	var v float64
-	if val > 0x7FFF {
-		v = float64((val-0xFFFF)*6144/1000) / 32768.0
-	} else {
-		v = float64(val*6144/1000) / 32768.0
-	}
+	// if val > 0x7FFF {
+	// 	v = float64((val-0xFFFF)*6144/1000) / 32768.0
+	// } else {
+	// 	v = float64(val*6144/1000) / 32768.0
+	// }
+	v = float64(val*4096/1000) / 32768.0
 	return v, nil
 
 }

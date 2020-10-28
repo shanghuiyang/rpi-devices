@@ -39,13 +39,12 @@ func NewJoystick(sw uint8) (*Joystick, error) {
 // x > 0: left
 // x = 0: home
 // x < 0: right
-func (j *Joystick) X() (x int) {
+func (j *Joystick) X() (x float64) {
 	v, err := j.ads.Read(0)
 	if err != nil {
 		return 0
 	}
-	x = int(v)
-	return
+	return v
 }
 
 // Y ...
@@ -53,13 +52,12 @@ func (j *Joystick) X() (x int) {
 // y > 0: up
 // y = 0: home
 // y < 0: down
-func (j *Joystick) Y() (y int) {
+func (j *Joystick) Y() (y float64) {
 	v, err := j.ads.Read(1)
 	if err != nil {
 		return 0
 	}
-	y = int(v)
-	return
+	return v
 }
 
 // Z ...

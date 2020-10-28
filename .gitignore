@@ -39,6 +39,7 @@
 /img-recognizer
 /sserver
 /uploadsvr
+/joystick
 
 # Test binary, build with `go test -c`
 # *.test

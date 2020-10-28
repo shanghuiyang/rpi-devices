@@ -72,6 +72,11 @@ func (h *HCSR04) Dist() float64 {
 	return time.Now().Sub(start).Seconds() * voiceSpeed / 2.0
 }
 
+// Close ...
+func (h *HCSR04) Close() {
+	// do noting
+}
+
 // delay is to delay us microsecond
 func (h *HCSR04) delay(us int) {
 	time.Sleep(time.Duration(us) * time.Microsecond)

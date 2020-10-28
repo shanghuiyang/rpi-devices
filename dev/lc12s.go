@@ -48,20 +48,20 @@ type LC12S struct {
 }
 
 // NewLC12S ...
-func NewLC12S(csPin uint8) *LC12S {
+func NewLC12S(csPin uint8) (*LC12S, error) {
 	l := &LC12S{
 		csPin: rpio.Pin(csPin),
 	}
 	if err := l.open(); err != nil {
-		return nil
+		return nil, err
 	}
 	l.csPin.Output()
 	l.Sleep()
-	return l
+	return l, nil
 }
 
-// Write ...
-func (l *LC12S) Write(data []byte) error {
+// Send ...
+func (l *LC12S) Send(data []byte) error {
 	n, err := l.port.Write(data)
 	if err != nil {
 		return err
@@ -74,8 +74,8 @@ func (l *LC12S) Write(data []byte) error {
 	return nil
 }
 
-// Read ...
-func (l *LC12S) Read() ([]byte, error) {
+// Receive ...
+func (l *LC12S) Receive() ([]byte, error) {
 	if err := l.port.Flush(); err != nil {
 		log.Printf("[lc12s]failed to flush serial, error: %v", err)
 		return nil, err

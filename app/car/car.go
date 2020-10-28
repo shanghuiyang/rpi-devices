@@ -35,6 +35,9 @@ const (
 	pinEncoder   = 6
 	pinCSwaitchL = 20 // the collision switch on left
 	pinCSwaitchR = 12 // the collision switch on right
+	pinCS        = 2
+	pinTrig      = 21
+	pinEcho      = 26
 
 	// use this rpio as 3.3v pin
 	// if all 3.3v pins were used
@@ -72,9 +75,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	ult := dev.NewUS100()
+	// ult := dev.NewUS100()
+	// if ult == nil {
+	// 	log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
+	// }
+	ult := dev.NewHCSR04(pinTrig, pinEcho)
 	if ult == nil {
-		log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
+		log.Printf("[carapp]failed to new an ultrasonic distance meter, will build a car without ultrasonic distance meter")
 	}
 
 	encoder := dev.NewEncoder(pinEncoder)
@@ -123,6 +130,11 @@ func main() {
 		return
 	}
 
+	lc12s, err := dev.NewLC12S(pinCS)
+	if err != nil {
+		log.Printf("[carapp]failed to new a LC12S, error: %v", err)
+	}
+
 	car := dev.NewCar(
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
@@ -134,6 +146,7 @@ func main() {
 		dev.WithLight(light),
 		dev.WithCamera(cam),
 		dev.WithGPS(gps),
+		dev.WithLC12S(lc12s),
 	)
 	if car == nil {
 		log.Fatal("failed to new a car")
@@ -154,6 +167,12 @@ func main() {
 		}
 		if led != nil {
 			led.Off()
+		}
+		if light != nil {
+			light.Off()
+		}
+		if lc12s != nil {
+			lc12s.Close()
 		}
 		rpio.Close()
 	})
