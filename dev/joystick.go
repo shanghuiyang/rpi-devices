@@ -27,10 +27,12 @@ func NewJoystick(sw uint8) (*Joystick, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Joystick{
+	j := &Joystick{
 		swPin: rpio.Pin(sw),
 		ads:   ads,
-	}, nil
+	}
+	j.swPin.Input()
+	return j, nil
 }
 
 // X ...

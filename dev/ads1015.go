@@ -147,7 +147,7 @@ var (
 		3: MultiplexerConfigurationAIN3,
 	}
 
-	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate1600 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
+	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate3300_0 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
 )
 
 // ADS1015 ...
@@ -187,7 +187,7 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 		return 0, err
 	}
 
-	time.Sleep(50 * time.Microsecond)
+	time.Sleep(100 * time.Microsecond)
 	data := make([]byte, 2)
 	if err := m.dev.ReadReg(ConversionRegiserPointer, data); err != nil {
 		return 0, err

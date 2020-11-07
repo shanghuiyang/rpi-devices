@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"math"
 	"time"
@@ -13,6 +14,10 @@ import (
 const (
 	swPin = 7
 	csPin = 17
+
+	homeX   = 2.43
+	homeY   = 2.56
+	homeBuf = 0.15
 )
 
 func main() {
@@ -43,8 +48,11 @@ func main() {
 
 	var curOp, curSpeed byte
 	for {
-		time.Sleep(300 * time.Millisecond)
-		op, speed := getOpAndSpeed(j)
+		time.Sleep(200 * time.Millisecond)
+		op, speed, err := getOpAndSpeed(j)
+		if err != nil {
+			continue
+		}
 		if op == curOp && speed == curSpeed {
 			continue
 		}
@@ -59,8 +67,9 @@ func main() {
 	}
 }
 
-func getOpAndSpeed(j *dev.Joystick) (op, speed byte) {
+func getOpAndSpeed(j *dev.Joystick) (op, speed byte, err error) {
 	op, speed = 0, 0
+	err = nil
 
 	x := j.X()
 	y := j.Y()
@@ -73,19 +82,22 @@ func getOpAndSpeed(j *dev.Joystick) (op, speed byte) {
 		return
 	}
 
-	dx := x - 2.45
-	dy := y - 2.58
+	dx := x - homeX
+	dy := y - homeY
 
 	absdx, absdy := math.Abs(dx), math.Abs(dy)
+	// log.Printf("x: %.2f, y: %.2f, z: %v, dx: %.2f, dy: %.2f", x, y, z, absdx, absdy)
+	// return
 
-	if absdx < 0.35 && absdy < 0.35 {
+	if absdx < homeBuf && absdy < homeBuf {
 		// home
 		return
 	}
 
 	if absdx > 1 && absdy > 1 {
 		// invalid data
-		log.Printf("indvild data, absdx: %v, absdy: %v", absdx, absdy)
+		log.Printf("invalid data, absdx: %v, absdy: %v", absdx, absdy)
+		err = errors.New("invalid data")
 		return
 	}
 
@@ -95,7 +107,7 @@ func getOpAndSpeed(j *dev.Joystick) (op, speed byte) {
 		if dx > 0 {
 			op = 2 // backward
 		}
-		if absdx > 2 {
+		if absdx > 2.40 {
 			speed = 4
 		}
 		return
@@ -104,9 +116,6 @@ func getOpAndSpeed(j *dev.Joystick) (op, speed byte) {
 	op = 4 // right
 	if dy > 0 {
 		op = 3 // left
-	}
-	if absdy > 2 {
-		speed = 4
 	}
 	return
 }

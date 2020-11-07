@@ -1259,6 +1259,10 @@ func (c *Car) joystick() {
 		case 4:
 			c.chOp <- right
 		case 5:
+			if c.selfdriving {
+				c.chOp <- selfdrivingoff
+				continue
+			}
 			c.chOp <- selfdrivingon
 		default:
 			c.chOp <- stop
