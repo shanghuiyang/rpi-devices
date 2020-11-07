@@ -2,7 +2,7 @@
 Package dev ...
 
 ADS1015 is the driver for ADS1015 module.
-hhttps://wenku.baidu.com/view/308f9a69a9114431b90d6c85ec3a87c240288aa7
+https://wenku.baidu.com/view/308f9a69a9114431b90d6c85ec3a87c240288aa7
 
 connect to raspberry pi:
 - VCC: pin 1 or any 3.3v pin
@@ -147,8 +147,7 @@ var (
 		3: MultiplexerConfigurationAIN3,
 	}
 
-	//defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate1600 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
-	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate3300_1 | DeviceOperationModeContinous | ProgramableGainAmplifier4096
+	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate1600 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
 )
 
 // ADS1015 ...
@@ -188,7 +187,7 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 		return 0, err
 	}
 
-	time.Sleep(100 * time.Microsecond)
+	time.Sleep(50 * time.Microsecond)
 	data := make([]byte, 2)
 	if err := m.dev.ReadReg(ConversionRegiserPointer, data); err != nil {
 		return 0, err
@@ -196,45 +195,10 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 
 	val := (uint32(data[0]) << 8) | uint32(data[1])
 	var v float64
-	// if val > 0x7FFF {
-	// 	v = float64((val-0xFFFF)*6144/1000) / 32768.0
-	// } else {
-	// 	v = float64(val*6144/1000) / 32768.0
-	// }
-	v = float64(val*4096/1000) / 32768.0
+	v = float64(val*6144/1000) / 32768.0
 	return v, nil
 
 }
-
-// ReadAIN0 ...
-// func (m *ADS1015) ReadAIN0() []byte {
-// 	// if err := m.dev.WriteReg(0x01, []byte{0x83, 0x4E}); err != nil {
-// 	// if err := m.dev.WriteReg(0x01, []byte{0x42, 0x83}); err != nil {
-// 	if err := m.dev.WriteReg(0x01, []byte{0x40, 0x83}); err != nil {
-// 		log.Printf("write AIN0 error: %v", err)
-// 		return []byte{}
-// 	}
-
-// 	time.Sleep(50 * time.Microsecond)
-// 	data := make([]byte, 2)
-// 	if err := m.dev.ReadReg(0x00, data); err != nil {
-// 		log.Printf("read AIN0 error: %v", err)
-// 		return []byte{}
-// 	}
-// 	log.Printf("ain0, len: %v, data: %v", len(data), data)
-// 	// var v int
-// 	// v = ((int(data[1])<<8) | int(data[0]))>>4
-// 	// log.Printf("ain0, v: %v", v)
-// 	val := (uint32(data[0]) << 8) | uint32(data[1])
-// 	var v float32
-// 	if val > 0x7FFF {
-// 		v = float32((val-0xFFFF)*6144/1000) / 32768.0
-// 	} else {
-// 		v = float32(val*6144/1000) / 32768.0
-// 	}
-// 	log.Printf("ain0, v: %v", v)
-// 	return data
-// }
 
 // Close ...
 func (m *ADS1015) Close() {

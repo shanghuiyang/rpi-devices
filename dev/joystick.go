@@ -23,7 +23,6 @@ type Joystick struct {
 
 // NewJoystick ...
 func NewJoystick(sw uint8) (*Joystick, error) {
-	// p, err := NewPCF8591()
 	ads, err := NewADS1015()
 	if err != nil {
 		return nil, err
@@ -35,10 +34,6 @@ func NewJoystick(sw uint8) (*Joystick, error) {
 }
 
 // X ...
-// -123 =< x <= 132
-// x > 0: left
-// x = 0: home
-// x < 0: right
 func (j *Joystick) X() (x float64) {
 	v, err := j.ads.Read(0)
 	if err != nil {
@@ -48,10 +43,6 @@ func (j *Joystick) X() (x float64) {
 }
 
 // Y ...
-// -124 =< y <= 131
-// y > 0: up
-// y = 0: home
-// y < 0: down
 func (j *Joystick) Y() (y float64) {
 	v, err := j.ads.Read(1)
 	if err != nil {

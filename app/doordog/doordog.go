@@ -6,7 +6,9 @@ When somebody entries your room, you will be alerted by a beeping buzzer and a b
 package main
 
 import (
+	"bytes"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/base"
@@ -21,17 +23,14 @@ const (
 	pinBzr  = 17
 	pinLed  = 23
 
-	// use rpio 8 as 3.3v pin
-	// since other two 3.3v were used by
-	// ultrasonic distance meter and buzzer
-	pin33v = 8
+	ifttAPI = "your-iftt-api"
 )
 
 const (
 	// the time of keeping alert in second
-	alertTime = 30
+	alertTime = 60
 	// the distance of triggering alert in cm
-	alertDist = 60
+	alertDist = 100
 )
 
 func main() {
@@ -40,10 +39,6 @@ func main() {
 		return
 	}
 	defer rpio.Close()
-
-	p33v := rpio.Pin(pin33v)
-	p33v.Output()
-	p33v.High()
 
 	bzr := dev.NewBuzzer(pinBzr)
 	led := dev.NewLed(pinLed)
@@ -94,18 +89,24 @@ func (d *doordog) detect() {
 	// need to warm-up the ultrasonic distance meter first
 	d.dist.Dist()
 	time.Sleep(500 * time.Millisecond)
+	var t time.Duration
 	for {
+		time.Sleep(t)
 		dist := d.dist.Dist()
+		if dist < 10 {
+			log.Printf("[doordog]bad data from distant meter, distance = %.2fcm", dist)
+			continue
+		}
 		detected := (dist < alertDist)
 		d.chAlert <- detected
 
-		t := 100 * time.Millisecond
+		t = 300 * time.Millisecond
 		if detected {
 			log.Printf("[doordog]detected objects, distance = %.2fcm", dist)
 			// make a dalay detecting
-			t = 1 * time.Second
+			t = 3 * time.Second
+			continue
 		}
-		time.Sleep(t)
 	}
 }
 
@@ -123,6 +124,7 @@ func (d *doordog) alert() {
 
 	for detected := range d.chAlert {
 		if detected {
+			go ifttt()
 			d.alerting = true
 			trigTime = time.Now()
 			continue
@@ -149,6 +151,22 @@ func (d *doordog) stopAlert() {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+func ifttt() {
+	req, err := http.NewRequest("POST", ifttAPI, bytes.NewBuffer([]byte{}))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("failed to request to ifttt, error: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	return
 }
 
 func (d *doordog) stop() {

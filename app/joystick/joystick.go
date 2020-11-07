@@ -49,7 +49,7 @@ func main() {
 			continue
 		}
 		data := (op << 4) | speed
-		// log.Printf("op: %v, speed: %v, data: %v", op, speed, data)
+		log.Printf("op: %v, speed: %v, data: %v", op, speed, data)
 
 		if err := l.Send([]byte{data}); err != nil {
 			log.Printf("lc12s failed to send data, error: %v", err)
@@ -65,78 +65,48 @@ func getOpAndSpeed(j *dev.Joystick) (op, speed byte) {
 	x := j.X()
 	y := j.Y()
 	z := j.Z()
-	log.Printf("x: %.2f, y: %.2f, z: %v", x, y, z)
+	// log.Printf("x: %.2f, y: %.2f, z: %v", x, y, z)
 
 	if z == 1 {
 		op = 5 // self-driving
 		speed = 0
 		return
 	}
-	if x >= 2.1 && x <= 2.8 && y >= 2.2 && y <= 2.9 {
-		op = 0 // stop
-		speed = 0
+
+	dx := x - 2.45
+	dy := y - 2.58
+
+	absdx, absdy := math.Abs(dx), math.Abs(dy)
+
+	if absdx < 0.35 && absdy < 0.35 {
+		// home
 		return
 	}
 
-	dx := math.Abs(x - 2.45)
-	dy := math.Abs(y - 2.58)
+	if absdx > 1 && absdy > 1 {
+		// invalid data
+		log.Printf("indvild data, absdx: %v, absdy: %v", absdx, absdy)
+		return
+	}
 
-	if dx > dy {
-		// if x < 2.2 {
-		// 	op = 1 // forward
-		// 	speed = byte(50 * (1 - x/2.3))
-
-		// } else if x > 2.7 {
-		// 	op = 2 // backward
-		// 	speed = byte(37.5*x - 97.5)
-		// }
-		if x < 2.1 && x >= 1.4 {
-			op = 1 // forward
-			speed = 2
-		} else if x < 1.4 && x >= 0.7 {
-			op = 1
-			speed = 3
-		} else if x < 0.7 {
-			op = 1
-			speed = 4
-		} else if x > 2.8 && x <= 3.2 {
+	speed = 3
+	if absdx > absdy {
+		op = 1 // forward
+		if dx > 0 {
 			op = 2 // backward
-			speed = 2
-		} else if x > 3.2 && x <= 3.6 {
-			op = 2
-			speed = 3
-		} else if x > 3.6 {
-			op = 2
+		}
+		if absdx > 2 {
 			speed = 4
 		}
+		return
+	}
 
-	} else {
-		// if y < 2.2 {
-		// 	op = 4 // right
-		// 	speed = byte(90 * (1 - y/2.3))
-		// } else if y > 2.7 {
-		// 	op = 3 // left
-		// 	speed = byte(37.5*y - 97.5)
-		// }
-		if y < 2.2 && y >= 1.46 {
-			op = 4 // right
-			speed = 2
-		} else if y < 1.46 && y >= 0.73 {
-			op = 4
-			speed = 3
-		} else if y < 0.73 {
-			op = 4
-			speed = 4
-		} else if y > 2.9 && y <= 3.3 {
-			op = 3 // left
-			speed = 2
-		} else if y > 3.3 && y <= 3.7 {
-			op = 3
-			speed = 3
-		} else if y > 3.7 {
-			op = 3
-			speed = 4
-		}
+	op = 4 // right
+	if dy > 0 {
+		op = 3 // left
+	}
+	if absdy > 2 {
+		speed = 4
 	}
 	return
 }
