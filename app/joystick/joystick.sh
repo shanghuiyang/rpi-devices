@@ -1,5 +1,5 @@
 #pushd /home/pi
-sleep 5
+sleep 10
 nohup sudo ./joystick > joystick.log 2>&1 &
 #popd
 
