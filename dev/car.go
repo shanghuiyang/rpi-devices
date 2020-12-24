@@ -95,23 +95,6 @@ var (
 		90:  17,
 	}
 	aheadAngles = []int{0, -15, 0, 15}
-	// gamepad2op  = map[byte]CarOp{
-	// 	gpStop:           stop,
-	// 	gpForward:        forward,
-	// 	gpBackward:       backward,
-	// 	gpLeft:           left,
-	// 	gpRight:          right,
-	// 	gpSelfDrivingOff: selfdrivingoff,
-	// 	gpSelfDrivingOn:  selfdrivingon,
-	// }
-
-	// speedcat2speed = map[byte]uint32{
-	// 	1: 20,
-	// 	2: 30,
-	// 	3: 50,
-	// 	4: 70,
-	// 	5: 90,
-	// }
 )
 
 var (
@@ -532,31 +515,6 @@ func (c *Car) servoAhead() {
 	c.servo.Roll(0)
 }
 
-/*
-
-                                                                          +-----------------------------------------------+
-                                                                          |                                               |
-                                                                          v                                               |Y
-+-------+     +---------+    +---------------+     +-----------+     +----+-----+      +------+      +------+     +--------------+
-| start |---->| forward |--->|   obstacles   |---->| distance  |---->| backword |----->| stop |----->| scan |---->| min distance |
-+-------+     +-----+---+    |   detected?   | Y   |  < 10cm?  | Y   +----------+      +--+---+      +------+     |    < 10cm    |
-                    ^        +-------+-------+     +-----+-----+                          |                       +--------------+
-                    |                |                   |                                ^                               |N
-                    |                |N                 N|                                |                               |
-                    |                |                   |                                |                               v
-                    |                v                   |           +----------+ Y       |   Y +----------+   Y  +-------+------+
-                    |                |                   +---------->| distance +------>--+-<---| retry<4? |-<----| max distance |
-                    |                |                               |  < 40cm? |               +----+-----+      |    < 40cm    |
-                    ^                |                               +----------+                    | N          +--------------+
-                    |                |                                     |N                        v                    |N
-                    |                |                                     |                         |                    |
-                    |                |                                     v                    +----+-----+              |
-                    +-------<--------+------------------<------------------+---------<----------|   turn   |-------<------+
-                                                                                                +----------+
-
-
-
-*/
 func (c *Car) selfDriving() {
 	if c.dmeter == nil {
 		log.Printf("[car]can't self-driving without the distance sensor")
@@ -955,7 +913,7 @@ func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 	c.imgr = recognizer.New(imgAuth)
 
 	for c.speechdriving {
-		// -D:			device
+		// -D:			device, use commond "$arecord -l" for viewing card number and device number like 1,0
 		// -d 3:		3 seconds
 		// -t wav:		wav type
 		// -r 16000:	Rate 16000 Hz
@@ -1276,8 +1234,8 @@ func (c *Car) selfNavOn() {
 		return
 	}
 	if c.gps == nil {
-		err := errors.New("can't nav due without gps")
-		log.Printf("[car]failed to nav, error: %v", err)
+		log.Printf("[car]failed to nav, error: without gps device")
+		return
 	}
 
 	c.selfdriving = false

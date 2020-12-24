@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	groupID = "mygroup"
+
 	// replace your_app_key and your_secret_key with yours
 	appKey    = "your_app_key"
 	secretKey = "your_secret_key"
@@ -39,7 +41,7 @@ func main() {
 			continue
 		}
 
-		users, err := f.Recognize(imgf)
+		users, err := f.Recognize(imgf, groupID)
 		if err != nil {
 			log.Printf("failed to recognize the image, error: %v", err)
 			continue

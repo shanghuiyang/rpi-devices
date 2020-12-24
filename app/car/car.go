@@ -39,10 +39,6 @@ const (
 	pinTrig      = 21
 	pinEcho      = 26
 
-	// use this rpio as 3.3v pin
-	// if all 3.3v pins were used
-	pin33v = 5
-
 	ipPattern          = "((000.000.000.000))"
 	selfDrivingState   = "((selfdriving-state))"
 	selfTrackingState  = "((selftracking-state))"
@@ -65,24 +61,20 @@ func main() {
 	}
 	defer rpio.Close()
 
-	p33v := rpio.Pin(pin33v)
-	p33v.Output()
-	p33v.High()
-
 	eng := dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
 		log.Fatal("[carapp]failed to new a L298N as engine, a car can't without any engine")
 		os.Exit(1)
 	}
 
-	// ult := dev.NewUS100()
-	// if ult == nil {
-	// 	log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
-	// }
-	ult := dev.NewHCSR04(pinTrig, pinEcho)
+	ult := dev.NewUS100()
 	if ult == nil {
-		log.Printf("[carapp]failed to new an ultrasonic distance meter, will build a car without ultrasonic distance meter")
+		log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
+	// ult := dev.NewHCSR04(pinTrig, pinEcho)
+	// if ult == nil {
+	// 	log.Printf("[carapp]failed to new an ultrasonic distance meter, will build a car without ultrasonic distance meter")
+	// }
 
 	encoder := dev.NewEncoder(pinEncoder)
 	if encoder == nil {
@@ -124,16 +116,18 @@ func main() {
 		log.Printf("[carapp]failed to new a camera, will build a car without cameras")
 	}
 
-	gps := dev.NewGPS()
-	if gps == nil {
-		log.Printf("[carapp]failed to new a gps sensor")
-		return
-	}
+	var gps *dev.GPS = nil
+	// gps := dev.NewGPS()
+	// if gps == nil {
+	// 	log.Printf("[carapp]failed to new a gps sensor")
+	// 	return
+	// }
 
-	lc12s, err := dev.NewLC12S(pinCS)
-	if err != nil {
-		log.Printf("[carapp]failed to new a LC12S, error: %v", err)
-	}
+	var lc12s *dev.LC12S = nil
+	// lc12s, err := dev.NewLC12S(pinCS)
+	// if err != nil {
+	// 	log.Printf("[carapp]failed to new a LC12S, error: %v", err)
+	// }
 
 	car := dev.NewCar(
 		dev.WithEngine(eng),

@@ -20,6 +20,9 @@ func main() {
 	defer rpio.Close()
 
 	e := dev.NewEncoder(pinEncoder)
+	e.Start()
+	defer e.Stop()
+
 	count := 0
 	for {
 		count += e.Count1()
