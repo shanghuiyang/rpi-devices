@@ -978,10 +978,10 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 	maxd = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
-		c.delay(170)
+		c.delay(100)
 		d := c.dmeter.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
-			c.delay(170)
+			c.delay(100)
 			d = c.dmeter.Dist()
 		}
 		if d < 0 {
