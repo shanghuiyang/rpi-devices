@@ -3,8 +3,7 @@ go:
   - master
 
 before_install:
-  - go get -u -d gocv.io/x/gocv
-  - cd $GOPATH/src/gocv.io/x/gocv
+  - cd $GOPATH/pkg/mod/gocv.io/x/gocv@v0.25.0
   - make install
 
 install:
