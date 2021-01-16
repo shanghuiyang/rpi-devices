@@ -67,18 +67,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	ult := dev.NewUS100()
+	ult := dev.NewUS100(
+		dev.US100Mode(dev.US100TTLMode),
+		dev.US100TrigPin(pinTrig),
+		dev.US100EchoPin(pinEcho),
+	)
 	if ult == nil {
 		log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
+
 	// ult := dev.NewHCSR04(pinTrig, pinEcho)
 	// if ult == nil {
 	// 	log.Printf("[carapp]failed to new an ultrasonic distance meter, will build a car without ultrasonic distance meter")
 	// }
 
-	encoder := dev.NewEncoder(pinEncoder)
-	if encoder == nil {
-		log.Printf("[carapp]failed to new a encoder, will build a car without encoder")
+	gy25 := dev.NewGY25()
+	if gy25 == nil {
+		log.Printf("[carapp]failed to new a gy-25, will build a car without gy-25")
 	}
 
 	cswitchL := dev.NewCollisionSwitch(pinCSwaitchL)
@@ -133,7 +138,7 @@ func main() {
 		dev.WithEngine(eng),
 		dev.WithServo(servo),
 		dev.WithUlt(ult),
-		dev.WithEncoder(encoder),
+		dev.WithGY25(gy25),
 		dev.WithCSwitchs(cswitchs),
 		dev.WithHorn(horn),
 		dev.WithLed(led),
@@ -156,8 +161,8 @@ func main() {
 		if horn != nil {
 			horn.Off()
 		}
-		if encoder != nil {
-			encoder.Stop()
+		if gy25 != nil {
+			gy25.Close()
 		}
 		if led != nil {
 			led.Off()

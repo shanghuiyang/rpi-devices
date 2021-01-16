@@ -163,12 +163,12 @@
             $('#servoright').bind("touchend", function (e) {
                 document.getElementById("servoright").style.color = "lightgray";
             });
-            // light
-            $('#light').change(function () {
+            // music
+            $('#music').change(function () {
                 if ($(this).prop('checked')) {
-                    $.post(url, { "op": "lighton" }, function (data, status) { });
+                    $.post(url, { "op": "musicon" }, function (data, status) { });
                 } else {
-                    $.post(url, { "op": "lightoff" }, function (data, status) { });
+                    $.post(url, { "op": "musicoff" }, function (data, status) { });
                 }
             })
             // self-driving
@@ -268,7 +268,7 @@
             <input id="speechdriving" type="checkbox" ((speechdriving-state)) ((speechdriving-enabled))
                 data-toggle="toggle" data-on="Speech-Driving" data-off="Speech-Driving" data-onstyle="warning"
                 data-width="130" data-height="45">
-            <input id="light" type="checkbox" ((light-state)) data-toggle="toggle" data-on="Light" data-off="Light"
+            <input id="music" type="checkbox" ((music-state)) data-toggle="toggle" data-on="Music" data-off="Music"
                 data-onstyle="warning" data-width="130" data-height="45">
         </div>
         <hr>

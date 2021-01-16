@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	voiceSpeed = 34300.0
+	voiceSpeed = 34000.0
 	timeout    = 3600
 )
 

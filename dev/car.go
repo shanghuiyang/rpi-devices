@@ -56,6 +56,9 @@ const (
 	lighton  CarOp = "lighton"
 	lightoff CarOp = "lightoff"
 
+	musicon  CarOp = "musicon"
+	musicoff CarOp = "musicoff"
+
 	selfdrivingon  CarOp = "selfdrivingon"
 	selfdrivingoff CarOp = "selfdrivingoff"
 
@@ -81,20 +84,8 @@ const (
 )
 
 var (
-	scanningAngles  = []int{-90, -75, -60, -45, -30, 30, 45, 60, 75, 90}
-	turnAngleCounts = map[int]int{
-		-90: 20,
-		-75: 17,
-		-60: 14,
-		-45: 10,
-		-30: 7,
-		30:  5,
-		45:  8,
-		60:  10,
-		75:  13,
-		90:  17,
-	}
-	aheadAngles = []int{0, -15, 0, 15}
+	scanningAngles = []int{-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90}
+	aheadAngles    = []int{0, -15, 0, 15}
 )
 
 var (
@@ -225,6 +216,13 @@ func WithEncoder(e *Encoder) Option {
 	}
 }
 
+// WithGY25 ...
+func WithGY25(g *GY25) Option {
+	return func(c *Car) {
+		c.gy25 = g
+	}
+}
+
 // WithCSwitchs ...
 func WithCSwitchs(cswitchs []*CollisionSwitch) Option {
 	return func(c *Car) {
@@ -288,6 +286,7 @@ type Car struct {
 	servo       *SG90
 	dmeter      DistMeter
 	encoder     *Encoder
+	gy25        *GY25
 	cswitchs    []*CollisionSwitch
 	selfdriving bool
 	servoAngle  int
@@ -329,12 +328,12 @@ func NewCar(opts ...Option) *Car {
 
 // Start ...
 func (c *Car) Start() error {
-	c.speed(30)
 	go c.start()
 	go c.servo.Roll(0)
 	go c.blink()
 	go c.joystick()
 	go c.setVolume(40)
+	c.speed(30)
 	return nil
 }
 
@@ -384,10 +383,10 @@ func (c *Car) start() {
 			go c.servoRight()
 		case servoahead:
 			go c.servoAhead()
-		case lighton:
-			go c.lightOn()
-		case lightoff:
-			go c.lightOff()
+		case musicon:
+			go c.musicOn()
+		case musicoff:
+			go c.musicOff()
 		case selfdrivingon:
 			go c.selfDrivingOn()
 		case selfdrivingoff:
@@ -464,20 +463,16 @@ func (c *Car) blink() {
 	}
 }
 
-func (c *Car) lightOn() {
-	log.Printf("[car]light on")
-	if c.light == nil {
-		return
-	}
-	c.light.On()
+func (c *Car) musicOn() {
+	log.Printf("[car]music on")
+	c.playmp3("./music/*.mp3")
 }
 
-func (c *Car) lightOff() {
-	log.Printf("[car]light off")
-	if c.light == nil {
-		return
-	}
-	c.light.Off()
+func (c *Car) musicOff() {
+	log.Printf("[car]music off")
+	cmd := "sudo killall mpg123"
+	exec.Command("bash", "-c", cmd).CombinedOutput()
+	time.Sleep(1 * time.Second)
 }
 
 func (c *Car) servoLeft() {
@@ -1003,24 +998,39 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 }
 
 func (c *Car) turn(angle int) {
-	n, ok := turnAngleCounts[angle]
-	if !ok {
-		log.Printf("[car]invalid angle: %d", angle)
+	turnf := c.engine.Right
+	if angle < 0 {
+		turnf = c.engine.Left
+		angle *= (-1)
+	}
+
+	yaw, _, _, err := c.gy25.Angles()
+	if err != nil {
+		log.Printf("[car]failed to get angles from gy-25, error: %v", err)
 		return
 	}
-	if angle < 0 {
-		c.engine.Left()
-	} else {
-		c.engine.Right()
-	}
 
-	c.encoder.Start()
-	defer c.encoder.Stop()
-
-	for i := 0; i < n; {
-		i += c.encoder.Count1()
+	retry := 0
+	for {
+		turnf()
+		yaw2, _, _, err := c.gy25.Angles()
+		if err != nil {
+			log.Printf("[car]failed to get angles from gy-25, error: %v", err)
+			if retry < 3 {
+				retry++
+				continue
+			}
+			break
+		}
+		ang := c.gy25.IncludedAngle(yaw, yaw2)
+		if ang >= float64(angle) {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+		c.engine.Stop()
+		time.Sleep(100 * time.Millisecond)
 	}
-	c.stop()
+	c.engine.Stop()
 	return
 }
 
@@ -1116,6 +1126,12 @@ func (c *Car) play(wav string) error {
 		log.Printf("[car]failed to exec aplay, output: %v, error: %v", string(out), err)
 		return err
 	}
+	return nil
+}
+
+func (c *Car) playmp3(mp3 string) error {
+	cmd := "mpg123 -Z -q " + mp3
+	exec.Command("bash", "-c", cmd).CombinedOutput()
 	return nil
 }
 

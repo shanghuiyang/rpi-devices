@@ -29,6 +29,7 @@ package dev
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/tarm/serial"
 )
@@ -107,6 +108,19 @@ func (g *GY25) Angles() (float64, float64, float64, error) {
 	pitch := (int16(g.buf[3]) << 8) | int16(g.buf[4])
 	roll := (int16(g.buf[5]) << 8) | int16(g.buf[6])
 	return float64(yaw) / 100, float64(pitch) / 100, float64(roll) / 100, nil
+}
+
+// IncludedAngle ...
+func (g *GY25) IncludedAngle(yaw, yaw2 float64) float64 {
+	if yaw*yaw2 > 0 {
+		return math.Abs(yaw - yaw2)
+	}
+
+	d := math.Abs(yaw) + math.Abs(yaw2)
+	if d <= 180 {
+		return d
+	}
+	return 360 - d
 }
 
 // Close ...

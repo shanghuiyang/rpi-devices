@@ -34,8 +34,25 @@ package dev
 
 import (
 	"log"
+	"time"
 
+	"github.com/stianeikeland/go-rpio"
 	"github.com/tarm/serial"
+)
+
+type (
+	// US100ModeType ...
+	US100ModeType int
+
+	// US100Option ...
+	US100Option func(u *US100)
+)
+
+const (
+	// US100UartMode ...
+	US100UartMode US100ModeType = 1
+	// US100TTLMode ...
+	US100TTLMode US100ModeType = 2
 )
 
 var (
@@ -44,24 +61,89 @@ var (
 
 // US100 ...
 type US100 struct {
-	port  *serial.Port
+	mode  US100ModeType
 	buf   [4]byte
 	retry int
+
+	// ttl mode
+	trig rpio.Pin
+	echo rpio.Pin
+
+	// uart mode
+	name string
+	baud int
+	port *serial.Port
+}
+
+// US100Mode ...
+func US100Mode(mode US100ModeType) US100Option {
+	return func(u *US100) {
+		u.mode = mode
+	}
+}
+
+// US100TrigPin ...
+func US100TrigPin(trig int8) US100Option {
+	return func(u *US100) {
+		u.trig = rpio.Pin(trig)
+	}
+}
+
+// US100EchoPin ...
+func US100EchoPin(echo int8) US100Option {
+	return func(u *US100) {
+		u.echo = rpio.Pin(echo)
+	}
+}
+
+// US100Name ...
+func US100Name(name string) US100Option {
+	return func(u *US100) {
+		u.name = name
+	}
+}
+
+// US100Baud ...
+func US100Baud(baud int) US100Option {
+	return func(u *US100) {
+		u.baud = baud
+	}
 }
 
 // NewUS100 ...
-func NewUS100() *US100 {
+func NewUS100(opts ...US100Option) *US100 {
 	u := &US100{
 		retry: 10,
 	}
-	if err := u.open(); err != nil {
-		return nil
+	for _, opt := range opts {
+		opt(u)
 	}
-	return u
+
+	if u.mode == US100TTLMode {
+		u.trig.Output()
+		u.trig.Low()
+		u.echo.Input()
+		return u
+	}
+	if u.mode == US100UartMode {
+		if err := u.open(); err != nil {
+			return nil
+		}
+		return u
+	}
+	return nil
 }
 
 // Dist is to measure the distance in cm
 func (u *US100) Dist() float64 {
+	if u.mode == US100UartMode {
+		return u.DistByUart()
+	}
+	return u.DistByTTL()
+}
+
+// DistByUart is to measure the distance in cm
+func (u *US100) DistByUart() float64 {
 	if err := u.port.Flush(); err != nil {
 		log.Printf("[us100]failed to flush serial, error: %v", err)
 		return -1
@@ -90,17 +172,48 @@ func (u *US100) Dist() float64 {
 	return float64((uint16(u.buf[0])<<8)|uint16(u.buf[1])) / 10.0
 }
 
+// DistByTTL is to measure the distance in cm
+func (u *US100) DistByTTL() float64 {
+	u.trig.Low()
+	u.delay(1)
+	u.trig.High()
+	u.delay(5)
+
+	u.echo.PullDown()
+	u.echo.Detect(rpio.RiseEdge)
+	for !u.echo.EdgeDetected() {
+		u.delay(1)
+	}
+
+	start := time.Now()
+	u.echo.Detect(rpio.FallEdge)
+	for !u.echo.EdgeDetected() {
+		u.delay(1)
+	}
+	dist := time.Now().Sub(start).Seconds() * voiceSpeed / 2.0
+	u.echo.Detect(rpio.NoEdge)
+	u.trig.Low()
+	return dist
+}
+
 // Close ...
 func (u *US100) Close() {
-	u.port.Close()
+	if u.mode == US100UartMode {
+		u.port.Close()
+	}
 }
 
 func (u *US100) open() error {
-	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
+	c := &serial.Config{Name: u.name, Baud: u.baud}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err
 	}
 	u.port = port
 	return nil
+}
+
+// delay is to delay us microsecond
+func (u *US100) delay(us int) {
+	time.Sleep(time.Duration(us) * time.Microsecond)
 }
