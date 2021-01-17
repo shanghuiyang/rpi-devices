@@ -9,11 +9,11 @@ const EarthRadius = 6378137
 
 const (
 	// MiddleSide ...
-	MiddleSide = OnSide(0)
+	MiddleSide OnSide = 0
 	// LeftSide ...
-	LeftSide = OnSide(1)
+	LeftSide OnSide = 1
 	// RightSide ...
-	RightSide = OnSide(-1)
+	RightSide OnSide = -1
 )
 
 // OnSide ...
