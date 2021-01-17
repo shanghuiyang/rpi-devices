@@ -1,4 +1,4 @@
-package cv
+package mock
 
 import (
 	"errors"
