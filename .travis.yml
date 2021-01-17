@@ -12,7 +12,6 @@ install:
 
 script:
   - cd $GOPATH/src/github.com/shanghuiyang/rpi-devices
-  - go get -d -u -t -v ./...
   - go test -v ./...
 
 notifications:
