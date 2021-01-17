@@ -51,8 +51,8 @@ type Car struct {
 	// nav
 	gps       *dev.GPS
 	dest      *geo.Point
-	gpslogger *dev.GPSLogger
 	lastLoc   *geo.Point
+	gpslogger *util.GPSLogger
 	selfnav   bool
 }
 
@@ -990,7 +990,7 @@ func (c *Car) selfNav() error {
 		return errors.New("destination isn't in bbox")
 	}
 
-	c.gpslogger = dev.NewGPSLogger()
+	c.gpslogger = util.NewGPSLogger()
 	if c.gpslogger == nil {
 		log.Printf("[car]failed to new a tracker, stop nav")
 		return errors.New("gpslogger is nil")

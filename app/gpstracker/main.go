@@ -15,7 +15,7 @@ func main() {
 		log.Printf("[gpstracker]failed to new a gps device")
 		return
 	}
-	logger := dev.NewGPSLogger()
+	logger := util.NewGPSLogger()
 	if logger == nil {
 		log.Printf("[gpstracker]failed to new a tracker")
 		return
@@ -41,8 +41,8 @@ func main() {
 
 type gpsTracker struct {
 	gps    *dev.GPS
-	logger *dev.GPSLogger
 	cloud  iot.Cloud
+	logger *util.GPSLogger
 }
 
 func (t *gpsTracker) start() {
