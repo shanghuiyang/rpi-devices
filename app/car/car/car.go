@@ -12,9 +12,9 @@ import (
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
-	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/rpi-devices/util/cv"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
