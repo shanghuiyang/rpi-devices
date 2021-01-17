@@ -20,9 +20,9 @@ func main() {
 		log.Printf("[gpstracker]failed to new a tracker")
 		return
 	}
-	oneNetCfg := &base.OneNetConfig{
-		Token: base.OneNetToken,
-		API:   base.OneNetAPI,
+	oneNetCfg := &iot.OneNetConfig{
+		Token: iot.OneNetToken,
+		API:   iot.OneNetAPI,
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {

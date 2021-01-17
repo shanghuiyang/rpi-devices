@@ -20,12 +20,12 @@ func main() {
 	}
 	defer rpio.Close()
 
-	cswitch := dev.NewCollisionSwitch(pin)
+	c := dev.NewCollision(pin)
 	base.WaitQuit(func() {
 		rpio.Close()
 	})
 	for {
-		collided := cswitch.Collided()
+		collided := c.Collided()
 		if collided {
 			log.Printf("collided")
 		}

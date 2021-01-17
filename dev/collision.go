@@ -13,14 +13,14 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// CollisionSwitch ...
-type CollisionSwitch struct {
+// Collision ...
+type Collision struct {
 	pin rpio.Pin
 }
 
-// NewCollisionSwitch ...
-func NewCollisionSwitch(pin uint8) *CollisionSwitch {
-	c := &CollisionSwitch{
+// NewCollision ...
+func NewCollision(pin uint8) *Collision {
+	c := &Collision{
 		pin: rpio.Pin(pin),
 	}
 	c.pin.Input()
@@ -28,6 +28,6 @@ func NewCollisionSwitch(pin uint8) *CollisionSwitch {
 }
 
 // Collided ...
-func (c *CollisionSwitch) Collided() bool {
+func (c *Collision) Collided() bool {
 	return c.pin.Read() == rpio.Low
 }

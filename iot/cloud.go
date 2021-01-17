@@ -1,9 +1,5 @@
 package iot
 
-import (
-	"github.com/shanghuiyang/rpi-devices/base"
-)
-
 // Cloud is the interface of IOT clound
 type Cloud interface {
 	Push(v *Value) error
@@ -19,11 +15,11 @@ type Value struct {
 func NewCloud(config interface{}) Cloud {
 	var cloud Cloud
 	switch config.(type) {
-	case *base.WsnConfig:
-		cfg := config.(*base.WsnConfig)
+	case *WsnConfig:
+		cfg := config.(*WsnConfig)
 		cloud = NewWsnClound(cfg)
-	case *base.OneNetConfig:
-		cfg := config.(*base.OneNetConfig)
+	case *OneNetConfig:
+		cfg := config.(*OneNetConfig)
 		cloud = NewOneNetCloud(cfg)
 	default:
 		cloud = nil

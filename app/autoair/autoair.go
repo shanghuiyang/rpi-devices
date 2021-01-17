@@ -56,9 +56,9 @@ func main() {
 	defer rpio.Close()
 
 	sg := dev.NewSG90(pinSG)
-	onenetCfg := &base.OneNetConfig{
-		Token: base.OneNetToken,
-		API:   base.OneNetAPI,
+	onenetCfg := &iot.OneNetConfig{
+		Token: iot.OneNetToken,
+		API:   iot.OneNetAPI,
 	}
 	cloud := iot.NewCloud(onenetCfg)
 

@@ -20,7 +20,7 @@ type WsnCloud struct {
 }
 
 // NewWsnClound ...
-func NewWsnClound(cfg *base.WsnConfig) *WsnCloud {
+func NewWsnClound(cfg *WsnConfig) *WsnCloud {
 	return &WsnCloud{
 		token: cfg.Token,
 		api:   cfg.API,

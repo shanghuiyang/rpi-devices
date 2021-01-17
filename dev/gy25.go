@@ -36,6 +36,7 @@ import (
 
 const (
 	datalen  = 8
+	bufsize  = 16
 	datahead = 0xAA
 	datatail = 0x55
 )
@@ -59,13 +60,13 @@ var (
 // GY25 ...
 type GY25 struct {
 	port *serial.Port
-	buf  [16]byte
+	buf  [bufsize]byte
 }
 
 // NewGY25 ...
-func NewGY25() *GY25 {
+func NewGY25(dev string, baud int) *GY25 {
 	g := &GY25{}
-	if err := g.open(); err != nil {
+	if err := g.open(dev, baud); err != nil {
 		return nil
 	}
 	return g
@@ -86,27 +87,37 @@ func (g *GY25) SetMode(mode GY25Mode) error {
 
 // Angles ...
 func (g *GY25) Angles() (float64, float64, float64, error) {
-
 	if err := g.port.Flush(); err != nil {
 		return 0, 0, 0, err
 	}
 
-	n, err := g.port.Read(g.buf[:])
-	if err != nil {
-		return 0, 0, 0, err
+	a := 0
+	for a < 16 {
+		n, err := g.port.Read(g.buf[a:])
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		a += n
 	}
 
-	if n != datalen {
-		return 0, 0, 0, fmt.Errorf("incorrect data len: %v, expected %v", n, datalen)
+	var data []byte
+	for i, b := range g.buf {
+		if b == datahead && i+datalen < bufsize {
+			data = g.buf[i : i+datalen]
+			break
+		}
+	}
+	if len(data) != datalen {
+		return 0, 0, 0, fmt.Errorf("incorrect data len: %v, expected %v", len(data), datalen)
 	}
 
-	if g.buf[0] != datahead && g.buf[7] != datatail {
-		return 0, 0, 0, fmt.Errorf("invalid data")
+	if data[0] != datahead && data[7] != datatail {
+		return 0, 0, 0, fmt.Errorf("invalid data, validation failed")
 	}
 
-	yaw := (int16(g.buf[1]) << 8) | int16(g.buf[2])
-	pitch := (int16(g.buf[3]) << 8) | int16(g.buf[4])
-	roll := (int16(g.buf[5]) << 8) | int16(g.buf[6])
+	yaw := (int16(data[1]) << 8) | int16(data[2])
+	pitch := (int16(data[3]) << 8) | int16(data[4])
+	roll := (int16(data[5]) << 8) | int16(data[6])
 	return float64(yaw) / 100, float64(pitch) / 100, float64(roll) / 100, nil
 }
 
@@ -128,10 +139,10 @@ func (g *GY25) Close() {
 	g.port.Close()
 }
 
-func (g *GY25) open() error {
+func (g *GY25) open(dev string, baud int) error {
 	c := &serial.Config{
-		Name: "/dev/ttyAMA0",
-		Baud: 115200,
+		Name: dev,
+		Baud: baud,
 	}
 	port, err := serial.OpenPort(c)
 	if err != nil {

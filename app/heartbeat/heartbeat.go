@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/iot"
 )
 
@@ -13,9 +12,9 @@ const (
 )
 
 func main() {
-	oneNetCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	oneNetCfg := &iot.WsnConfig{
+		Token: iot.WsnToken,
+		API:   iot.WsnNumericalAPI,
 	}
 	cloud := iot.NewCloud(oneNetCfg)
 	if cloud == nil {

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/iot"
 )
 
@@ -16,9 +15,9 @@ const (
 )
 
 func main() {
-	onenetCfg := &base.OneNetConfig{
-		Token: base.OneNetToken,
-		API:   base.OneNetAPI,
+	onenetCfg := &iot.OneNetConfig{
+		Token: iot.OneNetToken,
+		API:   iot.OneNetAPI,
 	}
 	cloud := iot.NewCloud(onenetCfg)
 	if cloud == nil {

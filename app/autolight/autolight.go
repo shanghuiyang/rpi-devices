@@ -66,9 +66,9 @@ func main() {
 		return
 	}
 
-	wsnCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	wsnCfg := &iot.WsnConfig{
+		Token: iot.WsnToken,
+		API:   iot.WsnNumericalAPI,
 	}
 	cloud := iot.NewCloud(wsnCfg)
 

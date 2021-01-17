@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	g := dev.NewGY25()
+	g := dev.NewGY25("/dev/ttyUSB0", 115200)
 	defer g.Close()
 
 	if err := g.SetMode(dev.GY25AutoMode); err != nil {

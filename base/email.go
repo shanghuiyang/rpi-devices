@@ -2,20 +2,17 @@ package base
 
 import (
 	"fmt"
-	"log"
 	"net/smtp"
 )
 
-var (
-	chEmail   = make(chan *EmailInfo, 4)
-	emailList []string
-)
-
-// Init ...
-func Init(cfg *Config) {
-	emailList = cfg.EmailTo.List
-	e := NewEmail(cfg.Email)
-	go e.Start()
+// EmailConfig ...
+type EmailConfig struct {
+	SMTP     string `json:"smtp"`
+	SMTPPort int    `json:"smtp_port"`
+	POP      string `json:"pop"`
+	POPPort  int    `json:"pop_port"`
+	Address  string `json:"addr"`
+	Password string `json:"password"`
 }
 
 // Email ...
@@ -45,17 +42,6 @@ func NewEmail(cfg *EmailConfig) *Email {
 		Address:  cfg.Address,
 		Password: cfg.Password,
 	}
-}
-
-// Start ...
-func (e *Email) Start() {
-	log.Printf("[email]start working")
-	for info := range chEmail {
-		if err := e.Send(info); err != nil {
-			log.Printf("[email]faied to send email, error: %v", err)
-		}
-	}
-	return
 }
 
 // Send ...

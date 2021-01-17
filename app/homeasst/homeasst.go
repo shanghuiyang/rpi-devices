@@ -53,9 +53,9 @@ func main() {
 
 	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
-	onenetCfg := &base.OneNetConfig{
-		Token: base.OneNetToken,
-		API:   base.OneNetAPI,
+	onenetCfg := &iot.OneNetConfig{
+		Token: iot.OneNetToken,
+		API:   iot.OneNetAPI,
 	}
 	cloud := iot.NewCloud(onenetCfg)
 

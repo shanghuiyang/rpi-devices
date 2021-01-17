@@ -3,14 +3,14 @@ package main
 import (
 	"testing"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStart(t *testing.T) {
-	car := dev.NewCar()
+	car := car.New(&car.Config{})
 	assert.NotNil(t, car)
 
-	s := newCarServer(car)
+	s := newServer(car)
 	assert.NotNil(t, s)
 }

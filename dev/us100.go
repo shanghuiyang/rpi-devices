@@ -40,19 +40,9 @@ import (
 	"github.com/tarm/serial"
 )
 
-type (
-	// US100ModeType ...
-	US100ModeType int
-
-	// US100Option ...
-	US100Option func(u *US100)
-)
-
 const (
-	// US100UartMode ...
-	US100UartMode US100ModeType = 1
-	// US100TTLMode ...
-	US100TTLMode US100ModeType = 2
+	defaultUS100Name = "/dev/ttyAMA0"
+	defaultUS100Baud = 9600
 )
 
 var (
@@ -61,72 +51,42 @@ var (
 
 // US100 ...
 type US100 struct {
-	mode  US100ModeType
-	buf   [4]byte
-	retry int
+	mode ComMode
+	buf  [4]byte
 
 	// ttl mode
 	trig rpio.Pin
 	echo rpio.Pin
 
 	// uart mode
-	name string
-	baud int
 	port *serial.Port
 }
 
-// US100Mode ...
-func US100Mode(mode US100ModeType) US100Option {
-	return func(u *US100) {
-		u.mode = mode
-	}
-}
-
-// US100TrigPin ...
-func US100TrigPin(trig int8) US100Option {
-	return func(u *US100) {
-		u.trig = rpio.Pin(trig)
-	}
-}
-
-// US100EchoPin ...
-func US100EchoPin(echo int8) US100Option {
-	return func(u *US100) {
-		u.echo = rpio.Pin(echo)
-	}
-}
-
-// US100Name ...
-func US100Name(name string) US100Option {
-	return func(u *US100) {
-		u.name = name
-	}
-}
-
-// US100Baud ...
-func US100Baud(baud int) US100Option {
-	return func(u *US100) {
-		u.baud = baud
-	}
-}
-
 // NewUS100 ...
-func NewUS100(opts ...US100Option) *US100 {
+func NewUS100(cfg *US100Config) *US100 {
 	u := &US100{
-		retry: 10,
-	}
-	for _, opt := range opts {
-		opt(u)
+		mode: cfg.Mode,
 	}
 
-	if u.mode == US100TTLMode {
+	if u.mode == TTLMode {
+		u.trig = rpio.Pin(cfg.Trig)
+		u.echo = rpio.Pin(cfg.Echo)
 		u.trig.Output()
 		u.trig.Low()
 		u.echo.Input()
 		return u
 	}
-	if u.mode == US100UartMode {
-		if err := u.open(); err != nil {
+	if u.mode == UartMode {
+		dev := cfg.Dev
+		baud := cfg.Baud
+
+		if cfg.Dev == "" {
+			dev = defaultUS100Name
+		}
+		if cfg.Baud == 0 {
+			baud = defaultUS100Baud
+		}
+		if err := u.open(dev, baud); err != nil {
 			return nil
 		}
 		return u
@@ -136,7 +96,7 @@ func NewUS100(opts ...US100Option) *US100 {
 
 // Dist is to measure the distance in cm
 func (u *US100) Dist() float64 {
-	if u.mode == US100UartMode {
+	if u.mode == UartMode {
 		return u.DistByUart()
 	}
 	return u.DistByTTL()
@@ -157,10 +117,7 @@ func (u *US100) DistByUart() float64 {
 	// read data
 	n, err = u.port.Read(u.buf[:])
 	if err != nil {
-		u.Close()
-		if err := u.open(); err != nil {
-			log.Printf("[us100]failed to open serial, error: %v", err)
-		}
+		log.Printf("[us100]failed to read serial, error: %v", err)
 		return -1
 	}
 	// check data len
@@ -198,13 +155,13 @@ func (u *US100) DistByTTL() float64 {
 
 // Close ...
 func (u *US100) Close() {
-	if u.mode == US100UartMode {
+	if u.mode == UartMode {
 		u.port.Close()
 	}
 }
 
-func (u *US100) open() error {
-	c := &serial.Config{Name: u.name, Baud: u.baud}
+func (u *US100) open(dev string, baud int) error {
+	c := &serial.Config{Name: dev, Baud: baud}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err

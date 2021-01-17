@@ -51,9 +51,9 @@ func main() {
 	bzr := dev.NewBuzzer(pinBzr)
 	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
-	wsnCfg := &base.WsnConfig{
-		Token: base.WsnToken,
-		API:   base.WsnNumericalAPI,
+	wsnCfg := &iot.WsnConfig{
+		Token: iot.WsnToken,
+		API:   iot.WsnNumericalAPI,
 	}
 	cloud := iot.NewCloud(wsnCfg)
 

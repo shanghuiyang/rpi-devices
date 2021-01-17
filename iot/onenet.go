@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-
-	"github.com/shanghuiyang/rpi-devices/base"
 )
 
 const (
@@ -36,7 +34,7 @@ type Datapoint struct {
 }
 
 // NewOneNetCloud ...
-func NewOneNetCloud(cfg *base.OneNetConfig) *OneNetCloud {
+func NewOneNetCloud(cfg *OneNetConfig) *OneNetCloud {
 	return &OneNetCloud{
 		token: cfg.Token,
 		api:   cfg.API,

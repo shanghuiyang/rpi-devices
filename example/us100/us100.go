@@ -30,11 +30,11 @@ func main() {
 		}
 		defer rpio.Close()
 
-		u := dev.NewUS100(
-			dev.US100Mode(dev.US100TTLMode),
-			dev.US100TrigPin(21),
-			dev.US100EchoPin(26),
-		)
+		u := dev.NewUS100(&dev.US100Config{
+			Mode: dev.TTLMode,
+			Trig: 21,
+			Echo: 26,
+		})
 		for {
 			dist := u.Dist()
 			if dist < 0 {
@@ -47,11 +47,11 @@ func main() {
 	}
 
 	// uart mode
-	u := dev.NewUS100(
-		dev.US100Mode(dev.US100UartMode),
-		dev.US100Name("/dev/ttyAMA0"),
-		dev.US100Baud(9600),
-	)
+	u := dev.NewUS100(&dev.US100Config{
+		Mode: dev.UartMode,
+		Dev:  "/dev/ttyAMA0",
+		Baud: 9600,
+	})
 	defer u.Close()
 
 	for {

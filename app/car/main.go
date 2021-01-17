@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/geo"
@@ -49,8 +50,8 @@ const (
 	speechDrivingEnabled = "((speechdriving-enabled))"
 )
 
-type carServer struct {
-	car         *dev.Car
+type server struct {
+	car         *car.Car
 	pageContext []byte
 }
 
@@ -67,11 +68,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	ult := dev.NewUS100(
-		dev.US100Mode(dev.US100TTLMode),
-		dev.US100TrigPin(pinTrig),
-		dev.US100EchoPin(pinEcho),
-	)
+	ult := dev.NewUS100(&dev.US100Config{
+		Mode: dev.UartMode,
+		Dev:  "/dev/ttyAMA0",
+		Baud: 9600,
+	})
 	if ult == nil {
 		log.Printf("[carapp]failed to new a HCSR04, will build a car without ultrasonic distance meter")
 	}
@@ -81,21 +82,21 @@ func main() {
 	// 	log.Printf("[carapp]failed to new an ultrasonic distance meter, will build a car without ultrasonic distance meter")
 	// }
 
-	gy25 := dev.NewGY25()
+	gy25 := dev.NewGY25("/dev/ttyUSB0", 115200)
 	if gy25 == nil {
 		log.Printf("[carapp]failed to new a gy-25, will build a car without gy-25")
 	}
 
-	cswitchL := dev.NewCollisionSwitch(pinCSwaitchL)
-	if cswitchL == nil {
+	collisionL := dev.NewCollision(pinCSwaitchL)
+	if collisionL == nil {
 		log.Printf("[carapp]failed to new a collision switch, will build a car without collision switchs")
 	}
 
-	cswitchR := dev.NewCollisionSwitch(pinCSwaitchR)
-	if cswitchL == nil {
+	collisionR := dev.NewCollision(pinCSwaitchR)
+	if collisionR == nil {
 		log.Printf("[carapp]failed to new a collision switch, will build a car without collision switchs")
 	}
-	cswitchs := []*dev.CollisionSwitch{cswitchL, cswitchR}
+	collisions := []*dev.Collision{collisionL, collisionR}
 
 	horn := dev.NewBuzzer(pinBzr)
 	if horn == nil {
@@ -134,27 +135,26 @@ func main() {
 	// 	log.Printf("[carapp]failed to new a LC12S, error: %v", err)
 	// }
 
-	car := dev.NewCar(
-		dev.WithEngine(eng),
-		dev.WithServo(servo),
-		dev.WithUlt(ult),
-		dev.WithGY25(gy25),
-		dev.WithCSwitchs(cswitchs),
-		dev.WithHorn(horn),
-		dev.WithLed(led),
-		dev.WithLight(light),
-		dev.WithCamera(cam),
-		dev.WithGPS(gps),
-		dev.WithLC12S(lc12s),
-	)
+	car := car.New(&car.Config{
+		Engine:     eng,
+		Servo:      servo,
+		DistMeter:  ult,
+		GY25:       gy25,
+		Collisions: collisions,
+		Horn:       horn,
+		Led:        led,
+		Camera:     cam,
+		GPS:        gps,
+		LC12S:      lc12s,
+	})
 	if car == nil {
 		log.Fatal("failed to new a car")
 		return
 	}
 
-	server := newCarServer(car)
+	svr := newServer(car)
 	base.WaitQuit(func() {
-		server.stop()
+		svr.stop()
 		if ult != nil {
 			ult.Close()
 		}
@@ -175,20 +175,20 @@ func main() {
 		}
 		rpio.Close()
 	})
-	if err := server.start(); err != nil {
+	if err := svr.start(); err != nil {
 		log.Printf("[carapp]failed to start car server, error: %v", err)
 		os.Exit(1)
 	}
 	os.Exit(0)
 }
 
-func newCarServer(car *dev.Car) *carServer {
-	return &carServer{
+func newServer(car *car.Car) *server {
+	return &server{
 		car: car,
 	}
 }
 
-func (s *carServer) start() error {
+func (s *server) start() error {
 	if err := s.car.Start(); err != nil {
 		return err
 	}
@@ -201,11 +201,11 @@ func (s *carServer) start() error {
 	return nil
 }
 
-func (s *carServer) stop() error {
+func (s *server) stop() error {
 	return s.car.Stop()
 }
 
-func (s *carServer) loadHomePage(w http.ResponseWriter, r *http.Request) error {
+func (s *server) loadHomePage(w http.ResponseWriter, r *http.Request) error {
 	if len(s.pageContext) == 0 {
 		var err error
 		s.pageContext, err = ioutil.ReadFile("car.html")
@@ -286,7 +286,7 @@ func (s *carServer) loadHomePage(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (s *carServer) handler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		s.loadHomePage(w, r)
@@ -306,7 +306,7 @@ func (s *carServer) handler(w http.ResponseWriter, r *http.Request) {
 			s.car.SetDest(destPt)
 		}
 		op := r.FormValue("op")
-		s.car.Do(dev.CarOp(op))
+		s.car.Do(car.Op(op))
 	}
 }
 

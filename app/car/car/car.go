@@ -1,293 +1,39 @@
-package dev
+package car
 
 import (
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/shanghuiyang/a-star/astar"
-	"github.com/shanghuiyang/a-star/tilemap"
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
+	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/cv"
+	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/geo"
 )
 
-const (
-	chSize        = 8
-	letMeThinkWav = "let_me_think.wav"
-	thisIsXWav    = "this_is_x.wav"
-	iDontKnowWav  = "i_dont_know.wav"
-	errorWav      = "error.wav"
-)
-
-const (
-	baiduSpeechAppKey    = "your_speech_app_key"
-	baiduSpeechSecretKey = "your_speech_secret_key"
-
-	baiduImgRecognitionAppKey    = "your_image_recognition_app_key"
-	baiduImgRecognitionSecretKey = "your_image_recognition_secrect_key"
-)
-
-const (
-	forward  CarOp = "forward"
-	backward CarOp = "backward"
-	left     CarOp = "left"
-	right    CarOp = "right"
-	stop     CarOp = "stop"
-	pause    CarOp = "pause"
-	turn     CarOp = "turn"
-	scan     CarOp = "scan"
-	roll     CarOp = "roll"
-
-	beep  CarOp = "beep"
-	blink CarOp = "blink"
-
-	servoleft  CarOp = "servoleft"
-	servoright CarOp = "servoright"
-	servoahead CarOp = "servoahead"
-
-	lighton  CarOp = "lighton"
-	lightoff CarOp = "lightoff"
-
-	musicon  CarOp = "musicon"
-	musicoff CarOp = "musicoff"
-
-	selfdrivingon  CarOp = "selfdrivingon"
-	selfdrivingoff CarOp = "selfdrivingoff"
-
-	selftrackingon  CarOp = "selftrackingon"
-	selftrackingoff CarOp = "selftrackingoff"
-
-	speechdrivingon  CarOp = "speechdrivingon"
-	speechdrivingoff CarOp = "speechdrivingoff"
-
-	selfnavon  CarOp = "selfnavon"
-	selfnavoff CarOp = "selfnavoff"
-)
-
-const (
-	// joystick actions
-	gpStop           = byte(0)
-	gpForward        = byte(1)
-	gpBackward       = byte(2)
-	gpLeft           = byte(3)
-	gpRight          = byte(4)
-	gpSelfDrivingOff = byte(10)
-	gpSelfDrivingOn  = byte(11)
-)
-
-var (
-	scanningAngles = []int{-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90}
-	aheadAngles    = []int{0, -15, 0, 15}
-)
-
-var (
-	// the hsv of a tennis
-	lh = float64(33)
-	ls = float64(108)
-	lv = float64(138)
-	hh = float64(61)
-	hs = float64(255)
-	hv = float64(255)
-)
-
-const (
-	tilemapStr = `
-############################################
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#      ###################                 #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-#                                          #
-############################################
-	`
-
-	gridsize = float64(0.000010)
-)
-
-var bbox = &geo.Bbox{
-	Left:   116.444217,
-	Right:  116.444652,
-	Top:    39.956275,
-	Bottom: 39.955711,
-}
-
-type (
-	// CarOp ...
-	CarOp string
-	// Option ...
-	Option func(c *Car)
-)
-
-// CarAct ...
-type CarAct struct {
-	Op    CarOp  `json:"op"`
-	Speed uint32 `json:"speed"`
-}
-
-// DistMeter ...
-type DistMeter interface {
-	Dist() float64
-	Close()
-}
-
-// WithEngine ...
-func WithEngine(engine *L298N) Option {
-	return func(c *Car) {
-		c.engine = engine
-	}
-}
-
-// WithServo ...
-func WithServo(servo *SG90) Option {
-	return func(c *Car) {
-		c.servo = servo
-	}
-}
-
-// WithUlt ...
-func WithUlt(d DistMeter) Option {
-	return func(c *Car) {
-		c.dmeter = d
-	}
-}
-
-// WithEncoder ...
-func WithEncoder(e *Encoder) Option {
-	return func(c *Car) {
-		c.encoder = e
-	}
-}
-
-// WithGY25 ...
-func WithGY25(g *GY25) Option {
-	return func(c *Car) {
-		c.gy25 = g
-	}
-}
-
-// WithCSwitchs ...
-func WithCSwitchs(cswitchs []*CollisionSwitch) Option {
-	return func(c *Car) {
-		c.cswitchs = cswitchs
-	}
-}
-
-// WithHorn ...
-func WithHorn(horn *Buzzer) Option {
-	return func(c *Car) {
-		c.horn = horn
-	}
-}
-
-// WithLed ...
-func WithLed(led *Led) Option {
-	return func(c *Car) {
-		c.led = led
-	}
-}
-
-// WithLight ...
-func WithLight(light *Led) Option {
-	return func(c *Car) {
-		c.light = light
-	}
-}
-
-// WithCamera ...
-func WithCamera(cam *Camera) Option {
-	return func(c *Car) {
-		c.camera = cam
-	}
-}
-
-// WithGPS ...
-func WithGPS(gps *GPS) Option {
-	return func(c *Car) {
-		c.gps = gps
-	}
-}
-
-// WithLC12S ...
-func WithLC12S(l *LC12S) Option {
-	return func(c *Car) {
-		c.lc12s = l
-	}
-}
-
 // Car ...
 type Car struct {
-	engine *L298N
-	horn   *Buzzer
-	led    *Led
-	light  *Led
-	camera *Camera
-	lc12s  *LC12S
-	chOp   chan CarOp
+	engine *dev.L298N
+	horn   *dev.Buzzer
+	led    *dev.Led
+	light  *dev.Led
+	camera *dev.Camera
+	lc12s  *dev.LC12S
+	chOp   chan Op
 
 	// self-driving
-	servo       *SG90
-	dmeter      DistMeter
-	encoder     *Encoder
-	gy25        *GY25
-	cswitchs    []*CollisionSwitch
+	servo       *dev.SG90
+	dmeter      dev.DistMeter
+	encoder     *dev.Encoder
+	gy25        *dev.GY25
+	collisions  []*dev.Collision
 	selfdriving bool
 	servoAngle  int
 
@@ -303,25 +49,34 @@ type Car struct {
 	selftracking bool
 
 	// nav
-	gps       *GPS
+	gps       *dev.GPS
 	dest      *geo.Point
-	gpslogger *GPSLogger
+	gpslogger *dev.GPSLogger
 	lastLoc   *geo.Point
 	selfnav   bool
 }
 
-// NewCar ...
-func NewCar(opts ...Option) *Car {
+// New ...
+func New(cfg *Config) *Car {
 	car := &Car{
+		engine:     cfg.Engine,
+		horn:       cfg.Horn,
+		led:        cfg.Led,
+		light:      cfg.Led,
+		camera:     cfg.Camera,
+		lc12s:      cfg.LC12S,
+		servo:      cfg.Servo,
+		dmeter:     cfg.DistMeter,
+		gy25:       cfg.GY25,
+		collisions: cfg.Collisions,
+		gps:        cfg.GPS,
+
 		servoAngle:    0,
 		selfdriving:   false,
 		speechdriving: false,
 		selftracking:  false,
 		selfnav:       false,
-		chOp:          make(chan CarOp, chSize),
-	}
-	for _, opt := range opts {
-		opt(car)
+		chOp:          make(chan Op, chSize),
 	}
 	return car
 }
@@ -338,7 +93,7 @@ func (c *Car) Start() error {
 }
 
 // Do ...
-func (c *Car) Do(op CarOp) {
+func (c *Car) Do(op Op) {
 	c.chOp <- op
 }
 
@@ -456,7 +211,7 @@ func (c *Car) beep() {
 func (c *Car) blink() {
 	for {
 		if c.speechdriving {
-			c.delay(2000)
+			base.DelayMs(2000)
 			continue
 		}
 		c.led.Blink(1, 1000)
@@ -465,13 +220,12 @@ func (c *Car) blink() {
 
 func (c *Car) musicOn() {
 	log.Printf("[car]music on")
-	c.playmp3("./music/*.mp3")
+	base.PlayMp3("./music/*.mp3")
 }
 
 func (c *Car) musicOff() {
 	log.Printf("[car]music off")
-	cmd := "sudo killall mpg123"
-	exec.Command("bash", "-c", cmd).CombinedOutput()
+	base.StopMp3()
 	time.Sleep(1 * time.Second)
 }
 
@@ -527,7 +281,7 @@ func (c *Car) selfDriving() {
 		mind      float64
 		maxd      float64
 		op        = forward
-		chOp      = make(chan CarOp, 4)
+		chOp      = make(chan Op, 4)
 	)
 
 	for c.selfdriving || c.selftracking {
@@ -547,15 +301,15 @@ func (c *Car) selfDriving() {
 		case backward:
 			fwd = false
 			c.stop()
-			c.delay(20)
+			base.DelayMs(20)
 			c.backward()
-			c.delay(500)
+			base.DelayMs(500)
 			chOp <- stop
 			continue
 		case stop:
 			fwd = false
 			c.stop()
-			c.delay(20)
+			base.DelayMs(20)
 			chOp <- scan
 			continue
 		case scan:
@@ -572,7 +326,7 @@ func (c *Car) selfDriving() {
 		case turn:
 			fwd = false
 			c.turn(maxdAngle)
-			c.delay(150)
+			base.DelayMs(150)
 			chOp <- forward
 			continue
 		case forward:
@@ -581,16 +335,16 @@ func (c *Car) selfDriving() {
 				fwd = true
 				go c.detecting(chOp)
 			}
-			c.delay(50)
+			base.DelayMs(50)
 			continue
 		case pause:
 			fwd = false
-			c.delay(500)
+			base.DelayMs(500)
 			continue
 		}
 	}
 	c.stop()
-	c.delay(1000)
+	base.DelayMs(1000)
 	close(chOp)
 }
 
@@ -598,7 +352,7 @@ func (c *Car) speechDriving() {
 	var (
 		op   = stop
 		fwd  = false
-		chOp = make(chan CarOp, 4)
+		chOp = make(chan Op, 4)
 		wg   sync.WaitGroup
 	)
 
@@ -624,42 +378,42 @@ func (c *Car) speechDriving() {
 				fwd = true
 				go c.detecting(chOp)
 			}
-			c.delay(50)
+			base.DelayMs(50)
 			continue
 		case backward:
 			fwd = false
 			c.stop()
-			c.delay(20)
+			base.DelayMs(20)
 			c.backward()
-			c.delay(600)
+			base.DelayMs(600)
 			chOp <- stop
 			continue
 		case left:
 			fwd = false
 			c.stop()
-			c.delay(20)
+			base.DelayMs(20)
 			c.turn(-90)
-			c.delay(20)
+			base.DelayMs(20)
 			chOp <- forward
 			continue
 		case right:
 			fwd = false
 			c.stop()
-			c.delay(20)
+			base.DelayMs(20)
 			c.turn(90)
-			c.delay(20)
+			base.DelayMs(20)
 			chOp <- forward
 			continue
 		case roll:
 			fwd = false
 			c.engine.Left()
-			c.delay(3000)
+			base.DelayMs(3000)
 			chOp <- stop
 			continue
 		case stop:
 			fwd = false
 			c.stop()
-			c.delay(500)
+			base.DelayMs(500)
 			continue
 		}
 	}
@@ -674,7 +428,7 @@ func (c *Car) selfDrivingOn() {
 	}
 	c.selftracking = false
 	c.speechdriving = false
-	c.delay(1000) // wait for self-tracking and speech-driving quit
+	base.DelayMs(1000) // wait for self-tracking and speech-driving quit
 
 	c.selfdriving = true
 	log.Printf("[car]self-drving on")
@@ -692,11 +446,11 @@ func (c *Car) selfTrackingOn() {
 	if c.selftracking {
 		return
 	}
-	c.stopMotion()
+	base.StopMotion()
 	c.selfdriving = false
 	c.speechdriving = false
 	c.selfnav = false
-	c.delay(1000) // wait to quit self-driving & speech-driving
+	base.DelayMs(1000) // wait to quit self-driving & speech-driving
 
 	// start slef-tracking
 	t, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
@@ -715,9 +469,9 @@ func (c *Car) selfTrackingOff() {
 	c.selftracking = false
 	c.tracker.Close()
 	c.servo.Roll(0)
-	c.delay(500)
+	base.DelayMs(500)
 
-	if err := c.startMotion(); err != nil {
+	if err := base.StartMotion(); err != nil {
 		log.Printf("[car]failed to start motion, error: %v", err)
 	}
 	log.Printf("[car]self-tracking off")
@@ -729,7 +483,7 @@ func (c *Car) speechDrivingOn() {
 	}
 	c.selfdriving = false
 	c.selftracking = false
-	c.delay(1000) // wait for self-driving and self-tracking quit
+	base.DelayMs(1000) // wait for self-driving and self-tracking quit
 
 	c.speechdriving = true
 	log.Printf("[car]speech-drving on")
@@ -743,7 +497,7 @@ func (c *Car) speechDrivingOff() {
 	log.Printf("[car]speech-drving off")
 }
 
-func (c *Car) detecting(chOp chan CarOp) {
+func (c *Car) detecting(chOp chan Op) {
 
 	chQuit := make(chan bool, 4)
 	var wg sync.WaitGroup
@@ -763,7 +517,7 @@ func (c *Car) detecting(chOp chan CarOp) {
 	close(chQuit)
 }
 
-func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) detectObstacles(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for c.selfdriving || c.selftracking || c.speechdriving {
@@ -777,7 +531,7 @@ func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 				// do nothing
 			}
 			c.servo.Roll(angle)
-			c.delay(70)
+			base.DelayMs(70)
 			d := c.dmeter.Dist()
 			if d < 20 {
 				chOp <- backward
@@ -795,7 +549,7 @@ func (c *Car) detectObstacles(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 	}
 }
 
-func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) detectCollision(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for c.selfdriving || c.selftracking || c.speechdriving {
@@ -807,8 +561,8 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 		default:
 			// do nothing
 		}
-		for _, cswitch := range c.cswitchs {
-			if cswitch.Collided() {
+		for _, collision := range c.collisions {
+			if collision.Collided() {
 				chOp <- backward
 				go c.horn.Beep(1, 100)
 				log.Printf("[car]crashed")
@@ -817,11 +571,11 @@ func (c *Car) detectCollision(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGr
 				return
 			}
 		}
-		c.delay(10)
+		base.DelayMs(10)
 	}
 }
 
-func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) trackingObj(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	angle := 0
 	for c.selftracking {
@@ -856,7 +610,7 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 				if angle < 360 {
 					c.turn(30)
 					angle += 30
-					c.delay(200)
+					base.DelayMs(200)
 					continue
 				}
 				chOp <- scan
@@ -877,27 +631,27 @@ func (c *Car) trackingObj(chOp chan CarOp, chQuit chan bool, wg *sync.WaitGroup)
 			if x < 200 {
 				log.Printf("[car]turn right to the ball")
 				c.engine.Right()
-				c.delay(100)
+				base.DelayMs(100)
 				c.engine.Stop()
 				continue
 			}
 			if x > 400 {
 				log.Printf("[car]turn left to the ball")
 				c.engine.Left()
-				c.delay(100)
+				base.DelayMs(100)
 				c.engine.Stop()
 				continue
 			}
 			log.Printf("[car]forward to the ball")
 			c.engine.Forward()
-			c.delay(100)
+			base.DelayMs(100)
 			c.engine.Stop()
 		}
 
 	}
 }
 
-func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
+func (c *Car) detectSpeech(chOp chan Op, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	speechAuth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
@@ -908,24 +662,17 @@ func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 	c.imgr = recognizer.New(imgAuth)
 
 	for c.speechdriving {
-		// -D:			device, use commond "$arecord -l" for viewing card number and device number like 1,0
-		// -d 3:		3 seconds
-		// -t wav:		wav type
-		// -r 16000:	Rate 16000 Hz
-		// -c 1:		1 channel
-		// -f S16_LE:	Signed 16 bit Little Endian
-		cmd := `sudo arecord -D "plughw:1,0" -d 2 -t wav -r 16000 -c 1 -f S16_LE car.wav`
 		log.Printf("[car]start recording")
 		go c.led.On()
-		_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-		if err != nil {
+		wav := "car.wav"
+		if err := base.Record(2, wav); err != nil {
 			log.Printf("[car]failed to record the speech: %v", err)
 			continue
 		}
 		go c.led.Off()
 		log.Printf("[car]stop recording")
 
-		text, err := c.asr.ToText("car.wav")
+		text, err := c.asr.ToText(wav)
 		if err != nil {
 			log.Printf("[car]failed to recognize the speech, error: %v", err)
 			continue
@@ -956,7 +703,7 @@ func (c *Car) detectSpeech(chOp chan CarOp, wg *sync.WaitGroup) {
 		case strings.Index(text, "小声") >= 0:
 			c.volumeDown()
 		case strings.Index(text, "唱歌") >= 0:
-			go c.play("./music/xiaomaolv.wav")
+			go base.PlayWav("./music/xiaomaolv.wav")
 		default:
 			// do nothing
 		}
@@ -973,10 +720,10 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 	maxd = -9999
 	for _, ang := range scanningAngles {
 		c.servo.Roll(ang)
-		c.delay(100)
+		base.DelayMs(100)
 		d := c.dmeter.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
-			c.delay(100)
+			base.DelayMs(100)
 			d = c.dmeter.Dist()
 		}
 		if d < 0 {
@@ -993,7 +740,7 @@ func (c *Car) scan() (mind, maxd float64, mindAngle, maxdAngle int) {
 		}
 	}
 	c.servo.Roll(0)
-	c.delay(50)
+	base.DelayMs(50)
 	return
 }
 
@@ -1058,10 +805,6 @@ func (c *Car) turnRight(angle int) {
 	return
 }
 
-func (c *Car) delay(ms int) {
-	time.Sleep(time.Duration(ms) * time.Millisecond)
-}
-
 func (c *Car) recognize() error {
 	log.Printf("[car]take photo")
 	imagef, err := c.camera.TakePhoto()
@@ -1069,13 +812,13 @@ func (c *Car) recognize() error {
 		log.Printf("[car]failed to take phote, error: %v", err)
 		return err
 	}
-	c.play(letMeThinkWav)
+	base.PlayWav(letMeThinkWav)
 
 	log.Printf("[car]recognize image")
 	objname, err := c.recognizeImg(imagef)
 	if err != nil {
 		log.Printf("[car]failed to recognize image, error: %v", err)
-		c.play(errorWav)
+		base.PlayWav(errorWav)
 		return err
 	}
 	log.Printf("[car]object: %v", objname)
@@ -1089,11 +832,8 @@ func (c *Car) recognize() error {
 }
 
 func (c *Car) setVolume(v int) error {
-	// amixer -M set PCM 20%
-	cmd := exec.Command("amixer", "-M", "set", "PCM", fmt.Sprintf("%v%%", v))
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("[car]failed to set volume, output: %v, error: %v", string(out), err)
+	if err := base.SetVolume(v); err != nil {
+		log.Printf("[car]failed to set volume, error: %v", err)
 		return err
 	}
 	c.volume = v
@@ -1116,23 +856,6 @@ func (c *Car) volumeDown() {
 	}
 	c.setVolume(v)
 	go c.playText(fmt.Sprintf("音量%v%%", v))
-}
-
-func (c *Car) play(wav string) error {
-	// aplay test.wav
-	cmd := exec.Command("aplay", wav)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("[car]failed to exec aplay, output: %v, error: %v", string(out), err)
-		return err
-	}
-	return nil
-}
-
-func (c *Car) playmp3(mp3 string) error {
-	cmd := "mpg123 -Z -q " + mp3
-	exec.Command("bash", "-c", cmd).CombinedOutput()
-	return nil
 }
 
 func (c *Car) recognizeImg(imageFile string) (string, error) {
@@ -1167,27 +890,10 @@ func (c *Car) playText(text string) error {
 		return err
 	}
 
-	if err := c.play(wav); err != nil {
+	if err := base.PlayWav(wav); err != nil {
 		log.Printf("[car]failed to play wav: %v, error: %v", wav, err)
 		return err
 	}
-	return nil
-}
-
-func (c *Car) stopMotion() error {
-	cmd := "sudo killall motion"
-	exec.Command("bash", "-c", cmd).CombinedOutput()
-	time.Sleep(1 * time.Second)
-	return nil
-}
-
-func (c *Car) startMotion() error {
-	cmd := fmt.Sprintf("sudo motion")
-	_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-	if err != nil {
-		return err
-	}
-	time.Sleep(1 * time.Second)
 	return nil
 }
 
@@ -1257,7 +963,7 @@ func (c *Car) selfNavOn() {
 	c.selfdriving = false
 	c.selftracking = false
 	c.speechdriving = false
-	c.delay(1000) // wait for self-tracking and speech-driving quit
+	base.DelayMs(1000) // wait for self-tracking and speech-driving quit
 
 	c.selfnav = true
 	log.Printf("[car]nav on")
@@ -1284,7 +990,7 @@ func (c *Car) selfNav() error {
 		return errors.New("destination isn't in bbox")
 	}
 
-	c.gpslogger = NewGPSLogger()
+	c.gpslogger = dev.NewGPSLogger()
 	if c.gpslogger == nil {
 		log.Printf("[car]failed to new a tracker, stop nav")
 		return errors.New("gpslogger is nil")
@@ -1296,7 +1002,7 @@ func (c *Car) selfNav() error {
 		pt, err := c.gps.Loc()
 		if err != nil {
 			log.Printf("[car]gps sensor is not ready")
-			c.delay(1000)
+			base.DelayMs(1000)
 			continue
 		}
 		c.gpslogger.AddPoint(org)
@@ -1312,24 +1018,24 @@ func (c *Car) selfNav() error {
 	}
 	c.lastLoc = org
 
-	path, err := c.findPath(org, c.dest)
+	path, err := findPath(org, c.dest)
 	if err != nil {
 		log.Printf("[car]failed to find a path, error: %v", err)
 		return errors.New("failed to find a path")
 	}
-	turns := c.turnPoints(path)
+	turns := turnPoints(path)
 
 	var turnPts []*geo.Point
 	var str string
 	for _, xy := range turns {
-		pt := c.xy2geo(xy)
+		pt := xy2geo(xy)
 		str += fmt.Sprintf("(%v) ", pt)
 		turnPts = append(turnPts, pt)
 	}
 	log.Printf("[car]turn points(lat,lon): %v", str)
 
 	c.chOp <- forward
-	c.delay(1000)
+	base.DelayMs(1000)
 	for i, p := range turnPts {
 		if err := c.navTo(p); err != nil {
 			log.Printf("[car]failed to nav to (%v), error: %v", p, err)
@@ -1354,14 +1060,14 @@ func (c *Car) navTo(dest *geo.Point) error {
 		if err != nil {
 			c.chOp <- stop
 			log.Printf("[car]gps sensor is not ready")
-			c.delay(1000)
+			base.DelayMs(1000)
 			continue
 		}
 
 		if !bbox.IsInside(loc) {
 			c.chOp <- stop
 			log.Printf("current loc(%v) isn't in bbox(%v)", loc, bbox)
-			c.delay(1000)
+			base.DelayMs(1000)
 			continue
 		}
 
@@ -1374,7 +1080,7 @@ func (c *Car) navTo(dest *geo.Point) error {
 			c.chOp <- stop
 			log.Printf("[car]bad gps signal, waiting for better gps signal")
 			retry++
-			c.delay(1000)
+			base.DelayMs(1000)
 			continue
 		}
 
@@ -1403,67 +1109,9 @@ func (c *Car) navTo(dest *geo.Point) error {
 			// do nothing
 		}
 		c.chOp <- forward
-		c.delay(1000)
+		base.DelayMs(1000)
 		c.lastLoc = loc
 	}
 	c.chOp <- stop
 	return nil
-}
-
-func (c *Car) findPath(org, des *geo.Point) (astar.PList, error) {
-	m := tilemap.BuildFromStr(tilemapStr)
-
-	orgXY := c.geo2xy(org)
-	desXY := c.geo2xy(des)
-
-	a := astar.New(m)
-	path, err := a.FindPath(orgXY, desXY)
-	if err != nil {
-		log.Printf("[car]failed to find the path from A(%v) to B(%v)", org, des)
-		return nil, err
-	}
-	log.Printf("[car]path: %v", path)
-	a.Draw()
-	return path, nil
-}
-
-func (c *Car) turnPoints(path astar.PList) astar.PList {
-	if len(path) <= 2 {
-		return path
-	}
-
-	var ks []float64
-	for i := 0; i < len(path)-1; i++ {
-		k := 99999.99
-		if path[i].Y != path[i+1].Y {
-			k = float64(path[i].X-path[i+1].X) / float64(path[i].Y-path[i+1].Y)
-		}
-		ks = append(ks, k)
-	}
-	log.Printf("ks: %v\n", ks)
-
-	var turns astar.PList
-	for i := 0; i < len(ks)-1; i++ {
-		if ks[i] == ks[i+1] {
-			continue
-		}
-		turns = append(turns, path[i+1])
-	}
-	turns = append(turns, path[len(path)-1])
-	log.Printf("turn points(x,y): %v", turns)
-	return turns
-}
-
-func (c *Car) xy2geo(p *astar.Point) *geo.Point {
-	return &geo.Point{
-		Lat: bbox.Top - float64(p.X)*gridsize,
-		Lon: bbox.Left + float64(p.Y)*gridsize,
-	}
-}
-
-func (c *Car) geo2xy(p *geo.Point) *astar.Point {
-	return &astar.Point{
-		X: int((bbox.Top-p.Lat)/gridsize + 0.5),
-		Y: int((p.Lon-bbox.Left)/gridsize + 0.5),
-	}
 }
