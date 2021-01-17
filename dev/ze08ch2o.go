@@ -32,7 +32,7 @@ import (
 
 	"math"
 
-	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/tarm/serial"
 )
 
@@ -49,14 +49,14 @@ var (
 type ZE08CH2O struct {
 	port     *serial.Port
 	buf      [32]byte
-	history  *base.History
+	history  *util.History
 	maxRetry int
 }
 
 // NewZE08CH2O ...
 func NewZE08CH2O() *ZE08CH2O {
 	p := &ZE08CH2O{
-		history:  base.NewHistory(10),
+		history:  util.NewHistory(10),
 		maxRetry: 10,
 	}
 	if err := p.open(); err != nil {
@@ -125,7 +125,7 @@ func (p *ZE08CH2O) open() error {
 func (p *ZE08CH2O) checkDelta(ch2o float64) bool {
 	avg, err := p.history.Avg()
 	if err != nil {
-		if err == base.ErrEmpty {
+		if err == util.ErrEmpty {
 			p.history.Add(ch2o)
 			return true
 		}

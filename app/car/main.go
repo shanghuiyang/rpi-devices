@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
-	"github.com/shanghuiyang/rpi-devices/base"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/geo"
+	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -153,7 +153,7 @@ func main() {
 	}
 
 	svr := newServer(car)
-	base.WaitQuit(func() {
+	util.WaitQuit(func() {
 		svr.stop()
 		if ult != nil {
 			ult.Close()
@@ -214,7 +214,7 @@ func (s *server) loadHomePage(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	ip := base.GetIP()
+	ip := util.GetIP()
 	if ip == "" {
 		return errors.New("internal error: failed to get ip")
 	}

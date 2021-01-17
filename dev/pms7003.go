@@ -32,7 +32,7 @@ import (
 	"log"
 	"math"
 
-	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/tarm/serial"
 )
 
@@ -49,14 +49,14 @@ var (
 type PMS7003 struct {
 	port     *serial.Port
 	buf      [128]byte
-	history  *base.History
+	history  *util.History
 	maxRetry int
 }
 
 // NewPMS7003 ...
 func NewPMS7003() *PMS7003 {
 	p := &PMS7003{
-		history:  base.NewHistory(10),
+		history:  util.NewHistory(10),
 		maxRetry: 10,
 	}
 	if err := p.open(); err != nil {
@@ -131,7 +131,7 @@ func (p *PMS7003) open() error {
 func (p *PMS7003) checkDelta(pm25 uint16) bool {
 	avg, err := p.history.Avg()
 	if err != nil {
-		if err == base.ErrEmpty {
+		if err == util.ErrEmpty {
 			p.history.Add(pm25)
 			return true
 		}

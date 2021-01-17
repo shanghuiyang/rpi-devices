@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
@@ -33,7 +33,7 @@ func (w *WsnCloud) Push(v *Value) error {
 	api := w.api
 	if v.Device == "gps" {
 		api = strings.Replace(w.api, "numerical", "gps", -1)
-		pt, ok := v.Value.(*base.Point)
+		pt, ok := v.Value.(*util.Point)
 		if !ok {
 			return fmt.Errorf("failed to convert value to point")
 		}

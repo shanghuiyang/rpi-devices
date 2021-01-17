@@ -24,7 +24,7 @@ package dev
 import (
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/base"
+	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -159,7 +159,7 @@ func (d *LedDisplay) display() {
 	for {
 		select {
 		case txt := <-d.chText:
-			text = base.Reverse(txt)
+			text = util.Reverse(txt)
 		default:
 			// do nothing, just use the latest text for displaying
 		}
