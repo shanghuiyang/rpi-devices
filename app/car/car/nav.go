@@ -5,7 +5,7 @@ import (
 
 	"github.com/shanghuiyang/a-star/astar"
 	"github.com/shanghuiyang/a-star/tilemap"
-	"github.com/shanghuiyang/rpi-devices/geo"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 const tilemapStr = `

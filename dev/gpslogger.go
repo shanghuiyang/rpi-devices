@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/geo"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 const (

@@ -14,8 +14,8 @@ import (
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/geo"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 // Car ...

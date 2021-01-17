@@ -17,8 +17,8 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/geo"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 	"github.com/stianeikeland/go-rpio"
 )
 

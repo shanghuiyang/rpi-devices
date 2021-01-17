@@ -67,7 +67,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shanghuiyang/rpi-devices/geo"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 	"github.com/tarm/serial"
 )
 
