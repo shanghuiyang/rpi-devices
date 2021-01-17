@@ -14,7 +14,7 @@ import (
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/shanghuiyang/rpi-devices/util/cv"
+	cv "github.com/shanghuiyang/rpi-devices/util/cv/mock"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
