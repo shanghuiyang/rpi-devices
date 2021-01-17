@@ -356,7 +356,7 @@ func (v *videoServer) detectServing() {
 		if v.outOfService() {
 			if v.inServing {
 				log.Printf("[vmonitor]out of service, stop motion")
-				v.stopMotion()
+				util.StopMotion()
 				v.inServing = false
 			}
 			continue
@@ -364,7 +364,7 @@ func (v *videoServer) detectServing() {
 
 		if !v.inServing {
 			log.Printf("[vmonitor]in service time, start motion")
-			v.startMotion()
+			util.StartMotion(motionConfs[v.mode])
 			v.inServing = true
 		}
 	}
@@ -418,28 +418,11 @@ func (v *videoServer) detectingMode() {
 	}
 }
 
-func (v *videoServer) stopMotion() error {
-	cmd := "sudo killall motion"
-	exec.Command("bash", "-c", cmd).CombinedOutput()
-	time.Sleep(1 * time.Second)
-	return nil
-}
-
-func (v *videoServer) startMotion() error {
-	cmd := fmt.Sprintf("sudo motion -c %v", motionConfs[v.mode])
-	_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-	if err != nil {
-		return err
-	}
-	time.Sleep(1 * time.Second)
-	return nil
-}
-
 func (v *videoServer) restartMotion() error {
-	if err := v.stopMotion(); err != nil {
+	if err := util.StopMotion(); err != nil {
 		return err
 	}
-	if err := v.startMotion(); err != nil {
+	if err := util.StartMotion(motionConfs[v.mode]); err != nil {
 		return err
 	}
 	if v.mode == normalMode {

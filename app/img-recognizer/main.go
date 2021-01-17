@@ -4,13 +4,13 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"time"
 
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
@@ -49,13 +49,13 @@ func main() {
 			log.Printf("[imgr]failed to take phote, error: %v", err)
 			os.Exit(1)
 		}
-		play(wavLetMeThink)
+		util.PlayWav(wavLetMeThink)
 
 		log.Printf("[imgr]recognize image")
 		objname, err := recognize(imgf)
 		if err != nil {
 			log.Printf("[imgr]failed to recognize image, error: %v", err)
-			play(wavIDontKnow)
+			util.PlayWav(wavIDontKnow)
 			os.Exit(1)
 		}
 		log.Printf("[imgr]object: %v", objname)
@@ -66,26 +66,13 @@ func main() {
 			os.Exit(1)
 		}
 
-		if err := play(wav); err != nil {
+		if err := util.PlayWav(wav); err != nil {
 			log.Printf("[imgr]failed to play wav: %v, error: %v", wav, err)
 			os.Exit(1)
 		}
 
 		time.Sleep(10 * time.Second)
 	}
-
-	os.Exit(0)
-}
-
-func play(wav string) error {
-	// aplay test.wav
-	cmd := exec.Command("aplay", wav)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("[imgr]failed to exec omxplayer, output: %v, error: %v", string(out), err)
-		return err
-	}
-	return nil
 }
 
 func recognize(image string) (string, error) {

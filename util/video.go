@@ -9,16 +9,22 @@ import (
 // StopMotion ...
 func StopMotion() error {
 	cmd := "sudo killall motion"
-	exec.Command("bash", "-c", cmd).CombinedOutput()
+	if _, err := exec.Command("bash", "-c", cmd).CombinedOutput(); err != nil {
+		return err
+	}
 	time.Sleep(1 * time.Second)
 	return nil
 }
 
-// StartMotion ...
-func StartMotion() error {
+// StartMotion start the Motion Service
+// if config file doesn't be provided, the default config file will be used
+// the default config file locates /etc/motion/motion.conf
+func StartMotion(config ...string) error {
 	cmd := fmt.Sprintf("sudo motion")
-	_, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-	if err != nil {
+	if len(config) > 0 {
+		cmd = fmt.Sprintf("sudo motion -c %v", config[0])
+	}
+	if _, err := exec.Command("bash", "-c", cmd).CombinedOutput(); err != nil {
 		return err
 	}
 	time.Sleep(1 * time.Second)

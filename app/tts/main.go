@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/shanghuiyang/go-speech/oauth"
@@ -112,7 +111,7 @@ func (s *ttsServer) playText(text string) error {
 	log.Printf("[tts]converted in success")
 
 	log.Printf("[tts]playing wav...")
-	if err := s.play(wav); err != nil {
+	if err := util.PlayWav(wav); err != nil {
 		log.Printf("[tts]failed to play wav: %v, error: %v", wav, err)
 		return err
 	}
@@ -132,16 +131,4 @@ func (s *ttsServer) toSpeech(text string) (string, error) {
 		return "", err
 	}
 	return ttsWav, nil
-}
-
-func (s *ttsServer) play(wav string) error {
-	// return nil
-	// aplay test.wav
-	cmd := exec.Command("aplay", wav)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("[tts]failed to exec aplay, output: %v, error: %v", string(out), err)
-		return err
-	}
-	return nil
 }
