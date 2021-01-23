@@ -122,7 +122,7 @@ func main() {
 	}
 
 	var gps *dev.GPS = nil
-	// gps := dev.NewGPS()
+	// gps := dev.NewGPSImp("/dev/ttyAMA0", 9600)
 	// if gps == nil {
 	// 	log.Printf("[carapp]failed to new a gps sensor")
 	// 	return
@@ -137,7 +137,6 @@ func main() {
 	car := car.New(&car.Config{
 		Engine:     eng,
 		Servo:      servo,
-		DistMeter:  ult,
 		GY25:       gy25,
 		Collisions: collisions,
 		Horn:       horn,
@@ -145,6 +144,7 @@ func main() {
 		Camera:     cam,
 		GPS:        gps,
 		LC12S:      lc12s,
+		DistMeter:  ult,
 	})
 	if car == nil {
 		log.Fatal("failed to new a car")

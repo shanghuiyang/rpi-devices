@@ -16,6 +16,11 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
+const (
+	devName = "/dev/ttyAMA0"
+	baud    = 9600
+)
+
 type (
 	option func(s *sserver)
 )
@@ -48,7 +53,7 @@ func main() {
 		return
 	}
 
-	p := dev.NewPMS7003()
+	p := dev.NewPMS7003(devName, baud)
 	if p == nil {
 		log.Printf("[sensors]failed to new PMS7003")
 		return

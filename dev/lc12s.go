@@ -31,7 +31,6 @@ package dev
 import (
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/stianeikeland/go-rpio"
 	"github.com/tarm/serial"
@@ -48,11 +47,11 @@ type LC12S struct {
 }
 
 // NewLC12S ...
-func NewLC12S(csPin uint8) (*LC12S, error) {
+func NewLC12S(dev string, baud int, csPin uint8) (*LC12S, error) {
 	l := &LC12S{
 		csPin: rpio.Pin(csPin),
 	}
-	if err := l.open(); err != nil {
+	if err := l.open(dev, baud); err != nil {
 		return nil, err
 	}
 	l.csPin.Output()
@@ -77,7 +76,6 @@ func (l *LC12S) Send(data []byte) error {
 // Receive ...
 func (l *LC12S) Receive() ([]byte, error) {
 	if err := l.port.Flush(); err != nil {
-		log.Printf("[lc12s]failed to flush serial, error: %v", err)
 		return nil, err
 	}
 
@@ -87,11 +85,6 @@ func (l *LC12S) Receive() ([]byte, error) {
 		return []byte{}, nil
 	}
 	if err != nil {
-		l.Close()
-		// re-open
-		if err := l.open(); err != nil {
-			log.Printf("[lc12s]failed to open serial, error: %v", err)
-		}
 		return nil, err
 	}
 	if n > bufsz {
@@ -115,10 +108,10 @@ func (l *LC12S) Close() {
 	l.port.Close()
 }
 
-func (l *LC12S) open() error {
+func (l *LC12S) open(dev string, baud int) error {
 	c := &serial.Config{
-		Name: "/dev/ttyAMA0",
-		Baud: 9600,
+		Name: dev,
+		Baud: baud,
 	}
 	port, err := serial.OpenPort(c)
 	if err != nil {

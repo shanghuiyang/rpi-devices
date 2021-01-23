@@ -7,8 +7,13 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
+const (
+	devName = "/dev/ttyAMA0"
+	baud    = 9600
+)
+
 func main() {
-	g := dev.NewGPS()
+	g := dev.NewGPS(devName, baud)
 	defer g.Close()
 
 	for {

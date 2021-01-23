@@ -10,7 +10,8 @@ import (
 )
 
 func main() {
-	gps := dev.NewGPS()
+	gps := dev.NewGPS("/dev/ttyAMA0", 9600)
+	// gps := dev.NewMockGPS("./dev/test/gps.csv")
 	if gps == nil {
 		log.Printf("[gpstracker]failed to new a gps device")
 		return
@@ -49,7 +50,6 @@ func (t *gpsTracker) start() {
 	log.Printf("[gpstracker]start working")
 	for {
 		time.Sleep(2 * time.Second)
-		// pt, err := t.gps.MockLocFromCSV()
 		pt, err := t.gps.Loc()
 		if err != nil {
 			log.Printf("[gpstracker]failed to get gps locations: %v", err)

@@ -63,8 +63,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"strings"
 
 	"github.com/shanghuiyang/rpi-devices/util/geo"
@@ -79,10 +77,7 @@ const (
 )
 
 var (
-	points     []*geo.Point
-	pointCount int
-	index      int
-	buf        = make([]byte, 1024)
+	buf = make([]byte, 1024)
 )
 
 // GPS ...
@@ -91,9 +86,9 @@ type GPS struct {
 }
 
 // NewGPS ...
-func NewGPS() *GPS {
+func NewGPS(dev string, baud int) *GPS {
 	g := &GPS{}
-	if err := g.open(); err != nil {
+	if err := g.open(dev, baud); err != nil {
 		return nil
 	}
 	return g
@@ -108,12 +103,7 @@ func (g *GPS) Loc() (*geo.Point, error) {
 	for a < 512 {
 		n, err := g.port.Read(buf[a:])
 		if err != nil {
-			// try to reopen serial
-			g.port.Close()
-			if err := g.open(); err != nil {
-				log.Printf("[gps]failed open serial, error: %v", err)
-			}
-			return nil, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
+			return nil, err
 		}
 		a += n
 	}
@@ -171,91 +161,13 @@ func (g *GPS) Loc() (*geo.Point, error) {
 	return &pt, nil
 }
 
-// MockLocFromGPX ...
-func (g *GPS) MockLocFromGPX() (*geo.Point, error) {
-	if pointCount == 0 {
-		file, err := os.Open("gps.gpx")
-		if err != nil {
-			return nil, err
-		}
-
-		reader := bufio.NewReader(file)
-		for {
-			line, err := reader.ReadString('\n')
-			if err == io.EOF {
-				break
-			}
-			var lat, lon float64
-			line = strings.Trim(line, " \t\n")
-			if !strings.Contains(line, "<trkpt") {
-				continue
-			}
-			if n, err := fmt.Sscanf(line, `<trkpt lat="%f" lon="%f">`, &lat, &lon); n != 2 || err != nil {
-				log.Printf("[gps]failed to parse lat/lon, error: %v", err)
-				continue
-			}
-			pt := &geo.Point{
-				Lat: lat,
-				Lon: lon,
-			}
-			points = append(points, pt)
-		}
-		file.Close()
-		pointCount = len(points)
-		index = 0
-	}
-	if index >= pointCount {
-		index = 0
-	}
-	pt := points[index]
-	index++
-	return pt, nil
-}
-
-// MockLocFromCSV ...
-func (g *GPS) MockLocFromCSV() (*geo.Point, error) {
-	if pointCount == 0 {
-		file, err := os.Open("gps.csv")
-		if err != nil {
-			return nil, err
-		}
-
-		reader := bufio.NewReader(file)
-		for {
-			line, err := reader.ReadString('\n')
-			if err == io.EOF {
-				break
-			}
-			var timestamp string
-			var lat, lon float64
-			if _, err := fmt.Sscanf(line, "%19s,%f,%f\n", &timestamp, &lat, &lon); err != nil {
-				log.Printf("[gps]failed to parse lat/lon, error: %v", err)
-			}
-			pt := &geo.Point{
-				Lat: lat,
-				Lon: lon,
-			}
-			points = append(points, pt)
-		}
-		file.Close()
-		pointCount = len(points)
-		index = 0
-	}
-	if index >= pointCount {
-		index = 0
-	}
-	pt := points[index]
-	index++
-	return pt, nil
-}
-
 // Close ...
 func (g *GPS) Close() {
 	g.port.Close()
 }
 
-func (g *GPS) open() error {
-	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
+func (g *GPS) open(dev string, baud int) error {
+	c := &serial.Config{Name: dev, Baud: baud}
 	p, err := serial.OpenPort(c)
 	if err != nil {
 		return err

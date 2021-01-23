@@ -28,8 +28,8 @@ Connect to Pi:
 package dev
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/shanghuiyang/rpi-devices/util"
@@ -41,25 +41,25 @@ const (
 )
 
 var (
-	mockPMs       = []uint16{50, 110, 150, 110, 50}
-	mockPMArryIdx = -1
+	mockData = []uint16{50, 110, 150, 110, 50}
+	mockIdx  = 0
 )
 
 // PMS7003 ...
 type PMS7003 struct {
-	port     *serial.Port
-	buf      [128]byte
-	history  *util.History
-	maxRetry int
+	port    *serial.Port
+	history *util.History
+	buf     [128]byte
+	retry   int
 }
 
 // NewPMS7003 ...
-func NewPMS7003() *PMS7003 {
+func NewPMS7003(dev string, baud int) *PMS7003 {
 	p := &PMS7003{
-		history:  util.NewHistory(10),
-		maxRetry: 10,
+		history: util.NewHistory(10),
+		retry:   10,
 	}
-	if err := p.open(); err != nil {
+	if err := p.open(dev, baud); err != nil {
 		return nil
 	}
 	return p
@@ -67,7 +67,7 @@ func NewPMS7003() *PMS7003 {
 
 // Get returns pm2.5 and pm10 in ug/m3
 func (p *PMS7003) Get() (uint16, uint16, error) {
-	for i := 0; i < p.maxRetry; i++ {
+	for i := 0; i < p.retry; i++ {
 		if err := p.port.Flush(); err != nil {
 			return 0, 0, err
 		}
@@ -75,22 +75,15 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 		for a < 32 {
 			n, err := p.port.Read(p.buf[a:])
 			if err != nil {
-				// try to reopen serial
-				p.port.Close()
-				if err := p.open(); err != nil {
-					log.Printf("[psm7003]failed open serial, error: %v", err)
-				}
 				return 0, 0, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
 			}
 			a += n
 		}
 
 		if a != 32 {
-			log.Printf("[psm7003]incorrect data len: %v, expected 32", a)
 			continue
 		}
 		if p.buf[0] != 0x42 && p.buf[1] != 0x4d && p.buf[2] != 0 && p.buf[3] != 28 {
-			log.Printf("[psm7003]incorrect data in byte 1~4")
 			continue
 		}
 		checksum := uint16(0)
@@ -98,14 +91,12 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 			checksum += uint16(p.buf[i])
 		}
 		if checksum != (uint16(p.buf[30])<<8)|uint16(p.buf[31]) {
-			log.Printf("[psm7003]checksum failure")
 			continue
 		}
 
 		pm25 := (uint16(p.buf[6]) << 8) | uint16(p.buf[7])
 		pm10 := (uint16(p.buf[8]) << 8) | uint16(p.buf[9])
 		if !p.checkDelta(pm25) {
-			log.Printf("[psm7003]check delta failed, discard current data. pm2.5: %v", pm25)
 			continue
 		}
 		return pm25, pm10, nil
@@ -113,13 +104,29 @@ func (p *PMS7003) Get() (uint16, uint16, error) {
 	return 0, 0, fmt.Errorf("psm7003 is invalid currently")
 }
 
+// MockGet mocks Get()
+func (p *PMS7003) MockGet() (uint16, uint16, error) {
+	n := len(mockData)
+	if n == 0 {
+		return 0, 0, errors.New("without data")
+	}
+	if mockIdx >= n {
+		mockIdx = 0
+	}
+	pm25 := mockData[mockIdx]
+	pm10 := mockData[mockIdx]
+	mockIdx++
+
+	return pm25, pm10, nil
+}
+
 // Close ...
 func (p *PMS7003) Close() {
 	p.port.Close()
 }
 
-func (p *PMS7003) open() error {
-	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
+func (p *PMS7003) open(dev string, baud int) error {
+	c := &serial.Config{Name: dev, Baud: baud}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err
@@ -143,13 +150,4 @@ func (p *PMS7003) checkDelta(pm25 uint16) bool {
 		p.history.Add(pm25)
 	}
 	return passed
-}
-
-// Mock ...
-func (p *PMS7003) Mock() (uint16, uint16, error) {
-	mockPMArryIdx++
-	if mockPMArryIdx == len(mockPMs) {
-		mockPMArryIdx = 0
-	}
-	return mockPMs[mockPMArryIdx], mockPMs[mockPMArryIdx], nil
 }

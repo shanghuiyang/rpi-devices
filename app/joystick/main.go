@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	swPin = 7
-	csPin = 17
+	devName = "/dev/ttyAMA0"
+	baud    = 9600
+	swPin   = 7
+	csPin   = 17
 
 	homeX   = 2.43
 	homeY   = 2.56
@@ -27,7 +29,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	l, err := dev.NewLC12S(csPin)
+	l, err := dev.NewLC12S(devName, baud, csPin)
 	if err != nil {
 		log.Fatalf("failed to new LC12S, error: %v", err)
 		return

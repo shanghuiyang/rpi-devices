@@ -8,7 +8,6 @@ import (
 type Config struct {
 	Engine     *dev.L298N
 	Servo      *dev.SG90
-	DistMeter  dev.DistMeter
 	GY25       *dev.GY25
 	Horn       *dev.Buzzer
 	Led        *dev.Led
@@ -17,4 +16,5 @@ type Config struct {
 	GPS        *dev.GPS
 	LC12S      *dev.LC12S
 	Collisions []*dev.Collision
+	DistMeter  dev.DistMeter
 }

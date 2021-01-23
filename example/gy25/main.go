@@ -8,8 +8,13 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
+const (
+	devName = "/dev/ttyUSB0"
+	baud    = 115200
+)
+
 func main() {
-	g := dev.NewGY25("/dev/ttyUSB0", 115200)
+	g := dev.NewGY25(devName, baud)
 	defer g.Close()
 
 	if err := g.SetMode(dev.GY25AutoMode); err != nil {
