@@ -3,8 +3,7 @@
 # rpi-devices 
 [![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
 
-rpi-devices let you drive the devices and sensors using a raspberry pi in pure golang.
-The following devices & sensors had been implemented in the current version, and I will keep implementing new devices and sensors.
+rpi-devices implements the drivers of devices or sensors for raspberry pi in pure golang. The drivers for the sensors below have been implemented, and I will keep developing for new sensors.
 
 
 |Sensors|Image|Description|Example|App|
@@ -71,17 +70,18 @@ $ lscpu
 
 And then, deploy the binary to your raspberry pi by,
 ```shell
-$ scp app.pi pi@192.168.31.57:/home/pi
+$ scp app pi@192.168.31.57:/home/pi
 ```
 `192.168.31.57` is the ip address of my raspberry pi, you need to replace it with yours.
 
 ssh to you raspberry pi, and run the binary.
 ```shell
+# from /home/pi
 $ ssh pi@192.168.31.57
-$ ./devices.pi
+$ ./app
 
 # or, run it in background
-$ nohub ./devices.pi > devices.pi 2>&1 &
+$ nohub ./app > devices.pi 2>&1 &
 ```
 
 ## App
@@ -96,6 +96,3 @@ $ nohub ./devices.pi > devices.pi 2>&1 &
 
 ### [Auto-Light](/app/autolight)
 <img src="img/auto-light.gif" width=80% height=80% />
-
-## [Auto-Fan](/app/autofan)
-<img src="img/auto-fan.gif" width=40% height=40% />
