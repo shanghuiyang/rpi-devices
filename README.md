@@ -86,6 +86,8 @@ $ nohub ./app > devices.pi 2>&1 &
 
 ## App
 ### [Self-Dirving Car](/app/car)
+play the video on [youtube](https://www.youtube.com/watch?v=RNqe4byzXmw).
+
 <img src="img/car.gif" width=80% height=80% />
 
 ### [Video Monitor](/app/vmonitor)
