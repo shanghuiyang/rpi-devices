@@ -1,6 +1,6 @@
 ![](img/go-devices.png)
 
-# rpi-devices 
+## rpi-devices 
 [![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
 
 rpi-devices implements the drivers of devices or sensors for raspberry pi in pure golang. The drivers for the sensors below have been implemented, and I will keep developing for new sensors.
@@ -38,11 +38,11 @@ rpi-devices implements the drivers of devices or sensors for raspberry pi in pur
 |ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch2o/main.go)|[ch2o-monitor](/app/ch2omonitor)|
 
 
-## Compile & Deploy
+### Compile & Deploy
 
 It is very easy to cross-compile and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
 ```shell
-$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o app.pi main.go
+$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o test main.go
 ````
 
 If you aren't sure the cpu info of your raspberry pi, check it out by,
@@ -70,7 +70,7 @@ $ lscpu
 
 And then, deploy the binary to your raspberry pi by,
 ```shell
-$ scp app pi@192.168.31.57:/home/pi
+$ scp test pi@192.168.31.57:/home/pi
 ```
 `192.168.31.57` is the ip address of my raspberry pi, you need to replace it with yours.
 
@@ -78,23 +78,24 @@ ssh to you raspberry pi, and run the binary.
 ```shell
 # from /home/pi
 $ ssh pi@192.168.31.57
-$ ./app
+$ ./test
 
 # or, run it in background
-$ nohub ./app > devices.pi 2>&1 &
+$ nohub ./test > test.log 2>&1 &
 ```
 
-## App
-### [Self-Dirving Car](/app/car)
+### App
+Using the driver programs, I built several applications. The most complex and interesting project is the [self-driving car](/app/car), more than 10 sensers were used to build the smart car. I highlight few interesting apps here, please go to [app](/app) for all apps I development. You can learn how to use the driver programs from my apps.
+#### [Self-Dirving Car](/app/car)
 play the video on [youtube](https://www.youtube.com/watch?v=RNqe4byzXmw).
 
 <img src="img/car.gif" width=80% height=80% />
 
-### [Video Monitor](/app/vmonitor)
+#### [Video Monitor](/app/vmonitor)
 <img src="img/vmonitor.gif" width=80% height=80% />
 
-### [Auto-Air](/app/autoair)
+#### [Auto-Air](/app/autoair)
 <img src="img/auto-air.gif" width=80% height=80% />
 
-### [Auto-Light](/app/autolight)
+#### [Auto-Light](/app/autolight)
 <img src="img/auto-light.gif" width=80% height=80% />
