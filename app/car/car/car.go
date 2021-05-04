@@ -1,6 +1,7 @@
 package car
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -498,35 +499,32 @@ func (c *Car) speechDrivingOff() {
 }
 
 func (c *Car) detecting(chOp chan Op) {
-
-	chQuit := make(chan bool, 4)
+	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go c.detectCollision(chOp, chQuit, &wg)
+	go c.detectCollision(ctx, chOp, &wg, cancel)
 
 	wg.Add(1)
-	go c.detectObstacles(chOp, chQuit, &wg)
+	go c.detectObstacles(ctx, chOp, &wg, cancel)
 
 	if c.selftracking {
 		wg.Add(1)
-		go c.trackingObj(chOp, chQuit, &wg)
+		go c.trackingObj(ctx, chOp, &wg, cancel)
 	}
 
 	wg.Wait()
-	close(chQuit)
+	// close(chQuit)
 }
 
-func (c *Car) detectObstacles(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) detectObstacles(ctx context.Context, chOp chan Op, wg *sync.WaitGroup, cancel func()) {
 	defer wg.Done()
 
 	for c.selfdriving || c.selftracking || c.speechdriving {
 		for _, angle := range aheadAngles {
 			select {
-			case quit := <-chQuit:
-				if quit {
-					return
-				}
+			case <-ctx.Done():
+				return
 			default:
 				// do nothing
 			}
@@ -535,29 +533,25 @@ func (c *Car) detectObstacles(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup
 			d := c.dmeter.Dist()
 			if d < 20 {
 				chOp <- backward
-				chQuit <- true
-				chQuit <- true
+				cancel()
 				return
 			}
 			if d < 40 {
 				chOp <- stop
-				chQuit <- true
-				chQuit <- true
+				cancel()
 				return
 			}
 		}
 	}
 }
 
-func (c *Car) detectCollision(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) detectCollision(ctx context.Context, chOp chan Op, wg *sync.WaitGroup, cancel func()) {
 	defer wg.Done()
 
 	for c.selfdriving || c.selftracking || c.speechdriving {
 		select {
-		case quit := <-chQuit:
-			if quit {
-				return
-			}
+		case <-ctx.Done():
+			return
 		default:
 			// do nothing
 		}
@@ -566,8 +560,7 @@ func (c *Car) detectCollision(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup
 				chOp <- backward
 				go c.horn.Beep(1, 100)
 				log.Printf("[car]crashed")
-				chQuit <- true
-				chQuit <- true
+				cancel()
 				return
 			}
 		}
@@ -575,15 +568,13 @@ func (c *Car) detectCollision(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup
 	}
 }
 
-func (c *Car) trackingObj(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
+func (c *Car) trackingObj(ctx context.Context, chOp chan Op, wg *sync.WaitGroup, cancel func()) {
 	defer wg.Done()
 	angle := 0
 	for c.selftracking {
 		select {
-		case quit := <-chQuit:
-			if quit {
-				return
-			}
+		case <-ctx.Done():
+			return
 		default:
 			// do nothing
 		}
@@ -595,8 +586,7 @@ func (c *Car) trackingObj(chOp chan Op, chQuit chan bool, wg *sync.WaitGroup) {
 
 		// found a ball
 		log.Printf("[car]found a ball")
-		chQuit <- true
-		chQuit <- true
+		cancel()
 		chOp <- pause
 		c.stop()
 

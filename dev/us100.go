@@ -115,14 +115,19 @@ func (u *US100) DistByUart() float64 {
 	}
 
 	// read data
-	n, err = u.port.Read(u.buf[:])
-	if err != nil {
-		log.Printf("[us100]failed to read serial, error: %v", err)
-		return -1
+	a := 0
+	for a < 2 {
+		n, err := u.port.Read(u.buf[a:])
+		if err != nil {
+			log.Printf("[us100]failed to read serial, error: %v", err)
+			return -1
+		}
+		a += n
 	}
+
 	// check data len
-	if n != 2 {
-		log.Printf("[us100]incorrect data len, len: %v, expected: 2", n)
+	if a != 2 {
+		log.Printf("[us100]incorrect data len, len: %v, expected: 2", a)
 		return -1
 	}
 	// calc distance in cm

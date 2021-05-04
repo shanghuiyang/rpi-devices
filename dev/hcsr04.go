@@ -32,8 +32,7 @@ import (
 )
 
 const (
-	voiceSpeed = 34000.0
-	timeout    = 3600
+	timeout = 3600
 )
 
 // HCSR04 ...
