@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	r = 14 // red
-	g = 15 // green
-	b = 18 // blue
+	r = 10 // red
+	g = 9 // green
+	b = 112 // blue
 )
 
 func main(){

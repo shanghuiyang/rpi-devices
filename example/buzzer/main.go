@@ -1,28 +1,27 @@
 package main
 
 import (
-	"log"
-	"time"
-
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
+	"log"
+	"time"
 )
 
-const (
-	pin    = 8
-	pinLed = 26
-)
+const buttonPin = 8
+const buzzerPin = 26
 
-func main() {
+func main(){
+
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
-	led := dev.NewLed(pinLed)
-	btn := dev.NewButton(pin)
+	buzz := dev.NewBuzzer(buzzerPin)
+	btn := dev.NewButton(buttonPin)
+
 	util.WaitQuit(func() {
 		rpio.Close()
 	})
@@ -34,12 +33,13 @@ func main() {
 			log.Printf("the button was pressed")
 			if on {
 				on = false
-				led.Off()
+				buzz.Off()
 			} else {
-				led.On()
+				buzz.On()
 				on = true
 			}
 		}
 		time.Sleep(300 * time.Millisecond)
 	}
+
 }
