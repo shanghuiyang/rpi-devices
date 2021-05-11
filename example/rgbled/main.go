@@ -10,7 +10,7 @@ import (
 const (
 	r = 10 // red
 	g = 9 // green
-	b = 112 // blue
+	b = 11 // blue
 )
 
 func main(){
