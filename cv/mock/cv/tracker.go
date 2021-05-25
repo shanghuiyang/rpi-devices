@@ -1,8 +1,10 @@
-package mock
+package cv
 
 import (
 	"errors"
 	"image"
+
+	"github.com/shanghuiyang/rpi-devices/cv/mock/gocv"
 )
 
 // Tracker ...
@@ -14,7 +16,7 @@ func NewTracker(lh, ls, lv, hh, hs, hv float64) (*Tracker, error) {
 }
 
 // Locate ...
-func (t *Tracker) Locate() (bool, *image.Rectangle) {
+func (t *Tracker) Locate(img *gocv.Mat) (bool, *image.Rectangle) {
 	return false, nil
 }
 
@@ -24,6 +26,4 @@ func (t *Tracker) MiddleXY(rect *image.Rectangle) (x int, y int) {
 }
 
 // Close ...
-func (t *Tracker) Close() {
-	return
-}
+func (t *Tracker) Close() {}

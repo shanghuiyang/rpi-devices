@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image/color"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -13,9 +14,10 @@ import (
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
+	"github.com/shanghuiyang/rpi-devices/cv/mock/cv"   // mock "github.com/shanghuiyang/rpi-devices/cv"
+	"github.com/shanghuiyang/rpi-devices/cv/mock/gocv" // mock "gocv.io/x/gocv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	cv "github.com/shanghuiyang/rpi-devices/util/cv/mock"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
@@ -55,6 +57,9 @@ type Car struct {
 	lastLoc   *geo.Point
 	gpslogger *util.GPSLogger
 	selfnav   bool
+
+	// video stream
+	chImg chan *gocv.Mat
 }
 
 // New ...
@@ -365,7 +370,7 @@ func (c *Car) speechDriving() {
 			op = p
 			for len(chOp) > 0 {
 				// log.Printf("[car]len(chOp)=%v", len(chOp))
-				_ = <-chOp
+				<-chOp
 			}
 		default:
 			// do nothing
@@ -463,7 +468,7 @@ func (c *Car) selfTrackingOn() {
 	c.selftracking = true
 	log.Printf("[car]self-tracking on")
 	c.speed(30)
-	c.selfDriving()
+	c.selfTracking()
 }
 
 func (c *Car) selfTrackingOff() {
@@ -508,13 +513,7 @@ func (c *Car) detecting(chOp chan Op) {
 	wg.Add(1)
 	go c.detectObstacles(ctx, chOp, &wg, cancel)
 
-	if c.selftracking {
-		wg.Add(1)
-		go c.trackingObj(ctx, chOp, &wg, cancel)
-	}
-
 	wg.Wait()
-	// close(chQuit)
 }
 
 func (c *Car) detectObstacles(ctx context.Context, chOp chan Op, wg *sync.WaitGroup, cancel func()) {
@@ -568,78 +567,152 @@ func (c *Car) detectCollision(ctx context.Context, chOp chan Op, wg *sync.WaitGr
 	}
 }
 
-func (c *Car) trackingObj(ctx context.Context, chOp chan Op, wg *sync.WaitGroup, cancel func()) {
-	defer wg.Done()
-	angle := 0
-	for c.selftracking {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			// do nothing
-		}
+func (c *Car) selfTracking() {
+	defer c.tracker.Close()
 
-		ok, _ := c.tracker.Locate()
-		if !ok {
+	cam, err := gocv.OpenVideoCapture(0)
+	if err != nil {
+		log.Printf("[carapp]failed to new a camera, will build a car without cameras")
+	}
+	defer cam.Close()
+
+	cam.Set(gocv.VideoCaptureFocus, cam.ToCodec("MJPG"))
+	cam.Set(gocv.VideoCaptureFPS, 25)
+	cam.Set(gocv.VideoCaptureFrameWidth, 640)
+	cam.Set(gocv.VideoCaptureFrameHeight, 480)
+
+	c.chImg = make(chan *gocv.Mat, 64)
+	defer close(c.chImg)
+
+	img := gocv.NewMat()
+	defer img.Close()
+	rcolor := color.RGBA{G: 255, A: 255}
+	firstTime := true // saw the ball at the first time
+	for c.selftracking {
+		util.DelayMs(200)
+
+		cam.Grab(10)
+		if !cam.Read(&img) {
+			log.Printf("[car]failed to read img from camera")
 			continue
 		}
 
-		// found a ball
-		log.Printf("[car]found a ball")
-		cancel()
-		chOp <- pause
-		c.stop()
+		ok, rect := c.tracker.Locate(&img)
+		if ok {
+			gocv.Rectangle(&img, *rect, rcolor, 2)
+		}
+		c.chImg <- &img
 
-		firstTime := true // see a ball at the first time
-		for c.selftracking {
-			ok, rect := c.tracker.Locate()
-			if !ok {
-				// lost the ball, looking for it by turning 360 degree
-				log.Printf("[car]lost the ball")
-				firstTime = true
-				if angle < 360 {
-					c.turn(30)
-					angle += 30
-					util.DelayMs(200)
-					continue
-				}
-				chOp <- scan
-				return
-			}
-			angle = 0
-			if rect.Max.Y > 580 {
-				c.stop()
-				c.horn.Beep(1, 300)
-				continue
-			}
-			if firstTime {
-				go c.horn.Beep(2, 100)
-			}
-			firstTime = false
-			x, y := c.tracker.MiddleXY(rect)
-			log.Printf("[car]found a ball at: (%v, %v)", x, y)
-			if x < 200 {
-				log.Printf("[car]turn right to the ball")
-				c.engine.Right()
-				util.DelayMs(100)
-				c.engine.Stop()
-				continue
-			}
-			if x > 400 {
-				log.Printf("[car]turn left to the ball")
-				c.engine.Left()
-				util.DelayMs(100)
-				c.engine.Stop()
-				continue
-			}
-			log.Printf("[car]forward to the ball")
-			c.engine.Forward()
+		if !ok {
+			// looking for the ball by turning 360 degree
+			log.Printf("[car]ball not found")
+			firstTime = true
+			continue
+		}
+
+		// found the ball, move to it
+		if rect.Max.Y > 580 {
+			c.stop()
+			c.horn.Beep(1, 300)
+			continue
+		}
+		if firstTime {
+			go c.horn.Beep(1, 100)
+		}
+		firstTime = false
+		x, y := c.tracker.MiddleXY(rect)
+		log.Printf("[car]found a ball at: (%v, %v)", x, y)
+		if x < 200 {
+			log.Printf("[car]turn left to the ball")
+			c.engine.Left()
 			util.DelayMs(100)
 			c.engine.Stop()
+			continue
 		}
+		if x > 400 {
+			log.Printf("[car]turn right to the ball")
+			c.engine.Right()
+			util.DelayMs(100)
+			c.engine.Stop()
+			continue
+		}
+		log.Printf("[car]forward to the ball")
+		c.engine.Forward()
+		util.DelayMs(100)
+		c.engine.Stop()
 
 	}
 }
+
+// func (c *Car) selfTracking() {
+// 	defer c.tracker.Close()
+
+// 	rcolor := color.RGBA{G: 255, A: 255}
+// 	firstTime := true // saw the ball at the first time
+// 	for c.selftracking {
+// 		util.DelayMs(200)
+// 		ok, rect, img := c.tracker.Locate()
+// 		if img == nil || img.Empty() {
+// 			util.DelayMs(50)
+// 			continue
+// 		}
+
+// 		// found a ball
+// 		log.Printf("[car]found a ball")
+// 		cancel()
+// 		chOp <- pause
+// 		c.stop()
+
+// 		firstTime := true // see a ball at the first time
+// 		for c.selftracking {
+// 			ok, rect := c.tracker.Locate()
+// 			if !ok {
+// 				// lost the ball, looking for it by turning 360 degree
+// 				log.Printf("[car]lost the ball")
+// 				firstTime = true
+// 				if angle < 360 {
+// 					c.turn(30)
+// 					angle += 30
+// 					util.DelayMs(200)
+// 					continue
+// 				}
+// 				chOp <- scan
+// 				return
+// 			}
+// 			angle = 0
+// 			if rect.Max.Y > 580 {
+// 				c.stop()
+// 				c.horn.Beep(1, 300)
+// 				continue
+// 			}
+// 			if firstTime {
+// 				go c.horn.Beep(2, 100)
+// 			}
+// 			firstTime = false
+// 			x, y := c.tracker.MiddleXY(rect)
+// 			log.Printf("[car]found a ball at: (%v, %v)", x, y)
+// 			if x < 200 {
+// 				log.Printf("[car]turn right to the ball")
+// 				c.engine.Right()
+// 				util.DelayMs(100)
+// 				c.engine.Stop()
+// 				continue
+// 			}
+// 			if x > 400 {
+// 				log.Printf("[car]turn left to the ball")
+// 				c.engine.Left()
+// 				util.DelayMs(100)
+// 				c.engine.Stop()
+// 				continue
+// 			}
+// 			log.Printf("[car]forward to the ball")
+// 			c.engine.Forward()
+// 			util.DelayMs(100)
+// 			c.engine.Stop()
+// 		}
+
+// 	}
+// }
 
 func (c *Car) detectSpeech(chOp chan Op, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -670,29 +743,29 @@ func (c *Car) detectSpeech(chOp chan Op, wg *sync.WaitGroup) {
 		log.Printf("[car]speech: %v", text)
 
 		switch {
-		case strings.Index(text, "前") >= 0:
+		case strings.Contains(text, "前"):
 			chOp <- forward
-		case strings.Index(text, "后") >= 0:
+		case strings.Contains(text, "后"):
 			chOp <- backward
-		case strings.Index(text, "左") >= 0:
+		case strings.Contains(text, "左"):
 			chOp <- left
-		case strings.Index(text, "右") >= 0:
+		case strings.Contains(text, "右"):
 			chOp <- right
-		case strings.Index(text, "停") >= 0:
+		case strings.Contains(text, "停"):
 			chOp <- stop
-		case strings.Index(text, "转圈") >= 0:
+		case strings.Contains(text, "转圈"):
 			chOp <- roll
-		case strings.Index(text, "是什么") >= 0:
+		case strings.Contains(text, "是什么"):
 			c.recognize()
-		case strings.Index(text, "开灯") >= 0:
+		case strings.Contains(text, "开灯"):
 			c.light.On()
-		case strings.Index(text, "关灯") >= 0:
+		case strings.Contains(text, "关灯"):
 			c.light.Off()
-		case strings.Index(text, "大声") >= 0:
+		case strings.Contains(text, "大声"):
 			c.volumeUp()
-		case strings.Index(text, "小声") >= 0:
+		case strings.Contains(text, "小声"):
 			c.volumeDown()
-		case strings.Index(text, "唱歌") >= 0:
+		case strings.Contains(text, "唱歌"):
 			go util.PlayWav("./music/xiaomaolv.wav")
 		default:
 			// do nothing
@@ -768,7 +841,6 @@ func (c *Car) turn(angle int) {
 		time.Sleep(100 * time.Millisecond)
 	}
 	c.engine.Stop()
-	return
 }
 
 func (c *Car) turnLeft(angle int) {
@@ -780,7 +852,6 @@ func (c *Car) turnLeft(angle int) {
 	for i := 0; i < n; {
 		i += c.encoder.Count1()
 	}
-	return
 }
 
 func (c *Car) turnRight(angle int) {
@@ -792,7 +863,6 @@ func (c *Car) turnRight(angle int) {
 	for i := 0; i < n; {
 		i += c.encoder.Count1()
 	}
-	return
 }
 
 func (c *Car) recognize() error {

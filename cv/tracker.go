@@ -8,7 +8,6 @@ import (
 
 // Tracker ...
 type Tracker struct {
-	cam  *gocv.VideoCapture
 	lhsv *gocv.Scalar
 	hhsv *gocv.Scalar
 
@@ -24,15 +23,10 @@ type Tracker struct {
 
 // NewTracker ...
 func NewTracker(lh, ls, lv, hh, hs, hv float64) (*Tracker, error) {
-	cam, err := gocv.OpenVideoCapture(0)
-	if err != nil {
-		return nil, err
-	}
 	return &Tracker{
-		cam:    cam,
 		lhsv:   &gocv.Scalar{Val1: lh, Val2: ls, Val3: lv},
 		hhsv:   &gocv.Scalar{Val1: hh, Val2: hs, Val3: hv},
-		size:   image.Point{X: 600, Y: 600},
+		size:   image.Point{X: 640, Y: 480},
 		blur:   image.Point{X: 11, Y: 11},
 		img:    gocv.NewMat(),
 		mask:   gocv.NewMat(),
@@ -43,12 +37,8 @@ func NewTracker(lh, ls, lv, hh, hs, hv float64) (*Tracker, error) {
 }
 
 // Locate ...
-func (t *Tracker) Locate() (bool, *image.Rectangle) {
-	t.cam.Grab(6)
-	if !t.cam.Read(&t.img) {
-		return false, nil
-	}
-	gocv.Flip(t.img, &t.img, 1)
+func (t *Tracker) Locate(img *gocv.Mat) (bool, *image.Rectangle) {
+	t.img = img.Clone()
 	gocv.Resize(t.img, &t.img, t.size, 0, 0, gocv.InterpolationLinear)
 	gocv.GaussianBlur(t.img, &t.frame, t.blur, 0, 0, gocv.BorderReflect101)
 	gocv.CvtColor(t.frame, &t.hsv, gocv.ColorBGRToHSV)
@@ -85,7 +75,6 @@ func (t *Tracker) bestContour(frame gocv.Mat, minArea float64) []image.Point {
 
 // Close ...
 func (t *Tracker) Close() {
-	t.cam.Close()
 	t.img.Close()
 	t.mask.Close()
 	t.frame.Close()
