@@ -1,17 +1,15 @@
 package main
 
 import (
-	"log"
-	"time"
-
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
+	"log"
+	"time"
 )
 
 const (
-	pin    = 8
-	pinLed = 26
+	pin = 18
 )
 
 func main() {
@@ -21,25 +19,15 @@ func main() {
 	}
 	defer rpio.Close()
 
-	led := dev.NewLed(pinLed)
-	btn := dev.NewButton(pin)
+	f := dev.NewKY026(pin)
 	util.WaitQuit(func() {
 		rpio.Close()
 	})
-
-	on := false
 	for {
-		pressed := btn.Pressed()
-		if pressed {
-			log.Printf("the button was pressed")
-			if on {
-				on = false
-				led.Off()
-			} else {
-				led.On()
-				on = true
-			}
+		fire := f.Detected()
+		if fire {
+			log.Printf("Let me stand next to your fire")
 		}
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }

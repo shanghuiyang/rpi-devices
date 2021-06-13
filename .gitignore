@@ -40,6 +40,8 @@
 /sserver
 /uploadsvr
 /joystick
+/KY-008
+/rgbled
 
 # Test binary, build with `go test -c`
 # *.test
@@ -50,3 +52,5 @@
 *.out
 
 *.log
+
+*.idea/

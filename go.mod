@@ -1,4 +1,4 @@
-module github.com/shanghuiyang/rpi-devices
+module github.com/jakefau/rpi-devices
 
 go 1.13
 
