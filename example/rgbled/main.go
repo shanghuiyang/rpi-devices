@@ -1,26 +1,27 @@
 package main
 
 import (
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
 	"log"
 	"time"
+
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
 	r = 10 // red
-	g = 9 // green
+	g = 9  // green
 	b = 11 // blue
 )
 
-func main(){
+func main() {
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("failed to open rpio, error: %v", err)
 		return
 	}
 	defer rpio.Close()
 
-	rgbled := dev.NewRGBLed(r,g,b)
+	rgbled := dev.NewRGBLed(r, g, b)
 
 	rgbled.RedOn()
 	time.Sleep(5 * time.Second)

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
 	"log"
 	"time"
+
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/stianeikeland/go-rpio"
 )
 
-func main(){
+func main() {
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("failed to open rpio, error: %v", err)
 		return

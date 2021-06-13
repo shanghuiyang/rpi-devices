@@ -1,7 +1,7 @@
 package car
 
 import (
-	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/dev"
 )
 
 // Config ...

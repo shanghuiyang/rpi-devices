@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
 )
 

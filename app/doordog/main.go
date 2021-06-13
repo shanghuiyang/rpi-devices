@@ -11,10 +11,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/util"
 	"github.com/shanghuiyang/face-recognizer/face"
 	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
 )
 

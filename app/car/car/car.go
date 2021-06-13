@@ -10,13 +10,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/util"
+	cv "github.com/jakefau/rpi-devices/util/cv/mock"
+	"github.com/jakefau/rpi-devices/util/geo"
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	cv "github.com/shanghuiyang/rpi-devices/util/cv/mock"
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 // Car ...

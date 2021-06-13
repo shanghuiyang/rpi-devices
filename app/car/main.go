@@ -14,10 +14,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shanghuiyang/rpi-devices/app/car/car"
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/shanghuiyang/rpi-devices/util/geo"
+	"github.com/jakefau/rpi-devices/app/car/car"
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/util"
+	"github.com/jakefau/rpi-devices/util/geo"
 	"github.com/stianeikeland/go-rpio"
 )
 

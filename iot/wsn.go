@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/jakefau/rpi-devices/util"
 )
 
 const (

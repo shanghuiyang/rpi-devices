@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jakefau/rpi-devices/dev"
 	"github.com/shanghuiyang/face-recognizer/face"
 	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
 const (

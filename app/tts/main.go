@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jakefau/rpi-devices/util"
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
-	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (

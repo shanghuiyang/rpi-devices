@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/dev"
 )
 
 func main() {

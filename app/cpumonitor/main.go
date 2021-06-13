@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/iot"
+	"github.com/jakefau/rpi-devices/iot"
 )
 
 const (

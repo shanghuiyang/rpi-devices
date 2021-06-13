@@ -3,9 +3,9 @@ package car
 import (
 	"log"
 
+	"github.com/jakefau/rpi-devices/util/geo"
 	"github.com/shanghuiyang/a-star/astar"
 	"github.com/shanghuiyang/a-star/tilemap"
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 const tilemapStr = `

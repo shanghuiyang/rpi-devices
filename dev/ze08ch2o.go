@@ -32,7 +32,7 @@ import (
 
 	"math"
 
-	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/jakefau/rpi-devices/util"
 	"github.com/tarm/serial"
 )
 

@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/shanghuiyang/rpi-devices/util/geo"
+	"github.com/jakefau/rpi-devices/util/geo"
 )
 
 // MockGPS ...

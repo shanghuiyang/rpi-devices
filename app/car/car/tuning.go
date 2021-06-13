@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/dev"
 )
 
 // TuningTurnAngle tunings the mapping between angle(degree) and time(millisecond)

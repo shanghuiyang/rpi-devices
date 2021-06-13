@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/dev"
 	"github.com/stianeikeland/go-rpio"
 )
 

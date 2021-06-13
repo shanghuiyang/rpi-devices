@@ -3,10 +3,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/shanghuiyang/rpi-devices/dev"
+
+	"github.com/jakefau/rpi-devices/dev"
 
 	"golang.org/x/exp/io/i2c"
-
 )
 
 func main() {
@@ -24,11 +24,11 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Temp: %fF, Press: %f, Hum: %f%%\n",toFahrenheit(t), toMercury(p), h)
+	fmt.Printf("Temp: %fF, Press: %f, Hum: %f%%\n", toFahrenheit(t), toMercury(p), h)
 }
 
-func toFahrenheit(c float64) float64{
-	return (c * 9/5.0) + 32
+func toFahrenheit(c float64) float64 {
+	return (c * 9 / 5.0) + 32
 }
 
 func toMercury(m float64) float64 {

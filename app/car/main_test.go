@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/shanghuiyang/rpi-devices/app/car/car"
+	"github.com/jakefau/rpi-devices/app/car/car"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -16,9 +16,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/iot"
-	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/iot"
+	"github.com/jakefau/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
 )
 

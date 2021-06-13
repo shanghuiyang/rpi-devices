@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/util"
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (

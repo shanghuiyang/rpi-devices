@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/shanghuiyang/rpi-devices/util/cv"
+	"github.com/jakefau/rpi-devices/util"
+	"github.com/jakefau/rpi-devices/util/cv"
 	"github.com/stianeikeland/go-rpio"
 	"gocv.io/x/gocv"
 )

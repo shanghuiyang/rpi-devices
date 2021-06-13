@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/dev"
 )
 
 const (

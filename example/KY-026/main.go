@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 	"log"
 	"time"
+
+	"github.com/jakefau/rpi-devices/dev"
+	"github.com/jakefau/rpi-devices/util"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const (
