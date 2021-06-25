@@ -194,6 +194,7 @@ func (s *server) start() error {
 	log.Printf("[carapp]car started successfully")
 
 	http.HandleFunc("/", s.handler)
+	http.HandleFunc("/tracking", s.trackingHandler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		return err
 	}
@@ -307,4 +308,89 @@ func (s *server) handler(w http.ResponseWriter, r *http.Request) {
 		op := r.FormValue("op")
 		s.car.Do(car.Op(op))
 	}
+}
+
+func (s *server) trackingHandler(w http.ResponseWriter, r *http.Request) {
+	if len(s.pageContext) == 0 {
+		var err error
+		s.pageContext, err = ioutil.ReadFile("car.html")
+		if err != nil {
+			log.Printf("internal error: failed to read car.html")
+			return
+		}
+	}
+
+	ip := util.GetIP()
+	if ip == "" {
+		log.Printf("internal error: failed to get ip")
+		return
+	}
+
+	rbuf := bytes.NewBuffer(s.pageContext)
+	wbuf := bytes.NewBuffer([]byte{})
+	for {
+		line, err := rbuf.ReadBytes('\n')
+		if err == io.EOF {
+			break
+		}
+		sline := string(line)
+
+		disabled := false
+		selfDriving, selfTracking, speechDriving := s.car.GetState()
+		selfTracking = true
+		if selfDriving || selfTracking || speechDriving {
+			disabled = true
+		}
+
+		sline = strings.Replace(sline, "http://((000.000.000.000)):8081", "http://((000.000.000.000)):8088/video", 1)
+
+		if strings.Index(sline, ipPattern) >= 0 {
+			sline = strings.Replace(sline, ipPattern, ip, 1)
+		}
+
+		if strings.Index(sline, selfDrivingState) >= 0 {
+			state := "unchecked"
+			if selfDriving {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, selfDrivingState, state, 1)
+
+			able := "enabled"
+			if state == "unchecked" && disabled {
+				able = "disabled"
+			}
+			sline = strings.Replace(sline, selfDrivingEnabled, able, 1)
+		}
+
+		if strings.Index(sline, selfTrackingState) >= 0 {
+			state := "unchecked"
+			if selfTracking {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, selfTrackingState, state, 1)
+
+			able := "enabled"
+			if state == "unchecked" && disabled {
+				able = "disabled"
+			}
+			sline = strings.Replace(sline, selfTrackingEnabled, able, 1)
+		}
+
+		if strings.Index(sline, speechDrivingState) >= 0 {
+			state := "unchecked"
+			if speechDriving {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, speechDrivingState, state, 1)
+
+			able := "enabled"
+			if state == "unchecked" && disabled {
+				able = "disabled"
+			}
+			sline = strings.Replace(sline, speechDrivingEnabled, able, 1)
+		}
+
+		wbuf.Write([]byte(sline))
+	}
+	w.Write(wbuf.Bytes())
 }

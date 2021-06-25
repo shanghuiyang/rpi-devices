@@ -10,8 +10,6 @@ Connect to Pi:
 package dev
 
 import (
-	"time"
-
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
 )
@@ -58,6 +56,4 @@ func (s *SG90) Roll(angle int) {
 		duty = uint32(26.5 - 39*float32(angle)/180)
 	}
 	s.pin.DutyCycle(uint32(duty), 100)
-	time.Sleep(100 * time.Millisecond)
-	s.pin.DutyCycle(0, 100)
 }

@@ -14,11 +14,14 @@ import (
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
-	"github.com/shanghuiyang/rpi-devices/cv/mock/cv"   // mock "github.com/shanghuiyang/rpi-devices/cv"
-	"github.com/shanghuiyang/rpi-devices/cv/mock/gocv" // mock "gocv.io/x/gocv"
+	"github.com/shanghuiyang/rpi-devices/cv/mock/cv"
+
+	// "github.com/shanghuiyang/rpi-devices/cv"
+	"github.com/shanghuiyang/rpi-devices/cv/mock/gocv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
+	// "gocv.io/x/gocv"
 )
 
 // Car ...
@@ -83,6 +86,7 @@ func New(cfg *Config) *Car {
 		selftracking:  false,
 		selfnav:       false,
 		chOp:          make(chan Op, chSize),
+		chImg:         make(chan *gocv.Mat, 64),
 	}
 	return car
 }
@@ -94,6 +98,7 @@ func (c *Car) Start() error {
 	go c.blink()
 	go c.joystick()
 	go c.setVolume(40)
+	go c.video()
 	c.speed(30)
 	return nil
 }
@@ -473,8 +478,6 @@ func (c *Car) selfTrackingOn() {
 
 func (c *Car) selfTrackingOff() {
 	c.selftracking = false
-	c.tracker.Close()
-	c.servo.Roll(0)
 	util.DelayMs(500)
 
 	if err := util.StartMotion(); err != nil {
@@ -580,9 +583,6 @@ func (c *Car) selfTracking() {
 	cam.Set(gocv.VideoCaptureFPS, 25)
 	cam.Set(gocv.VideoCaptureFrameWidth, 640)
 	cam.Set(gocv.VideoCaptureFrameHeight, 480)
-
-	c.chImg = make(chan *gocv.Mat, 64)
-	defer close(c.chImg)
 
 	img := gocv.NewMat()
 	defer img.Close()
@@ -1174,4 +1174,18 @@ func (c *Car) navTo(dest *geo.Point) error {
 	}
 	c.chOp <- stop
 	return nil
+}
+
+func (c *Car) video() {
+	stream := cv.NewStreamer(videoHost)
+	defer stream.Close()
+
+	go stream.Start()
+
+	img := gocv.NewMat()
+	defer img.Close()
+
+	for img := range c.chImg {
+		stream.SetImage(img)
+	}
 }

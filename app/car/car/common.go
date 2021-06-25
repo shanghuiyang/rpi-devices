@@ -2,6 +2,7 @@ package car
 
 const (
 	chSize        = 8
+	videoHost     = ":8088"
 	letMeThinkWav = "let_me_think.wav"
 	thisIsXWav    = "this_is_x.wav"
 	iDontKnowWav  = "i_dont_know.wav"

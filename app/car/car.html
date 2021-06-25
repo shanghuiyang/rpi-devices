@@ -12,13 +12,13 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
-        *{
-            -webkit-touch-callout:none;
-            -webkit-user-select:none;
-            -khtml-user-select:none;
-            -moz-user-select:none;
-            -ms-user-select:none;
-            user-select:none;
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         #video {
@@ -81,6 +81,11 @@
             margin-top: 6px;
             margin-left: 10px;
             padding: 10px 42px;
+        }
+
+        #selftracking {
+            margin-left: 45px;
+            padding: 16px 24px;
         }
     </style>
 
@@ -186,32 +191,36 @@
             // self-tracking
             $('#selftracking').change(function () {
                 if ($(this).prop('checked')) {
+                    $('#selfdriving').bootstrapToggle('disable');
+                    $('#speechdriving').bootstrapToggle('disable');
                     $.post(url, { "op": "selftrackingon" }, function (data, status) { });
-                    $('#selfdriving').bootstrapToggle('disable')
-                    $('#speechdriving').bootstrapToggle('disable')
+                    window.location.href = 'http://((000.000.000.000)):8080/tracking';
                 } else {
+                    $('#selfdriving').bootstrapToggle('enable');
+                    $('#speechdriving').bootstrapToggle('enable');
                     $.post(url, { "op": "selftrackingoff" }, function (data, status) { });
-                    $('#selfdriving').bootstrapToggle('enable')
-                    $('#speechdriving').bootstrapToggle('enable')
+                    setTimeout(function () {
+                        window.location.href = 'http://((000.000.000.000)):8080';
+                    }, 3000);
                 }
             })
             // speech-driving
             $('#speechdriving').change(function () {
                 if ($(this).prop('checked')) {
+                    $('#selfdriving').bootstrapToggle('disable');
+                    $('#selftracking').bootstrapToggle('disable');
                     $.post(url, { "op": "speechdrivingon" }, function (data, status) { });
-                    $('#selfdriving').bootstrapToggle('disable')
-                    $('#selftracking').bootstrapToggle('disable')
                 } else {
+                    $('#selfdriving').bootstrapToggle('enable');
+                    $('#selftracking').bootstrapToggle('enable');
                     $.post(url, { "op": "speechdrivingoff" }, function (data, status) { });
-                    $('#selfdriving').bootstrapToggle('enable')
-                    $('#selftracking').bootstrapToggle('enable')
                 }
             })
             // navto
             $('#navto').bind("touchstart", function (e) {
                 document.getElementById("navto").style.color = "yellow";
                 dest = document.getElementById("destination").value;
-                $.post(url,  { "dest": dest, "op": "selfnavon" }, function (data, status) { });
+                $.post(url, { "dest": dest, "op": "selfnavon" }, function (data, status) { });
             });
             $('#navto').bind("touchend", function (e) {
                 document.getElementById("navto").style.color = "white";
@@ -224,12 +233,29 @@
             $('#stopnav').bind("touchend", function (e) {
                 document.getElementById("stopnav").style.color = "lightgray";
             });
+            // selftracking
+            // $('#selftracking').bind("click", function (e) {
+            //     $.post(url, { "op": "selftrackingon" }, function (data, status) { });
+            //     // window.location.href = 'http://((000.000.000.000)):8088/video';
+            //     window.location.href = 'http://((000.000.000.000)):8080/tracking';
+            // });
+
+            // window.addEventListener( "pageshow", function ( event ) {
+            //     var historyTraversal = event.persisted || 
+            //                             ( typeof window.performance != "undefined" && 
+            //                                 window.performance.navigation.type === 2 );
+            //     if ( historyTraversal ) {
+            //         // Handle page restore.
+            //         window.location.reload();
+            //     }
+            //     window.location.reload();
+            // });
         });
     </script>
 </head>
 
 <body>
-    <img id="video" src="http://((000.000.000.000)):8081/">
+    <img id="video" src="http://((000.000.000.000)):8081">
     <div id="container" class="container">
         <div>
             <button id='servoleft' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
@@ -262,6 +288,7 @@
             <input id="selftracking" type="checkbox" ((selftracking-state)) ((selftracking-enabled))
                 data-toggle="toggle" data-on="Self-Tracking" data-off="Self-Tracking" data-onstyle="warning"
                 data-width="130" data-height="45">
+            <!-- <button id='selftracking' class="btn btn-lg btn-primary">SelfTracking</button> -->
         </div>
         <br />
         <div>
@@ -274,7 +301,7 @@
         <hr>
         <div>
             <textarea id="destination" name="text" rows="1" cols="35" maxlength="30" placeholder=" lat,lon"></textarea>
-            <br/>
+            <br />
             <button id="navto" class="btn btn-lg btn-warning">Go!</button>
             <button id="stopnav" class="btn btn-lg btn-default" style="color:lightgray">Stop</button>
         </div>
