@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 // PlayWav plays wav audio using aplay
@@ -58,6 +59,46 @@ func Record(sec int, saveTo string) error {
 		return err
 	}
 	return nil
+}
+
+// GetVolume gets the volume using amixer
+/*
+command line: amixer -M get PCM
+output:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Simple mixer control 'PCM',0
+  Capabilities: pvolume pvolume-joined pswitch pswitch-joined
+  Playback channels: Mono
+  Limits: Playback 0 - 255
+  Mono: Playback 115 [45%] [-127.55dB] [on]
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+func GetVolume() (int, error) {
+	// amixer -M set PCM 20%
+	cmd := exec.Command("amixer", "-M", "get", "PCM")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return 0, err
+	}
+
+	s := string(output)
+	ss := strings.Split(s, "\n")
+	n := len(ss)
+	if n == 0 {
+		return 0, fmt.Errorf("unexpected output from amixer, output: %v", s)
+	}
+	
+	lastline := ss[n-2]
+	items := strings.Split(lastline, " ")
+	if len(items) != 8 {
+		return 0, fmt.Errorf("unexpected output from amixer, last line: %v", lastline)
+	}
+	
+	var v int
+	if _, err := fmt.Sscanf(items[5], "[%d%%]", &v); err != nil {
+		return 0, err
+	}
+	return v, nil
 }
 
 // SetVolume sets the volume using amixer

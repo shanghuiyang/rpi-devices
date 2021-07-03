@@ -6,10 +6,10 @@ import (
 
 // Bbox ...
 type Bbox struct {
-	Left   float64
-	Right  float64
-	Top    float64
-	Bottom float64
+	Left   float64 `json:"left"`
+	Right  float64 `json:"right"`
+	Top    float64 `json:"top"`
+	Bottom float64 `json:"buttom"`
 }
 
 // IsInside ...

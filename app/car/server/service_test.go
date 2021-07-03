@@ -1,4 +1,4 @@
-package car
+package server
 
 import (
 	"testing"
@@ -7,6 +7,6 @@ import (
 )
 
 func TestCar(t *testing.T) {
-	car := New(&Config{})
-	assert.NotNil(t, car)
+	s := newService(nil, nil)
+	assert.NotNil(t, s)
 }

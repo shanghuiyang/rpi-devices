@@ -12,8 +12,8 @@ func NewStreamer(host string) *Streamer {
 	return &Streamer{}
 }
 
-// SetImage ...
-func (s *Streamer) SetImage(img *gocv.Mat) {}
+// Push ...
+func (s *Streamer) Push(img *gocv.Mat) {}
 
 // Start ...
 func (s *Streamer) Start() {}

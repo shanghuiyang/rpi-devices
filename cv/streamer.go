@@ -29,7 +29,7 @@ func NewStreamer(host string) *Streamer {
 }
 
 // SetImage ...
-func (s *Streamer) SetImage(img *gocv.Mat) {
+func (s *Streamer) Push(img *gocv.Mat) {
 	im := img.Clone()
 	s.chImg <- &im
 }

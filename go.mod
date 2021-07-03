@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/gorilla/mux v1.8.0
 	github.com/hybridgroup/mjpeg v0.0.0-20140228234708-4680f319790e
 	github.com/mdp/monochromeoled v0.0.0-20171027213216-a0c6b5c996cf
 	github.com/shanghuiyang/a-star v0.0.0-20201223162018-808af3b29f1c
