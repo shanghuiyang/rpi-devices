@@ -87,13 +87,13 @@ func GetVolume() (int, error) {
 	if n == 0 {
 		return 0, fmt.Errorf("unexpected output from amixer, output: %v", s)
 	}
-	
+
 	lastline := ss[n-2]
 	items := strings.Split(lastline, " ")
 	if len(items) != 8 {
 		return 0, fmt.Errorf("unexpected output from amixer, last line: %v", lastline)
 	}
-	
+
 	var v int
 	if _, err := fmt.Sscanf(items[5], "[%d%%]", &v); err != nil {
 		return 0, err

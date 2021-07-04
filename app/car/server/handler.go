@@ -18,8 +18,8 @@ import (
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 
-	// "gocv.io/x/gocv"
-	"github.com/shanghuiyang/rpi-devices/cv/mock/gocv"
+	"gocv.io/x/gocv"
+	// "github.com/shanghuiyang/rpi-devices/cv/mock/gocv"
 )
 
 const (
@@ -50,6 +50,14 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[%v]failed to get volume, error: %v", logHandlerTag, err)
 		volume = 40
 	}
+	disabled := false
+	selfDriving := selfdriving.Status()
+	selfTracking := selftracking.Status()
+	speechDriving := speechdriving.Status()
+	if selfDriving || selfTracking || speechDriving {
+		disabled = true
+	}
+
 	for {
 		line, err := rbuf.ReadBytes('\n')
 		if err == io.EOF {
@@ -57,16 +65,11 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		sline := string(line)
 
-		disabled := false
-		selfDriving := selfdriving.Status()
-		selfTracking := selftracking.Status()
-		speechDriving := speechdriving.Status()
-		if selfDriving || selfTracking || speechDriving {
-			disabled = true
-		}
-
 		sline = strings.Replace(sline, ipPattern, ip, 1)
 		sline = strings.Replace(sline, volumePattern, fmt.Sprintf("%v", volume), 1)
+		if selfTracking {
+			sline = strings.Replace(sline, ":8081", ":8089/video", 1)
+		}
 
 		if strings.Contains(sline, selfDrivingState) {
 			state := "unchecked"
@@ -181,6 +184,12 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if err := util.StopMotion(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("failed to stop motion service"))
+		return
+	}
+
 	chImg := make(chan *gocv.Mat, 64)
 	defer func() {
 		close(chImg)
@@ -216,6 +225,12 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 func (s *service) selfTrackingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-tracking off", logHandlerTag)
 	selftracking.Stop()
+	util.DelayMs(1000)
+	if err := util.StartMotion(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("failed to start motion service"))
+		return
+	}
 }
 
 func (s *service) speechDrivingOnHandler(w http.ResponseWriter, r *http.Request) {

@@ -39,7 +39,7 @@ func (s *Streamer) Start() {
 	go func() {
 		http.Handle("/video", s.stream)
 		if err := http.ListenAndServe(s.host, nil); err != nil {
-			log.Printf("[stream]failed to listen and serve, err: %v", err)
+			log.Printf("[streamer]failed to listen and serve, err: %v", err)
 			return
 		}
 	}()
@@ -47,7 +47,7 @@ func (s *Streamer) Start() {
 	for img := range s.chImg {
 		buf, err := gocv.IMEncode(".jpg", *img)
 		if err != nil {
-			log.Printf("[stream]failed to encode image, err: %v", err)
+			log.Printf("[streamer]failed to encode image, err: %v", err)
 			continue
 		}
 		s.stream.UpdateJPEG(buf)

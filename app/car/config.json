@@ -30,8 +30,8 @@
         "enabled": true
     },
     "SelfTracking": {
-        "enabled": false,
-        "videoHost": ":8088",
+        "enabled": true,
+        "videoHost": ":8089",
         "lh": 33,
         "ls": 108,
         "lv": 138,

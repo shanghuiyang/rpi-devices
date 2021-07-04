@@ -11,8 +11,8 @@ import (
 	"github.com/shanghuiyang/rpi-devices/app/car/selftracking"
 	"github.com/shanghuiyang/rpi-devices/app/car/speechdriving"
 
-	// "github.com/shanghuiyang/rpi-devices/cv"
-	"github.com/shanghuiyang/rpi-devices/cv/mock/cv"
+	"github.com/shanghuiyang/rpi-devices/cv"
+	// "github.com/shanghuiyang/rpi-devices/cv/mock/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"

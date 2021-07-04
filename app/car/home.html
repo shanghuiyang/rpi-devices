@@ -103,6 +103,18 @@
         var url = "http://((000.000.000.000)):8080"
         var xhr = new XMLHttpRequest();
         $(function () {
+            $(function () {
+                var slider = document.getElementById("volumeRange");
+                var output = document.getElementById("currentVolume");
+                output.innerHTML = slider.value + "%";
+
+                slider.oninput = function () {
+                    output.innerHTML = this.value + "%";
+                    xhr.open("POST", url + "/volume/" + this.value, true);
+                    xhr.send();
+                }
+            });
+            
             // forward
             $('#forward').bind("touchstart", function (e) {
                 document.getElementById("forward").style.color = "yellow";
@@ -175,18 +187,7 @@
             $('#beep').bind("touchend", function (e) {
                 document.getElementById("beep").style.color = "lightgray";
             });
-            // volume
-            $('#volumeRange').bind("touchstart", function (e) {
-                var slider = document.getElementById("volumeRange");
-                var output = document.getElementById("currentVolume");
-                output.innerHTML = slider.value + "%";
-
-                slider.oninput = function () {
-                    output.innerHTML = this.value + "%";
-                    xhr.open("POST", url + "/volume/" + this.value, true);
-                    xhr.send();
-                }
-            });
+            
             // servoleft
             // $('#servoleft').bind("touchstart", function (e) {
             //     $.post(url, { "op": "servoleft" }, function (data, status) { });
@@ -247,7 +248,9 @@
                     // $.post(url, { "op": "selftrackingon" }, function (data, status) { });
                     xhr.open("POST", url + "/selftracking/on", true);
                     xhr.send();
-                    window.location.href = 'http://((000.000.000.000)):8080/tracking';
+                    setTimeout(function () {
+                        window.location.href = 'http://((000.000.000.000)):8080';
+                    }, 3000);
                 } else {
                     $('#selfdriving').bootstrapToggle('enable');
                     $('#speechdriving').bootstrapToggle('enable');

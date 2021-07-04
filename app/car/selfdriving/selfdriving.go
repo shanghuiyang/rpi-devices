@@ -134,7 +134,7 @@ func lookingForWay() (mind, maxd float64, mindAngle, maxdAngle int) {
 	maxd = -9999
 	for _, ang := range scanningAngles {
 		sg90.Roll(ang)
-		util.DelayMs(100)
+		util.DelayMs(200)
 		d := dmeter.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
 			util.DelayMs(100)
@@ -162,7 +162,7 @@ func lookingForObs(chOp chan operator) {
 	for ondriving {
 		for _, angle := range aheadAngles {
 			sg90.Roll(angle)
-			util.DelayMs(70)
+			util.DelayMs(100)
 			d := dmeter.Dist()
 			if d < 20 {
 				chOp <- backward
