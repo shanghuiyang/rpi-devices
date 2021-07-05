@@ -19,7 +19,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 
 	"gocv.io/x/gocv"
-	// "github.com/shanghuiyang/rpi-devices/cv/mock/gocv"
 )
 
 const (
@@ -68,7 +67,7 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 		sline = strings.Replace(sline, ipPattern, ip, 1)
 		sline = strings.Replace(sline, volumePattern, fmt.Sprintf("%v", volume), 1)
 		if selfTracking {
-			sline = strings.Replace(sline, ":8081", ":8089/video", 1)
+			sline = strings.Replace(sline, s.cfg.VideoHost, s.cfg.SelfTracking.VideoHost+"/video", 1)
 		}
 
 		if strings.Contains(sline, selfDrivingState) {
@@ -157,9 +156,10 @@ func (s *service) setVolumeHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *service) selfDrivingOnHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-driving on", logHandlerTag)
-	if !s.enabledSelfDriving {
+	if !s.cfg.SelfDriving.Enabled {
+		log.Printf("[%v]self-driving was disabled", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("self-driving wasn't available"))
+		w.Write([]byte("self-driving was disabled"))
 		return
 	}
 	selfdriving.Start()
@@ -172,22 +172,24 @@ func (s *service) selfDrivingOffHandler(w http.ResponseWriter, r *http.Request) 
 
 func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-tracking on", logHandlerTag)
-	if !s.enabledSelfTracking {
+	if !s.cfg.SelfTracking.Enabled {
+		log.Printf("[%v]self-tracking was disabled", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("self-tracking wasn't available"))
+		w.Write([]byte("self-tracking was disabled"))
 		return
 	}
 
 	if selftracking.Status() {
+		log.Printf("[%v]self-tracking is running", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("self-tracking is running"))
 		return
 	}
 
 	if err := util.StopMotion(); err != nil {
+		log.Printf("[%v]failed to stop motion server", logHandlerTag)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("failed to stop motion service"))
-		return
 	}
 
 	chImg := make(chan *gocv.Mat, 64)
@@ -198,7 +200,8 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 
 	cam, err := gocv.OpenVideoCapture(0)
 	if err != nil {
-		log.Printf("[%v]failed to new a camera, will build a car without cameras", logHandlerTag)
+		log.Printf("[%v]failed to new camera", logHandlerTag)
+		return
 	}
 	defer cam.Close()
 	cam.Set(gocv.VideoCaptureFocus, cam.ToCodec("MJPG"))
@@ -227,6 +230,7 @@ func (s *service) selfTrackingOffHandler(w http.ResponseWriter, r *http.Request)
 	selftracking.Stop()
 	util.DelayMs(1000)
 	if err := util.StartMotion(); err != nil {
+		log.Printf("[%v]failed to start motion server", logHandlerTag)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("failed to start motion service"))
 		return
@@ -235,9 +239,10 @@ func (s *service) selfTrackingOffHandler(w http.ResponseWriter, r *http.Request)
 
 func (s *service) speechDrivingOnHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]speech-driving on", logHandlerTag)
-	if !s.enabledSpeechDriving {
+	if !s.cfg.SpeechDriving.Enabled {
+		log.Printf("[%v]speech-driving was disabled", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("speech-driving wasn't available"))
+		w.Write([]byte("speech-driving was disabled"))
 		return
 	}
 	s.ledBlinked = false
@@ -253,7 +258,8 @@ func (s *service) speechDrivingOffHandler(w http.ResponseWriter, r *http.Request
 
 func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-nav on", logHandlerTag)
-	if !s.enabledSelfNav {
+	if !s.cfg.SelfNav.Enabled {
+		log.Printf("[%v]self-nav was disabled", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("self-nav wasn't available"))
 		return
@@ -261,24 +267,28 @@ func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	lat, err := strconv.ParseFloat(vars["lat"], 64)
 	if err != nil {
+		log.Printf("[%v]invalid lat: %v", logHandlerTag, vars["lat"])
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "invalid lat: %v", vars["lat"])
 		return
 	}
 	lon, err := strconv.ParseFloat(vars["lon"], 64)
 	if err != nil {
+		log.Printf("[%v]invalid lon: %v", logHandlerTag, vars["lon"])
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "invalid lat: %v", vars["lon"])
 		return
 	}
 
 	if lat < -90 || lat > 90 { // volume should be 0~100%
+		log.Printf("[%v]invalid lat: %v", logHandlerTag, lat)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "invalid lat: %v", lat)
 		return
 	}
 
 	if lon < -180 || lon > 180 { // volume should be 0~100%
+		log.Printf("[%v]invalid lon: %v", logHandlerTag, lon)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "invalid lon: %v", lon)
 		return

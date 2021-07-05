@@ -21,6 +21,9 @@ type Config struct {
 	SpeechDriving *SpeechDrivingConfig `json:"speechDriving"`
 	SelfNav       *SelfNavConfig       `json:"selfnav"`
 	Volume        int                  `json:"volume"`
+	Speed         uint32               `json:"speed"`
+	Host          string               `json:"host"`
+	VideoHost     string               `json:"videoHost"`
 }
 
 type L298NConfig struct {

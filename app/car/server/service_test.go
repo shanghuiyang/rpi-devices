@@ -7,6 +7,7 @@ import (
 )
 
 func TestCar(t *testing.T) {
-	s := newService(nil, nil)
+	s, err := newService(&Config{})
+	assert.NoError(t, err)
 	assert.NotNil(t, s)
 }

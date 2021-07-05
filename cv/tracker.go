@@ -38,7 +38,7 @@ func NewTracker(lh, ls, lv, hh, hs, hv float64) (*Tracker, error) {
 
 // Locate ...
 func (t *Tracker) Locate(img *gocv.Mat) (bool, *image.Rectangle) {
-	t.img = img.Clone()
+	t.img = *img
 	gocv.Resize(t.img, &t.img, t.size, 0, 0, gocv.InterpolationLinear)
 	gocv.GaussianBlur(t.img, &t.frame, t.blur, 0, 0, gocv.BorderReflect101)
 	gocv.CvtColor(t.frame, &t.hsv, gocv.ColorBGRToHSV)
@@ -75,7 +75,6 @@ func (t *Tracker) bestContour(frame gocv.Mat, minArea float64) []image.Point {
 
 // Close ...
 func (t *Tracker) Close() {
-	t.img.Close()
 	t.mask.Close()
 	t.frame.Close()
 	t.hsv.Close()

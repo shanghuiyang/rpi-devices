@@ -31,7 +31,7 @@
     },
     "SelfTracking": {
         "enabled": true,
-        "videoHost": ":8089",
+        "videoHost": ":8082",
         "lh": 33,
         "ls": 108,
         "lv": 138,
@@ -51,13 +51,16 @@
         "tileMap": {
             "mapFile": "map.txt",
             "bbox": {
-                "left":   116.444217,
-                "right":  116.444652,
-                "top":    39.956275,
+                "left": 116.444217,
+                "right": 116.444652,
+                "top": 39.956275,
                 "bottom": 39.955711
             },
             "gridSize": 0.000010
         }
     },
-    "volume": 40
+    "volume": 20,
+    "speed": 30,
+    "host": ":8080",
+    "videoHost": ":8081"
 }
