@@ -7,8 +7,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/cv"
 
-	// "github.com/shanghuiyang/rpi-devices/cv/mock/cv"
-	// "github.com/shanghuiyang/rpi-devices/cv/mock/gocv"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"gocv.io/x/gocv"
 )
