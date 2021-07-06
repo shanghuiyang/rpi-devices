@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/shanghuiyang/go-speech/oauth"
+	"github.com/shanghuiyang/go-speech/speech"
+	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/app/car/joystick"
 	"github.com/shanghuiyang/rpi-devices/app/car/selfdriving"
@@ -152,7 +155,12 @@ func newService(cfg *Config) (*service, error) {
 	if cfg.SpeechDriving.Enabled {
 		// TODO
 		// create asr, tts, imgr
-		speechdriving.Init(car, us100, sg90, led, cam, nil, nil, nil)
+		speechAuth := oauth.New(cfg.BaiduAPIConfig.Speech.APIKey, cfg.BaiduAPIConfig.Speech.SecretKey, oauth.NewCacheMan())
+		imgAuth := oauth.New(cfg.BaiduAPIConfig.Image.APIKey, cfg.BaiduAPIConfig.Image.SecretKey, oauth.NewCacheMan())
+		asr := speech.NewASR(speechAuth)
+		tts := speech.NewTTS(speechAuth)
+		imgr := recognizer.New(imgAuth)
+		speechdriving.Init(car, us100, sg90, led, cam, asr, tts, imgr)
 	}
 
 	if err := util.SetVolume(cfg.Volume); err != nil {

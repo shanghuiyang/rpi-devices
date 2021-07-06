@@ -249,7 +249,7 @@
                     xhr.open("POST", url + "/selftracking/on", true);
                     xhr.send();
                     setTimeout(function () {
-                        window.location.href = 'http://((000.000.000.000)):8080';
+                        window.location.reload();
                     }, 3000);
                 } else {
                     $('#selfdriving').bootstrapToggle('enable');
@@ -258,7 +258,7 @@
                     xhr.open("POST", url + "/selftracking/off", true);
                     xhr.send();
                     setTimeout(function () {
-                        window.location.href = 'http://((000.000.000.000)):8080';
+                        window.location.reload();
                     }, 3000);
                 }
             })
@@ -282,9 +282,9 @@
             $('#selfnav').bind("touchstart", function (e) {
                 document.getElementById("selfnav").style.color = "yellow";
                 lat = document.getElementById("lat").value;
-                lat = document.getElementById("lon").value;
+                lon = document.getElementById("lon").value;
                 // $.post(url, { "dest": dest, "op": "selfnavon" }, function (data, status) { });
-                xhr.open("POST", url + "/selfnavi/"+lat+"/"+lon, true);
+                xhr.open("POST", url + "/selfnav/"+lat+"/"+lon, true);
                 xhr.send();
             });
             $('#selfnav').bind("touchend", function (e) {
@@ -294,7 +294,7 @@
             $('#stopnav').bind("touchstart", function (e) {
                 document.getElementById("stopnav").style.color = "yellow";
                 // $.post(url, { "op": "selfnavoff" }, function (data, status) { });
-                xhr.open("POST", url + "/selfnavi/off"+lat+"/"+lon, true);
+                xhr.open("POST", url + "/selfnav/off", true);
                 xhr.send();
             });
             $('#stopnav').bind("touchend", function (e) {
@@ -367,8 +367,8 @@
         </div>
         <hr>
         <div>
-            <textarea id="lat" name="text" rows="1" cols="35" maxlength="30" placeholder=" lat"></textarea>
-            <textarea id="lon" name="text" rows="1" cols="35" maxlength="30" placeholder=" lon"></textarea>
+            <textarea id="lat" name="lattext" rows="1" cols="30" maxlength="30" placeholder=" lat"></textarea>
+            <textarea id="lon" name="lontext" rows="1" cols="30" maxlength="30" placeholder=" lon"></textarea>
             <br />
             <button id="selfnav" class="btn btn-lg btn-warning">Nav</button>
             <button id="stopnav" class="btn btn-lg btn-default" style="color:lightgray">Stop</button>

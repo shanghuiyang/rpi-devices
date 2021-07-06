@@ -59,6 +59,16 @@
             "gridSize": 0.000010
         }
     },
+    "baidu": {
+        "speech": {
+            "apiKey": "your-api-key",
+            "secretKey": "your-secret-key"
+        },
+        "image": {
+            "apiKey": "your-api-key",
+            "secretKey": "your-secret-key"
+        }
+    },
     "volume": 40,
     "speed": 30,
     "host": ":8080",

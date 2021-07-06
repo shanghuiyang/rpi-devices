@@ -302,7 +302,7 @@ func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *service) selfNavOffHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("[%v]self-nav on", logHandlerTag)
+	log.Printf("[%v]self-nav off", logHandlerTag)
 	selfnav.Stop()
 }
 

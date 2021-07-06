@@ -9,21 +9,22 @@ import (
 
 // Config ...
 type Config struct {
-	LedPin        uint8                `json:"led"`
-	SG90DataPin   uint8                `json:"sg90"`
-	BuzzerPin     uint8                `json:"buzzer"`
-	L298N         *L298NConfig         `json:"l298n"`
-	US100         *US100Config         `json:"us100"`
-	GY25          *GY25Config          `json:"gy25"`
-	Joystick      *JoystickConfig      `json:"joystick"`
-	SelfDriving   *SelfDrivingConfig   `json:"selfDriving"`
-	SelfTracking  *SelfTrackingConfig  `json:"SelfTracking"`
-	SpeechDriving *SpeechDrivingConfig `json:"speechDriving"`
-	SelfNav       *SelfNavConfig       `json:"selfnav"`
-	Volume        int                  `json:"volume"`
-	Speed         uint32               `json:"speed"`
-	Host          string               `json:"host"`
-	VideoHost     string               `json:"videoHost"`
+	LedPin         uint8                `json:"led"`
+	SG90DataPin    uint8                `json:"sg90"`
+	BuzzerPin      uint8                `json:"buzzer"`
+	L298N          *L298NConfig         `json:"l298n"`
+	US100          *US100Config         `json:"us100"`
+	GY25           *GY25Config          `json:"gy25"`
+	Joystick       *JoystickConfig      `json:"joystick"`
+	SelfDriving    *SelfDrivingConfig   `json:"selfDriving"`
+	SelfTracking   *SelfTrackingConfig  `json:"SelfTracking"`
+	SpeechDriving  *SpeechDrivingConfig `json:"speechDriving"`
+	SelfNav        *SelfNavConfig       `json:"selfnav"`
+	BaiduAPIConfig *BaiduAPIConfig      `json:"baidu"`
+	Volume         int                  `json:"volume"`
+	Speed          uint32               `json:"speed"`
+	Host           string               `json:"host"`
+	VideoHost      string               `json:"videoHost"`
 }
 
 type L298NConfig struct {
@@ -89,6 +90,16 @@ type TileMapConfig struct {
 	MapFile  string    `json:"mapFile"`
 	Box      *geo.Bbox `json:"bbox"`
 	GridSize float64   `json:"gridSize"`
+}
+
+type BaiduAPIConfig struct {
+	Speech *BaiduKey `json:"speech"`
+	Image  *BaiduKey `json:"image"`
+}
+
+type BaiduKey struct {
+	APIKey    string `json:"apiKey"`
+	SecretKey string `json:"secretKey"`
 }
 
 func LoadConfig(file string) (*Config, error) {

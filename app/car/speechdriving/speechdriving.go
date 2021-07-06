@@ -72,6 +72,7 @@ func Start() {
 		wg   sync.WaitGroup
 	)
 
+	ondriving = true
 	wg.Add(1)
 	go detectSpeech(chOp, &wg)
 	for ondriving {
