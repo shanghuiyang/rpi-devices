@@ -261,7 +261,7 @@ func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 	if !s.cfg.SelfNav.Enabled {
 		log.Printf("[%v]self-nav was disabled", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("self-nav wasn't available"))
+		w.Write([]byte("self-nav was disabled"))
 		return
 	}
 	vars := mux.Vars(r)
@@ -315,29 +315,3 @@ func (s *service) musicOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[car]music off")
 	util.StopMp3()
 }
-
-// func (s *service) servoLeft(w http.ResponseWriter, r *http.Request) {
-// 	angle := s.servoAngle - 15
-// 	if angle < -90 {
-// 		angle = -90
-// 	}
-// 	log.Printf("[car]servo roll %v", angle)
-// 	s.servoAngle = angle
-// 	s.sg90.Roll(angle)
-// }
-
-// func (s *service) servoRight(w http.ResponseWriter, r *http.Request) {
-// 	angle := s.servoAngle + 15
-// 	if angle > 90 {
-// 		angle = 90
-// 	}
-// 	log.Printf("[car]servo roll %v", angle)
-// 	s.servoAngle = angle
-// 	s.sg90.Roll(angle)
-// }
-
-// func (s *service) servoAhead(w http.ResponseWriter, r *http.Request) {
-// 	s.servoAngle = 0
-// 	log.Printf("[car]servo roll %v", 0)
-// 	s.sg90.Roll(0)
-// }

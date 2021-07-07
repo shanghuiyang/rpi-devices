@@ -26,20 +26,6 @@
             height: auto;
         }
 
-        /* #servoleft {
-            margin-top: 0px;
-            margin-left: 38px;
-            padding: 10px 26px;
-        }
-
-        #servoahead {
-            padding: 10px 26px;
-        }
-
-        #servoright {
-            padding: 10px 26px;
-        } */
-
         #forward {
             margin-top: 5px;
             margin-left: 130px;
@@ -100,8 +86,7 @@
     </style>
 
     <script>
-        var url = "http://((000.000.000.000)):8080"
-        var xhr = new XMLHttpRequest();
+        var url = "http://((000.000.000.000)):8080";
         $(function () {
             $(function () {
                 var slider = document.getElementById("volumeRange");
@@ -109,42 +94,43 @@
                 output.innerHTML = slider.value + "%";
 
                 slider.oninput = function () {
+                    var xhr = new XMLHttpRequest();
                     output.innerHTML = this.value + "%";
                     xhr.open("POST", url + "/volume/" + this.value, true);
                     xhr.send();
                 }
             });
-            
+
             // forward
             $('#forward').bind("touchstart", function (e) {
                 document.getElementById("forward").style.color = "yellow";
-                // $.post(url, { "op": "forward" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/forward", true);
                 xhr.send();
             });
             $('#forward').bind("touchend", function (e) {
                 document.getElementById("forward").style.color = "white";
-                // $.post(url, { "op": "stop" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/stop", true);
                 xhr.send();
             });
             // backward
             $('#backward').bind("touchstart", function (e) {
                 document.getElementById("backward").style.color = "yellow";
-                // $.post(url, { "op": "backward" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/backward", true);
                 xhr.send();
             });
             $('#backward').bind("touchend", function (e) {
                 document.getElementById("backward").style.color = "white";
-                // $.post(url, { "op": "stop" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/stop", true);
                 xhr.send();
             });
             // stop
             $('#stop').bind("touchstart", function (e) {
                 document.getElementById("stop").style.color = "yellow";
-                // $.post(url, { "op": "stop" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/stop", true);
                 xhr.send();
             });
@@ -154,86 +140,59 @@
             // left
             $('#left').bind("touchstart", function (e) {
                 document.getElementById("left").style.color = "yellow";
-                // $.post(url, { "op": "left" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/left", true);
                 xhr.send();
             });
             $('#left').bind("touchend", function (e) {
                 document.getElementById("left").style.color = "white";
-                // $.post(url, { "op": "stop" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/stop", true);
                 xhr.send();
             });
             // right
             $('#right').bind("touchstart", function (e) {
                 document.getElementById("right").style.color = "yellow";
-                // $.post(url, { "op": "right" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/right", true);
                 xhr.send();
             });
             $('#right').bind("touchend", function (e) {
                 document.getElementById("right").style.color = "white";
-                // $.post(url, { "op": "stop" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/stop", true);
                 xhr.send();
             });
             // beep
             $('#beep').bind("touchstart", function (e) {
                 document.getElementById("beep").style.color = "yellow";
-                // $.post(url, { "op": "beep" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/car/beep", true);
                 xhr.send();
             });
             $('#beep').bind("touchend", function (e) {
                 document.getElementById("beep").style.color = "lightgray";
             });
-            
-            // servoleft
-            // $('#servoleft').bind("touchstart", function (e) {
-            //     $.post(url, { "op": "servoleft" }, function (data, status) { });
-            //     document.getElementById("servoleft").style.color = "yellow";
-            // });
-            // $('#servoleft').bind("touchend", function (e) {
-            //     document.getElementById("servoleft").style.color = "lightgray";
-            // });
-            // servoahead
-            // $('#servoahead').bind("touchstart", function (e) {
-            //     $.post(url, { "op": "servoahead" }, function (data, status) { });
-            //     document.getElementById("servoahead").style.color = "yellow";
-            // });
-            // $('#servoahead').bind("touchend", function (e) {
-            //     document.getElementById("servoahead").style.color = "lightgray";
-            // });
-            // servoright
-            // $('#servoright').bind("touchstart", function (e) {
-            //     $.post(url, { "op": "servoright" }, function (data, status) { });
-            //     document.getElementById("servoright").style.color = "yellow";
-            // });
-            // $('#servoright').bind("touchend", function (e) {
-            //     document.getElementById("servoright").style.color = "lightgray";
-            // });
             // music
             $('#music').change(function () {
+                var xhr = new XMLHttpRequest();
                 if ($(this).prop('checked')) {
-                    // $.post(url, { "op": "musicon" }, function (data, status) { });
                     xhr.open("POST", url + "/music/on", true);
                     xhr.send();
                 } else {
-                    // $.post(url, { "op": "musicoff" }, function (data, status) { });
                     xhr.open("POST", url + "/music/off", true);
                     xhr.send();
                 }
             })
             // self-driving
             $('#selfdriving').change(function () {
+                var xhr = new XMLHttpRequest();
                 if ($(this).prop('checked')) {
-                    // $.post(url, { "op": "selfdrivingon" }, function (data, status) { });
                     $('#selftracking').bootstrapToggle('disable')
                     $('#speechdriving').bootstrapToggle('disable')
                     xhr.open("POST", url + "/selfdriving/on", true);
                     xhr.send();
                 } else {
-                    // $.post(url, { "op": "selfdrivingoff" }, function (data, status) { });
                     $('#selftracking').bootstrapToggle('enable')
                     $('#speechdriving').bootstrapToggle('enable')
                     xhr.open("POST", url + "/selfdriving/off", true);
@@ -242,10 +201,10 @@
             })
             // self-tracking
             $('#selftracking').change(function () {
+                var xhr = new XMLHttpRequest();
                 if ($(this).prop('checked')) {
                     $('#selfdriving').bootstrapToggle('disable');
                     $('#speechdriving').bootstrapToggle('disable');
-                    // $.post(url, { "op": "selftrackingon" }, function (data, status) { });
                     xhr.open("POST", url + "/selftracking/on", true);
                     xhr.send();
                     setTimeout(function () {
@@ -254,7 +213,6 @@
                 } else {
                     $('#selfdriving').bootstrapToggle('enable');
                     $('#speechdriving').bootstrapToggle('enable');
-                    // $.post(url, { "op": "selftrackingoff" }, function (data, status) { });
                     xhr.open("POST", url + "/selftracking/off", true);
                     xhr.send();
                     setTimeout(function () {
@@ -264,16 +222,15 @@
             })
             // speech-driving
             $('#speechdriving').change(function () {
+                var xhr = new XMLHttpRequest();
                 if ($(this).prop('checked')) {
                     $('#selfdriving').bootstrapToggle('disable');
                     $('#selftracking').bootstrapToggle('disable');
-                    // $.post(url, { "op": "speechdrivingon" }, function (data, status) { });
                     xhr.open("POST", url + "/speechdriving/on", true);
                     xhr.send();
                 } else {
                     $('#selfdriving').bootstrapToggle('enable');
                     $('#selftracking').bootstrapToggle('enable');
-                    // $.post(url, { "op": "speechdrivingoff" }, function (data, status) { });
                     xhr.open("POST", url + "/speechdriving/off", true);
                     xhr.send();
                 }
@@ -283,8 +240,13 @@
                 document.getElementById("selfnav").style.color = "yellow";
                 lat = document.getElementById("lat").value;
                 lon = document.getElementById("lon").value;
-                // $.post(url, { "dest": dest, "op": "selfnavon" }, function (data, status) { });
-                xhr.open("POST", url + "/selfnav/"+lat+"/"+lon, true);
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status != 200) {
+                        alert(this.responseText);
+                    }
+                };
+                xhr.open("POST", url + "/selfnav/" + lat + "/" + lon, true);
                 xhr.send();
             });
             $('#selfnav').bind("touchend", function (e) {
@@ -293,30 +255,13 @@
             // stop nav
             $('#stopnav').bind("touchstart", function (e) {
                 document.getElementById("stopnav").style.color = "yellow";
-                // $.post(url, { "op": "selfnavoff" }, function (data, status) { });
+                var xhr = new XMLHttpRequest();
                 xhr.open("POST", url + "/selfnav/off", true);
                 xhr.send();
             });
             $('#stopnav').bind("touchend", function (e) {
                 document.getElementById("stopnav").style.color = "lightgray";
             });
-            // selftracking
-            // $('#selftracking').bind("click", function (e) {
-            //     $.post(url, { "op": "selftrackingon" }, function (data, status) { });
-            //     // window.location.href = 'http://((000.000.000.000)):8088/video';
-            //     window.location.href = 'http://((000.000.000.000)):8080/tracking';
-            // });
-
-            // window.addEventListener( "pageshow", function ( event ) {
-            //     var historyTraversal = event.persisted || 
-            //                             ( typeof window.performance != "undefined" && 
-            //                                 window.performance.navigation.type === 2 );
-            //     if ( historyTraversal ) {
-            //         // Handle page restore.
-            //         window.location.reload();
-            //     }
-            //     window.location.reload();
-            // });
         });
     </script>
 </head>
@@ -324,14 +269,6 @@
 <body>
     <img id="video" src="http://((000.000.000.000)):8081">
     <div id="container" class="container">
-        <!-- <div>
-            <button id='servoleft' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-left"
-                style="font-size:32px; color:lightgray"></button>
-            <button id='servoahead' class="btn btn-lg glyphicon glyphicon glyphicon glyphicon-upload"
-                style="font-size:32px; color:lightgray"></button>
-            <button id='servoright' class="btn btn-lg glyphicon glyphicon glyphicon-arrow-right"
-                style="font-size:32px; color:lightgray"></button>
-        </div> -->
         <div>
             <button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up"
                 style="font-size:32px"></button>
@@ -355,7 +292,6 @@
             <input id="selftracking" type="checkbox" ((selftracking-state)) ((selftracking-enabled))
                 data-toggle="toggle" data-on="Self-Tracking" data-off="Self-Tracking" data-onstyle="warning"
                 data-width="130" data-height="45">
-            <!-- <button id='selftracking' class="btn btn-lg btn-primary">SelfTracking</button> -->
         </div>
         <br />
         <div>
