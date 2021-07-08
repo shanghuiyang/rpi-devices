@@ -15,43 +15,46 @@ const (
 	logTag = "selftracking"
 )
 
-var (
-	ontracking bool
-	mycar      car.Car
+type SelfTracking struct {
+	car        car.Car
 	tracker    *cv.Tracker
 	streamer   *cv.Streamer
-)
-
-func Init(c car.Car, t *cv.Tracker, s *cv.Streamer) {
-	mycar = c
-	tracker = t
-	streamer = s
-	go streamer.Start()
+	ontracking bool
 }
 
-func Start(chImg chan *gocv.Mat) {
-	if ontracking {
+func New(c car.Car, t *cv.Tracker, s *cv.Streamer) *SelfTracking {
+	go s.Start()
+	return &SelfTracking{
+		car:        c,
+		tracker:    t,
+		streamer:   s,
+		ontracking: false,
+	}
+}
+
+func (s *SelfTracking) Start(chImg chan *gocv.Mat) {
+	if s.ontracking {
 		return
 	}
 
-	ontracking = true
+	s.ontracking = true
 
 	rcolor := color.RGBA{G: 255, A: 255}
 	firstTime := true // saw the ball at the first time
-	for ontracking {
+	for s.ontracking {
 		util.DelayMs(200)
 
 		img, ok := <-chImg
 		if !ok {
-			ontracking = false
+			s.ontracking = false
 			return
 		}
 
-		ok, rect := tracker.Locate(img)
+		ok, rect := s.tracker.Locate(img)
 		if ok {
 			gocv.Rectangle(img, *rect, rcolor, 2)
 		}
-		streamer.Push(img)
+		s.streamer.Push(img)
 
 		if !ok {
 			// looking for the ball by turning 360 degree
@@ -62,42 +65,42 @@ func Start(chImg chan *gocv.Mat) {
 
 		// found the ball, move to it
 		if rect.Max.Y > 580 {
-			mycar.Stop()
-			mycar.Beep(1, 300)
+			s.car.Stop()
+			s.car.Beep(1, 300)
 			continue
 		}
 		if firstTime {
-			go mycar.Beep(1, 100)
+			go s.car.Beep(1, 100)
 		}
 		firstTime = false
-		x, y := tracker.MiddleXY(rect)
+		x, y := s.tracker.MiddleXY(rect)
 		log.Printf("[%v]found a ball at: (%v, %v)", logTag, x, y)
 		if x < 200 {
 			log.Printf("[%v]turn left to the ball", logTag)
-			mycar.Left()
+			s.car.Left()
 			util.DelayMs(100)
-			mycar.Stop()
+			s.car.Stop()
 			continue
 		}
 		if x > 400 {
 			log.Printf("[%v]turn right to the ball", logTag)
-			mycar.Right()
+			s.car.Right()
 			util.DelayMs(100)
-			mycar.Stop()
+			s.car.Stop()
 			continue
 		}
 		log.Printf("[%v]forward to the ball", logTag)
-		mycar.Forward()
+		s.car.Forward()
 		util.DelayMs(100)
-		mycar.Stop()
+		s.car.Stop()
 
 	}
 }
 
-func Status() bool {
-	return ontracking
+func (s *SelfTracking) Status() bool {
+	return s.ontracking
 }
 
-func Stop() {
-	ontracking = false
+func (s *SelfTracking) Stop() {
+	s.ontracking = false
 }

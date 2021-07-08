@@ -21,30 +21,35 @@ const (
 )
 
 var (
-	ondriving      bool
 	scanningAngles = []int{-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90}
 	aheadAngles    = []int{0, -15, 0, 15}
-	mycar          car.Car
-	dmeter         dev.DistMeter
-	sg90           *dev.SG90
 )
 
 type operator string
 
-func Init(c car.Car, d dev.DistMeter, sg *dev.SG90) {
-	mycar = c
-	dmeter = d
-	sg90 = sg
-	ondriving = false
-	sg90.Roll(0)
+type SelfDriving struct {
+	car       car.Car
+	dmeter    dev.DistMeter
+	sg90      *dev.SG90
+	ondriving bool
 }
 
-func Start() {
-	if ondriving {
+func New(c car.Car, d dev.DistMeter, sg90 *dev.SG90) *SelfDriving {
+	sg90.Roll(0)
+	return &SelfDriving{
+		car:       c,
+		dmeter:    d,
+		sg90:      sg90,
+		ondriving: false,
+	}
+}
+
+func (s *SelfDriving) Start() {
+	if s.ondriving {
 		return
 	}
 
-	ondriving = true
+	s.ondriving = true
 
 	var (
 		fwd       bool
@@ -57,7 +62,7 @@ func Start() {
 		chOp      = make(chan operator, 4)
 	)
 
-	for ondriving {
+	for s.ondriving {
 		select {
 		case p := <-chOp:
 			op = p
@@ -72,21 +77,21 @@ func Start() {
 		switch op {
 		case backward:
 			fwd = false
-			mycar.Stop()
+			s.car.Stop()
 			util.DelayMs(20)
-			mycar.Backward()
+			s.car.Backward()
 			util.DelayMs(500)
 			chOp <- stop
 			continue
 		case stop:
 			fwd = false
-			mycar.Stop()
+			s.car.Stop()
 			util.DelayMs(20)
 			chOp <- scan
 			continue
 		case scan:
 			fwd = false
-			mind, maxd, mindAngle, maxdAngle = lookingForWay()
+			mind, maxd, mindAngle, maxdAngle = s.lookingForWay()
 			log.Printf("[%v]mind=%.0f, maxd=%.0f, mindAngle=%v, maxdAngle=%v", logTag, mind, maxd, mindAngle, maxdAngle)
 			if mind < 10 && mindAngle != 90 && mindAngle != -90 && retry < 4 {
 				chOp <- backward
@@ -97,31 +102,31 @@ func Start() {
 			retry = 0
 		case turn:
 			fwd = false
-			mycar.Turn(maxdAngle)
+			s.car.Turn(maxdAngle)
 			util.DelayMs(150)
 			chOp <- forward
 			continue
 		case forward:
 			if !fwd {
-				mycar.Forward()
+				s.car.Forward()
 				fwd = true
-				go lookingForObs(chOp)
+				go s.lookingForObs(chOp)
 			}
 			util.DelayMs(50)
 			continue
 		}
 	}
-	mycar.Stop()
+	s.car.Stop()
 	util.DelayMs(1000)
 	close(chOp)
 }
 
-func Status() bool {
-	return ondriving
+func (s *SelfDriving) Status() bool {
+	return s.ondriving
 }
 
-func Stop() {
-	ondriving = false
+func (s *SelfDriving) Stop() {
+	s.ondriving = false
 }
 
 // lookingForWay looks for geting the min & max distance, and their corresponding angles
@@ -129,16 +134,16 @@ func Stop() {
 // maxd: the max distance
 // mindAngle: the angle correspond to the mind
 // maxdAngle: the angle correspond to the maxd
-func lookingForWay() (mind, maxd float64, mindAngle, maxdAngle int) {
+func (s *SelfDriving) lookingForWay() (mind, maxd float64, mindAngle, maxdAngle int) {
 	mind = 9999
 	maxd = -9999
 	for _, ang := range scanningAngles {
-		sg90.Roll(ang)
+		s.sg90.Roll(ang)
 		util.DelayMs(200)
-		d := dmeter.Dist()
+		d := s.dmeter.Dist()
 		for i := 0; d < 0 && i < 3; i++ {
 			util.DelayMs(100)
-			d = dmeter.Dist()
+			d = s.dmeter.Dist()
 		}
 		if d < 0 {
 			continue
@@ -153,17 +158,17 @@ func lookingForWay() (mind, maxd float64, mindAngle, maxdAngle int) {
 			maxdAngle = ang
 		}
 	}
-	sg90.Roll(0)
+	s.sg90.Roll(0)
 	util.DelayMs(50)
 	return
 }
 
-func lookingForObs(chOp chan operator) {
-	for ondriving {
+func (s *SelfDriving) lookingForObs(chOp chan operator) {
+	for s.ondriving {
 		for _, angle := range aheadAngles {
-			sg90.Roll(angle)
+			s.sg90.Roll(angle)
 			util.DelayMs(100)
-			d := dmeter.Dist()
+			d := s.dmeter.Dist()
 			if d < 20 {
 				chOp <- backward
 				return

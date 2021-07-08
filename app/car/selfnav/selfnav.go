@@ -16,130 +16,131 @@ const (
 	logTag = "selfnav"
 )
 
-var (
-	onnav     bool
-	mycar     car.Car
-	aStar     *astar.AStar
+type SelfNav struct {
+	car       car.Car
+	astar     *astar.AStar
 	mapBBox   *geo.Bbox
 	gridSize  float64
 	gps       *dev.GPS
 	lastLoc   *geo.Point
 	gpslogger *util.GPSLogger
-)
-
-func Init(c car.Car, g *dev.GPS, tilemap *tilemap.Tilemap, bbox *geo.Bbox, gridsize float64) {
-	mycar = c
-	gps = g
-	aStar = astar.New(tilemap)
-	mapBBox = bbox
-	gridSize = gridsize
-	mapBBox = bbox
-	gpslogger = util.NewGPSLogger()
-	onnav = false
+	onnav     bool
 }
 
-func Start(dest *geo.Point) {
+func New(c car.Car, gps *dev.GPS, tilemap *tilemap.Tilemap, bbox *geo.Bbox, gridsize float64) *SelfNav {
+	return &SelfNav{
+		car:       c,
+		gps:       gps,
+		astar:     astar.New(tilemap),
+		mapBBox:   bbox,
+		gridSize:  gridsize,
+		gpslogger: util.NewGPSLogger(),
+		onnav:     false,
+	}
+}
+
+func (s *SelfNav) Start(dest *geo.Point) {
 	if dest == nil {
 		log.Printf("[%v]destination didn't be set, stop nav", logTag)
 		return
 	}
-	onnav = true
-	defer Stop()
+	s.onnav = true
+	defer s.Stop()
 
-	mycar.Beep(3, 300)
-	if !mapBBox.IsInside(dest) {
+	s.car.Beep(3, 300)
+	if !s.mapBBox.IsInside(dest) {
 		log.Printf("[%v]destination isn't in bbox, stop nav", logTag)
 		return
 	}
 
 	var org *geo.Point
-	for onnav {
-		pt, err := gps.Loc()
+	for s.onnav {
+		pt, err := s.gps.Loc()
 		if err != nil {
 			log.Printf("[%v]gps sensor is not ready", logTag)
 			util.DelayMs(1000)
 			continue
 		}
-		gpslogger.AddPoint(org)
-		if !mapBBox.IsInside(pt) {
-			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, pt, mapBBox)
+		s.gpslogger.AddPoint(org)
+		if !s.mapBBox.IsInside(pt) {
+			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, pt, s.mapBBox)
 			continue
 		}
 		org = pt
 		break
 	}
-	if !onnav {
+	if !s.onnav {
 		return
 	}
-	lastLoc = org
+	s.lastLoc = org
 
-	path, err := findPath(org, dest)
+	path, err := s.findPath(org, dest)
 	if err != nil {
 		log.Printf("[%v]failed to find a path, error: %v", logTag, err)
 		return
 	}
-	turns := turnPoints(path)
+	turns := s.turnPoints(path)
 
 	var turnPts []*geo.Point
 	var str string
 	for _, xy := range turns {
-		pt := xy2geo(xy)
+		pt := s.xy2geo(xy)
 		str += fmt.Sprintf("(%v) ", pt)
 		turnPts = append(turnPts, pt)
 	}
 	log.Printf("[%v]turn points(lat,lon): %v", logTag, str)
 
-	mycar.Forward()
+	s.car.Forward()
 	util.DelayMs(1000)
 	for i, p := range turnPts {
-		if err := navTo(p); err != nil {
+		if err := s.navTo(p); err != nil {
 			log.Printf("[%v]failed to nav to (%v), error: %v", logTag, p, err)
 			break
 		}
 		if i < len(turnPts)-1 {
 			// turn point
-			go mycar.Beep(2, 100)
+			go s.car.Beep(2, 100)
 		} else {
 			// destination
-			go mycar.Beep(5, 300)
+			go s.car.Beep(5, 300)
 		}
 	}
-	mycar.Stop()
+	s.car.Stop()
 }
 
-func Status() bool {
-	return onnav
+func (s *SelfNav) Status() bool {
+	return s.onnav
 }
 
-func Stop() {
-	onnav = false
+func (s *SelfNav) Stop() {
+	s.onnav = false
 }
 
-func navTo(dest *geo.Point) error {
+func (s *SelfNav) navTo(dest *geo.Point) error {
 	retry := 8
-	for onnav {
-		loc, err := gps.Loc()
+	for s.onnav {
+		loc, err := s.gps.Loc()
 		if err != nil {
-			mycar.Stop()
+			s.car.Stop()
 			log.Printf("[%v]gps sensor is not ready", logTag)
 			util.DelayMs(1000)
 			continue
 		}
 
-		if !mapBBox.IsInside(loc) {
-			mycar.Stop()
-			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, loc, mapBBox)
+		if !s.mapBBox.IsInside(loc) {
+			s.car.Stop()
+			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, loc, s.mapBBox)
 			util.DelayMs(1000)
 			continue
 		}
 
-		gpslogger.AddPoint(loc)
+		s.gpslogger.AddPoint(loc)
 		log.Printf("[%v]current loc: %v", logTag, loc)
 
-		d := loc.DistanceWith(lastLoc)
+		d := loc.DistanceWith(s.lastLoc)
 		log.Printf("[%v]distance to last loc: %.2f m", logTag, d)
 		if d > 4 && retry < 5 {
-			mycar.Stop()
+			s.car.Stop()
 			log.Printf("[%v]bad gps signal, waiting for better gps signal", logTag)
 			retry++
 			util.DelayMs(1000)
@@ -150,13 +151,13 @@ func navTo(dest *geo.Point) error {
 		d = loc.DistanceWith(dest)
 		log.Printf("[%v]distance to destination: %.2f m", logTag, d)
 		if d < 4 {
-			mycar.Stop()
+			s.car.Stop()
 			log.Printf("[%v]arrived at the destination, nav done", logTag)
 			return nil
 		}
 
-		side := geo.Side(lastLoc, loc, dest)
-		angle := int(180 - geo.Angle(lastLoc, loc, dest))
+		side := geo.Side(s.lastLoc, loc, dest)
+		angle := int(180 - geo.Angle(s.lastLoc, loc, dest))
 		if angle < 10 {
 			side = geo.MiddleSide
 		}
@@ -164,16 +165,71 @@ func navTo(dest *geo.Point) error {
 
 		switch side {
 		case geo.LeftSide:
-			mycar.Turn(angle * (-1))
+			s.car.Turn(angle * (-1))
 		case geo.RightSide:
-			mycar.Turn(angle)
+			s.car.Turn(angle)
 		case geo.MiddleSide:
 			// do nothing
 		}
-		mycar.Forward()
+		s.car.Forward()
 		util.DelayMs(1000)
-		lastLoc = loc
+		s.lastLoc = loc
 	}
-	mycar.Stop()
+	s.car.Stop()
 	return nil
+}
+
+func (s *SelfNav) findPath(org, des *geo.Point) (astar.PList, error) {
+	orgXY := s.geo2xy(org)
+	desXY := s.geo2xy(des)
+
+	path, err := s.astar.FindPath(orgXY, desXY)
+	if err != nil {
+		log.Printf("[car]failed to find the path from A(%v) to B(%v)", org, des)
+		return nil, err
+	}
+	log.Printf("[car]path: %v", path)
+	s.astar.Draw()
+	return path, nil
+}
+
+func (s *SelfNav) turnPoints(path astar.PList) astar.PList {
+	if len(path) <= 2 {
+		return path
+	}
+
+	var ks []float64
+	for i := 0; i < len(path)-1; i++ {
+		k := 99999.99
+		if path[i].Y != path[i+1].Y {
+			k = float64(path[i].X-path[i+1].X) / float64(path[i].Y-path[i+1].Y)
+		}
+		ks = append(ks, k)
+	}
+	log.Printf("ks: %v\n", ks)
+
+	var turns astar.PList
+	for i := 0; i < len(ks)-1; i++ {
+		if ks[i] == ks[i+1] {
+			continue
+		}
+		turns = append(turns, path[i+1])
+	}
+	turns = append(turns, path[len(path)-1])
+	log.Printf("turn points(x,y): %v", turns)
+	return turns
+}
+
+func (s *SelfNav) geo2xy(p *geo.Point) *astar.Point {
+	return &astar.Point{
+		X: int((s.mapBBox.Top-p.Lat)/s.gridSize + 0.5),
+		Y: int((p.Lon-s.mapBBox.Left)/s.gridSize + 0.5),
+	}
+}
+
+func (s *SelfNav) xy2geo(p *astar.Point) *geo.Point {
+	return &geo.Point{
+		Lat: s.mapBBox.Top - float64(p.X)*s.gridSize,
+		Lon: s.mapBBox.Left + float64(p.Y)*s.gridSize,
+	}
 }

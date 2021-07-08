@@ -11,10 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/shanghuiyang/rpi-devices/app/car/selfdriving"
-	"github.com/shanghuiyang/rpi-devices/app/car/selfnav"
-	"github.com/shanghuiyang/rpi-devices/app/car/selftracking"
-	"github.com/shanghuiyang/rpi-devices/app/car/speechdriving"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 
@@ -50,9 +46,17 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 		volume = 40
 	}
 	disabled := false
-	selfDriving := selfdriving.Status()
-	selfTracking := selftracking.Status()
-	speechDriving := speechdriving.Status()
+	selfDriving, selfTracking, speechDriving := false, false, false
+	if s.selfdriving != nil {
+		selfDriving = s.selfdriving.Status()
+	}
+	if s.selftracking != nil {
+		selfTracking = s.selftracking.Status()
+	}
+	if s.speechdriving != nil {
+		speechDriving = s.speechdriving.Status()
+	}
+
 	if selfDriving || selfTracking || speechDriving {
 		disabled = true
 	}
@@ -162,12 +166,12 @@ func (s *service) selfDrivingOnHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("self-driving was disabled"))
 		return
 	}
-	selfdriving.Start()
+	s.selfdriving.Start()
 }
 
 func (s *service) selfDrivingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-driving off", logHandlerTag)
-	selfdriving.Stop()
+	s.selfdriving.Stop()
 }
 
 func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +183,7 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if selftracking.Status() {
+	if s.selftracking.Status() {
 		log.Printf("[%v]self-tracking is running", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("self-tracking is running"))
@@ -196,7 +200,7 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 	defer func() {
 		close(chImg)
 	}()
-	go selftracking.Start(chImg)
+	go s.selftracking.Start(chImg)
 
 	cam, err := gocv.OpenVideoCapture(0)
 	if err != nil {
@@ -212,7 +216,7 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 	img := gocv.NewMat()
 	defer img.Close()
 
-	for selftracking.Status() {
+	for s.selftracking.Status() {
 		util.DelayMs(200)
 		cam.Grab(10)
 		if !cam.Read(&img) {
@@ -227,7 +231,7 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 
 func (s *service) selfTrackingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-tracking off", logHandlerTag)
-	selftracking.Stop()
+	s.selftracking.Stop()
 	util.DelayMs(1000)
 	if err := util.StartMotion(); err != nil {
 		log.Printf("[%v]failed to start motion server", logHandlerTag)
@@ -246,12 +250,12 @@ func (s *service) speechDrivingOnHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	s.ledBlinked = false
-	speechdriving.Start()
+	s.speechdriving.Start()
 }
 
 func (s *service) speechDrivingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]speech-driving off", logHandlerTag)
-	speechdriving.Stop()
+	s.speechdriving.Stop()
 	s.ledBlinked = true
 	go s.blink()
 }
@@ -298,12 +302,12 @@ func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 		Lat: lat,
 		Lon: lon,
 	}
-	selfnav.Start(dest)
+	s.selfnav.Start(dest)
 }
 
 func (s *service) selfNavOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-nav off", logHandlerTag)
-	selfnav.Stop()
+	s.selfnav.Stop()
 }
 
 func (s *service) musicOnHandler(w http.ResponseWriter, r *http.Request) {

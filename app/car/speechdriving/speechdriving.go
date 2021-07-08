@@ -31,37 +31,41 @@ const (
 )
 
 var (
-	ondriving   bool
 	aheadAngles = []int{0, -15, 0, 15}
-	mycar       car.Car
-	dmeter      dev.DistMeter
-	sg90        *dev.SG90
-	led         *dev.Led
-	camera      *dev.Camera
-	asr         ASR
-	tts         TTS
-	imgr        ImgRecognizer
-	lock        sync.Mutex
 )
 
 type operator string
 
-func Init(c car.Car, d dev.DistMeter, sg *dev.SG90, l *dev.Led, cam *dev.Camera, a ASR, t TTS, imr ImgRecognizer) {
-	mycar = c
-	dmeter = d
-	sg90 = sg
-	led = l
-	camera = cam
-	asr = a
-	tts = t
-	imgr = imr
-	ondriving = false
-	sg90.Roll(0)
-	// setvolume(volume)
+type SpeechDriving struct {
+	car       car.Car
+	dmeter    dev.DistMeter
+	sg90      *dev.SG90
+	led       *dev.Led
+	camera    *dev.Camera
+	asr       ASR
+	tts       TTS
+	imgr      ImgRecognizer
+	lock      sync.Mutex
+	ondriving bool
 }
 
-func Start() {
-	if ondriving {
+func New(c car.Car, d dev.DistMeter, sg90 *dev.SG90, l *dev.Led, cam *dev.Camera, a ASR, t TTS, imr ImgRecognizer) *SpeechDriving {
+	sg90.Roll(0)
+	return &SpeechDriving{
+		car:       c,
+		dmeter:    d,
+		sg90:      sg90,
+		led:       l,
+		camera:    cam,
+		asr:       a,
+		tts:       t,
+		imgr:      imr,
+		ondriving: false,
+	}
+}
+
+func (s *SpeechDriving) Start() {
+	if s.ondriving {
 		return
 	}
 
@@ -72,10 +76,10 @@ func Start() {
 		wg   sync.WaitGroup
 	)
 
-	ondriving = true
+	s.ondriving = true
 	wg.Add(1)
-	go detectSpeech(chOp, &wg)
-	for ondriving {
+	go s.detectSpeech(chOp, &wg)
+	for s.ondriving {
 		select {
 		case p := <-chOp:
 			op = p
@@ -90,68 +94,68 @@ func Start() {
 		switch op {
 		case forward:
 			if !fwd {
-				mycar.Forward()
+				s.car.Forward()
 				fwd = true
-				go lookingForObs(chOp)
+				go s.lookingForObs(chOp)
 			}
 			util.DelayMs(50)
 			continue
 		case backward:
 			fwd = false
-			mycar.Stop()
+			s.car.Stop()
 			util.DelayMs(20)
-			mycar.Backward()
+			s.car.Backward()
 			util.DelayMs(600)
 			chOp <- stop
 			continue
 		case left:
 			fwd = false
-			mycar.Stop()
+			s.car.Stop()
 			util.DelayMs(20)
-			mycar.Turn(-90)
+			s.car.Turn(-90)
 			util.DelayMs(20)
 			chOp <- forward
 			continue
 		case right:
 			fwd = false
-			mycar.Stop()
+			s.car.Stop()
 			util.DelayMs(20)
-			mycar.Turn(90)
+			s.car.Turn(90)
 			util.DelayMs(20)
 			chOp <- forward
 			continue
 		case roll:
 			fwd = false
-			mycar.Left()
+			s.car.Left()
 			util.DelayMs(3000)
 			chOp <- stop
 			continue
 		case stop:
 			fwd = false
-			mycar.Stop()
+			s.car.Stop()
 			util.DelayMs(500)
 			continue
 		}
 	}
-	mycar.Stop()
+	s.car.Stop()
 	wg.Wait()
 	close(chOp)
 }
 
-func Status() bool {
-	return ondriving
+func (s *SpeechDriving) Status() bool {
+	return s.ondriving
 }
 
-func Stop() {
-	ondriving = false
+func (s *SpeechDriving) Stop() {
+	s.ondriving = false
 }
 
-func lookingForObs(chOp chan operator) {
-	for ondriving {
+func (s *SpeechDriving) lookingForObs(chOp chan operator) {
+	for s.ondriving {
 		for _, angle := range aheadAngles {
-			sg90.Roll(angle)
+			s.sg90.Roll(angle)
 			util.DelayMs(70)
-			d := dmeter.Dist()
+			d := s.dmeter.Dist()
 			if d < 20 {
 				chOp <- backward
 				return
@@ -164,21 +168,21 @@ func lookingForObs(chOp chan operator) {
 	}
 }
 
-func detectSpeech(chOp chan operator, wg *sync.WaitGroup) {
+func (s *SpeechDriving) detectSpeech(chOp chan operator, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	for ondriving {
+	for s.ondriving {
 		log.Printf("[%v]start recording", logTag)
-		go led.On()
+		go s.led.On()
 		wav := "car.wav"
 		if err := util.Record(2, wav); err != nil {
 			log.Printf("[%v]failed to record the speech: %v", logTag, err)
 			continue
 		}
-		go led.Off()
+		go s.led.Off()
 		log.Printf("[%v]stop recording", logTag)
 
-		text, err := asr.ToText(wav)
+		text, err := s.asr.ToText(wav)
 		if err != nil {
 			log.Printf("[%v]failed to recognize the speech, error: %v", logTag, err)
 			continue
@@ -199,11 +203,11 @@ func detectSpeech(chOp chan operator, wg *sync.WaitGroup) {
 		case strings.Contains(text, "转圈"):
 			chOp <- roll
 		case strings.Contains(text, "是什么"):
-			recognize()
+			s.recognize()
 		case strings.Contains(text, "大声"):
-			volumeUp()
+			s.volumeUp()
 		case strings.Contains(text, "小声"):
-			volumeDown()
+			s.volumeDown()
 		case strings.Contains(text, "唱歌"):
 			go util.PlayWav("./music/xiaomaolv.wav")
 		default:
@@ -212,9 +216,9 @@ func detectSpeech(chOp chan operator, wg *sync.WaitGroup) {
 	}
 }
 
-func recognize() error {
+func (s *SpeechDriving) recognize() error {
 	log.Printf("[%v]take photo", logTag)
-	imagef, err := camera.TakePhoto()
+	imagef, err := s.camera.TakePhoto()
 	if err != nil {
 		log.Printf("[%v]failed to take phote, error: %v", logTag, err)
 		return err
@@ -222,7 +226,7 @@ func recognize() error {
 	util.PlayWav(letMeThinkWav)
 
 	log.Printf("[%v]recognize image", logTag)
-	objname, err := imgr.Recognize(imagef)
+	objname, err := s.imgr.Recognize(imagef)
 	if err != nil {
 		log.Printf("[%v]failed to recognize image, error: %v", logTag, err)
 		util.PlayWav(errorWav)
@@ -230,7 +234,7 @@ func recognize() error {
 	}
 	log.Printf("[%v]object: %v", logTag, objname)
 
-	if err := playText("这是" + objname); err != nil {
+	if err := s.playText("这是" + objname); err != nil {
 		log.Printf("[%v]failed to play text, error: %v", logTag, err)
 		return err
 	}
@@ -238,8 +242,8 @@ func recognize() error {
 	return nil
 }
 
-func playText(text string) error {
-	wav, err := toSpeech(text)
+func (s *SpeechDriving) playText(text string) error {
+	wav, err := s.toSpeech(text)
 	if err != nil {
 		log.Printf("[%v]failed to tts, error: %v", logTag, err)
 		return err
@@ -252,8 +256,8 @@ func playText(text string) error {
 	return nil
 }
 
-func toSpeech(text string) (string, error) {
-	data, err := tts.ToSpeech(text)
+func (s *SpeechDriving) toSpeech(text string) (string, error) {
+	data, err := s.tts.ToSpeech(text)
 	if err != nil {
 		log.Printf("[%v]failed to convert text to speech, error: %v", logTag, err)
 		return "", err
@@ -266,7 +270,7 @@ func toSpeech(text string) (string, error) {
 	return thisIsXWav, nil
 }
 
-func volumeUp() {
+func (s *SpeechDriving) volumeUp() {
 	v, err := util.GetVolume()
 	if err != nil {
 		log.Printf("[%v]failed get current volume, error: %v", logTag, err)
@@ -276,11 +280,11 @@ func volumeUp() {
 	if v > 100 {
 		v = 100
 	}
-	setvolume(v)
-	go playText(fmt.Sprintf("音量%v%%", v))
+	s.setvolume(v)
+	go s.playText(fmt.Sprintf("音量%v%%", v))
 }
 
-func volumeDown() {
+func (s *SpeechDriving) volumeDown() {
 	v, err := util.GetVolume()
 	if err != nil {
 		log.Printf("[%v]failed get current volume, error: %v", logTag, err)
@@ -290,13 +294,13 @@ func volumeDown() {
 	if v < 0 {
 		v = 0
 	}
-	setvolume(v)
-	go playText(fmt.Sprintf("音量%v%%", v))
+	s.setvolume(v)
+	go s.playText(fmt.Sprintf("音量%v%%", v))
 }
 
-func setvolume(v int) error {
-	lock.Lock()
-	defer lock.Unlock()
+func (s *SpeechDriving) setvolume(v int) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
 	if err := util.SetVolume(v); err != nil {
 		log.Printf("[%v]failed to set volume, error: %v", logTag, err)

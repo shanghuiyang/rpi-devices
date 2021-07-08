@@ -5,12 +5,14 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/shanghuiyang/a-star/tilemap"
 	"github.com/shanghuiyang/go-speech/oauth"
 	"github.com/shanghuiyang/go-speech/speech"
 	"github.com/shanghuiyang/image-recognizer/recognizer"
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/app/car/joystick"
 	"github.com/shanghuiyang/rpi-devices/app/car/selfdriving"
+	"github.com/shanghuiyang/rpi-devices/app/car/selfnav"
 	"github.com/shanghuiyang/rpi-devices/app/car/selftracking"
 	"github.com/shanghuiyang/rpi-devices/app/car/speechdriving"
 	"github.com/shanghuiyang/rpi-devices/cv"
@@ -60,6 +62,13 @@ type service struct {
 	led        *dev.Led
 	ledBlinked bool
 	chOp       chan Op
+
+	selfdriving   *selfdriving.SelfDriving
+	selftracking  *selftracking.SelfTracking
+	selfnav       *selfnav.SelfNav
+	speechdriving *speechdriving.SpeechDriving
+
+	joystick *joystick.Joystick
 }
 
 func newService(cfg *Config) (*service, error) {
@@ -130,17 +139,25 @@ func newService(cfg *Config) (*service, error) {
 	}
 	car.Speed(cfg.Speed)
 
+	s := &service{
+		cfg:        cfg,
+		car:        car,
+		led:        led,
+		ledBlinked: true,
+		chOp:       make(chan Op, chSize),
+	}
+
 	if cfg.Joystick.Enabled {
 		lc12s, err := dev.NewLC12S(cfg.Joystick.LC12SConfig.Dev, cfg.Joystick.LC12SConfig.Baud, cfg.Joystick.LC12SConfig.CS)
 		if err != nil {
 			log.Panicf("[%v]failed to new lc12s, error: %v", logTag, err)
 		}
-		joystick.Init(car, lc12s)
-		go joystick.Start()
+		s.joystick = joystick.New(car, lc12s)
+		go s.joystick.Start()
 	}
 
 	if cfg.SelfDriving.Enabled {
-		selfdriving.Init(car, us100, sg90)
+		s.selfdriving = selfdriving.New(car, us100, sg90)
 	}
 
 	if cfg.SelfTracking.Enabled {
@@ -148,32 +165,37 @@ func newService(cfg *Config) (*service, error) {
 		if err != nil {
 			log.Panicf("[%v]failed to create tracker, error: %v", logTag, err)
 		}
-		s := cv.NewStreamer(cfg.SelfTracking.VideoHost)
-		selftracking.Init(car, t, s)
+		st := cv.NewStreamer(cfg.SelfTracking.VideoHost)
+		s.selftracking = selftracking.New(car, t, st)
 	}
 
 	if cfg.SpeechDriving.Enabled {
-		// TODO
-		// create asr, tts, imgr
 		speechAuth := oauth.New(cfg.BaiduAPIConfig.Speech.APIKey, cfg.BaiduAPIConfig.Speech.SecretKey, oauth.NewCacheMan())
 		imgAuth := oauth.New(cfg.BaiduAPIConfig.Image.APIKey, cfg.BaiduAPIConfig.Image.SecretKey, oauth.NewCacheMan())
 		asr := speech.NewASR(speechAuth)
 		tts := speech.NewTTS(speechAuth)
 		imgr := recognizer.New(imgAuth)
-		speechdriving.Init(car, us100, sg90, led, cam, asr, tts, imgr)
+		s.speechdriving = speechdriving.New(car, us100, sg90, led, cam, asr, tts, imgr)
+	}
+
+	if cfg.SelfNav.Enabled {
+		gps := dev.NewGPS(cfg.SelfNav.GPSConfig.Dev, cfg.SelfNav.GPSConfig.Baud)
+		if gps == nil {
+			log.Panicf("[%v]failed to create gps", logTag)
+		}
+		data, err := ioutil.ReadFile(cfg.SelfNav.TileMapConfig.MapFile)
+		if err != nil {
+			log.Panicf("[%v]failed to read map file: %v, errror: %v", logTag, cfg.SelfNav.TileMapConfig.MapFile, err)
+		}
+		m := tilemap.BuildFromStr(string(data))
+		s.selfnav = selfnav.New(car, gps, m, cfg.SelfNav.TileMapConfig.Box, cfg.SelfNav.TileMapConfig.GridSize)
 	}
 
 	if err := util.SetVolume(cfg.Volume); err != nil {
 		log.Panicf("[%v]failed to create tracker, error: %v", logTag, err)
 	}
 
-	return &service{
-		cfg:        cfg,
-		car:        car,
-		led:        led,
-		ledBlinked: true,
-		chOp:       make(chan Op, chSize),
-	}, nil
+	return s, nil
 }
 
 func (s *service) start() error {

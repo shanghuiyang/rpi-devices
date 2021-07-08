@@ -12,28 +12,30 @@ const (
 	logTag = "joystick"
 )
 
-var (
-	mycar car.Car
+type Joystick struct {
+	car   car.Car
 	lc12s *dev.LC12S
-)
-
-func Init(c car.Car, l *dev.LC12S) {
-	mycar = c
-	lc12s = l
 }
 
-func Start() {
-	if lc12s == nil {
+func New(c car.Car, l *dev.LC12S) *Joystick {
+	return &Joystick{
+		car:   c,
+		lc12s: l,
+	}
+}
+
+func (j *Joystick) Start() {
+	if j.lc12s == nil {
 		return
 	}
 
-	lc12s.Wakeup()
-	defer lc12s.Sleep()
+	j.lc12s.Wakeup()
+	defer j.lc12s.Sleep()
 
 	for {
 		time.Sleep(200 * time.Millisecond)
 
-		data, err := lc12s.Receive()
+		data, err := j.lc12s.Receive()
 		if err != nil {
 			log.Printf("[%v]failed to receive data from LC12S, error: %v", logTag, err)
 			continue
@@ -50,20 +52,20 @@ func Start() {
 
 		switch op {
 		case 0:
-			mycar.Stop()
+			j.car.Stop()
 		case 1:
-			mycar.Forward()
+			j.car.Forward()
 		case 2:
-			mycar.Backward()
+			j.car.Backward()
 		case 3:
-			mycar.Left()
+			j.car.Left()
 		case 4:
-			mycar.Right()
+			j.car.Right()
 		case 5:
 			// reserve
 		default:
-			mycar.Stop()
+			j.car.Stop()
 		}
-		mycar.Speed(uint32(speed * 10))
+		j.car.Speed(uint32(speed * 10))
 	}
 }
