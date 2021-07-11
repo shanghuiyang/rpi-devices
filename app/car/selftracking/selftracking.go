@@ -57,14 +57,12 @@ func (s *SelfTracking) Start(chImg chan *gocv.Mat) {
 		s.streamer.Push(img)
 
 		if !ok {
-			// looking for the ball by turning 360 degree
 			log.Printf("[%v]ball not found", logTag)
 			firstTime = true
 			continue
 		}
 
-		// found the ball, move to it
-		if rect.Max.Y > 580 {
+		if rect.Max.Y > 480 {
 			s.car.Stop()
 			s.car.Beep(1, 300)
 			continue
