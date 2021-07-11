@@ -12,7 +12,7 @@
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style type="text/css">
-        * {
+        .text-selection-none {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
@@ -190,6 +190,10 @@
                 if ($(this).prop('checked')) {
                     $('#selftracking').bootstrapToggle('disable')
                     $('#speechdriving').bootstrapToggle('disable')
+                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status != 200) {
+                        alert(this.responseText);
+                        $('#selfdriving').bootstrapToggle('off');
+                    }
                     xhr.open("POST", url + "/selfdriving/on", true);
                     xhr.send();
                 } else {
@@ -205,6 +209,10 @@
                 if ($(this).prop('checked')) {
                     $('#selfdriving').bootstrapToggle('disable');
                     $('#speechdriving').bootstrapToggle('disable');
+                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status != 200) {
+                        alert(this.responseText);
+                        $('#selftracking').bootstrapToggle('off');
+                    }
                     xhr.open("POST", url + "/selftracking/on", true);
                     xhr.send();
                     setTimeout(function () {
@@ -226,6 +234,12 @@
                 if ($(this).prop('checked')) {
                     $('#selfdriving').bootstrapToggle('disable');
                     $('#selftracking').bootstrapToggle('disable');
+                    xhr.onreadystatechange = function () {
+                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status != 200) {
+                        alert(this.responseText);
+                        $('#speechdriving').bootstrapToggle('off');
+                    }
+                };
                     xhr.open("POST", url + "/speechdriving/on", true);
                     xhr.send();
                 } else {
@@ -237,9 +251,10 @@
             })
             // selfnav
             $('#selfnav').bind("touchstart", function (e) {
-                document.getElementById("selfnav").style.color = "yellow";
                 lat = document.getElementById("lat").value;
                 lon = document.getElementById("lon").value;
+                lat = lat==""?"0":lat
+                lon = lon==""?"0":lon
                 var xhr = new XMLHttpRequest();
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState == XMLHttpRequest.DONE && xhr.status != 200) {
@@ -249,18 +264,16 @@
                 xhr.open("POST", url + "/selfnav/" + lat + "/" + lon, true);
                 xhr.send();
             });
-            $('#selfnav').bind("touchend", function (e) {
-                document.getElementById("selfnav").style.color = "white";
-            });
             // stop nav
             $('#stopnav').bind("touchstart", function (e) {
-                document.getElementById("stopnav").style.color = "yellow";
                 var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status != 200) {
+                        alert(this.responseText);
+                    }
+                };
                 xhr.open("POST", url + "/selfnav/off", true);
                 xhr.send();
-            });
-            $('#stopnav').bind("touchend", function (e) {
-                document.getElementById("stopnav").style.color = "lightgray";
             });
         });
     </script>
@@ -269,11 +282,11 @@
 <body>
     <img id="video" src="http://((000.000.000.000)):8081">
     <div id="container" class="container">
-        <div>
+        <div class="text-selection-none">
             <button id="forward" class="btn btn-lg btn-primary glyphicon glyphicon-chevron-up"
                 style="font-size:32px"></button>
         </div>
-        <div>
+        <div class="text-selection-none">
             <button id='left' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-left"
                 style="font-size:32px"></button>
             <button id='beep' class="btn btn-lg btn-default glyphicon glyphicon glyphicon-volume-up"
@@ -281,27 +294,27 @@
             <button id='right' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-right"
                 style="font-size:32px"></button>
         </div>
-        <div>
+        <div class="text-selection-none">
             <button id='backward' class="btn btn-lg btn-primary glyphicon glyphicon-chevron-down"
                 style="font-size:32px"></button>
         </div>
-        <br /><br /><br />
-        <div>
+        <div class="text-selection-none"> <br /><br /><br /> </div>
+        <div class="text-selection-none">
             <input id="selfdriving" type="checkbox" ((selfdriving-state)) ((selfdriving-enabled)) data-toggle="toggle"
                 data-on="Self-Driving" data-off="Self-Driving" data-onstyle="warning" data-width="130" data-height="45">
             <input id="selftracking" type="checkbox" ((selftracking-state)) ((selftracking-enabled))
                 data-toggle="toggle" data-on="Self-Tracking" data-off="Self-Tracking" data-onstyle="warning"
                 data-width="130" data-height="45">
         </div>
-        <br />
-        <div>
+        <div class="text-selection-none"> <br /> </div>
+        <div class="text-selection-none">
             <input id="speechdriving" type="checkbox" ((speechdriving-state)) ((speechdriving-enabled))
                 data-toggle="toggle" data-on="Speech-Driving" data-off="Speech-Driving" data-onstyle="warning"
                 data-width="130" data-height="45">
             <input id="music" type="checkbox" ((music-state)) data-toggle="toggle" data-on="Music" data-off="Music"
                 data-onstyle="warning" data-width="130" data-height="45">
         </div>
-        <hr>
+        <br />
         <div>
             <textarea id="lat" name="lattext" rows="1" cols="30" maxlength="30" placeholder=" lat"></textarea>
             <textarea id="lon" name="lontext" rows="1" cols="30" maxlength="30" placeholder=" lon"></textarea>

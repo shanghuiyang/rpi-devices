@@ -171,6 +171,12 @@ func (s *service) selfDrivingOnHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *service) selfDrivingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-driving off", logHandlerTag)
+	if !s.cfg.SelfDriving.Enabled {
+		log.Printf("[%v]self-driving was disabled", logHandlerTag)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("self-driving was disabled"))
+		return
+	}
 	s.selfdriving.Stop()
 }
 
@@ -231,6 +237,13 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 
 func (s *service) selfTrackingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-tracking off", logHandlerTag)
+	if !s.cfg.SelfTracking.Enabled {
+		log.Printf("[%v]self-tracking was disabled", logHandlerTag)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("self-tracking was disabled"))
+		return
+	}
+
 	s.selftracking.Stop()
 	util.DelayMs(1000)
 	if err := util.StartMotion(); err != nil {
@@ -255,6 +268,12 @@ func (s *service) speechDrivingOnHandler(w http.ResponseWriter, r *http.Request)
 
 func (s *service) speechDrivingOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]speech-driving off", logHandlerTag)
+	if !s.cfg.SpeechDriving.Enabled {
+		log.Printf("[%v]speech-driving was disabled", logHandlerTag)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("speech-driving was disabled"))
+		return
+	}
 	s.speechdriving.Stop()
 	s.ledBlinked = true
 	go s.blink()
@@ -307,6 +326,12 @@ func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *service) selfNavOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]self-nav off", logHandlerTag)
+	if !s.cfg.SelfNav.Enabled {
+		log.Printf("[%v]self-nav was disabled", logHandlerTag)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("self-nav was disabled"))
+		return
+	}
 	s.selfnav.Stop()
 }
 
