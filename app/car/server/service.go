@@ -61,6 +61,7 @@ type service struct {
 	car        car.Car
 	led        *dev.Led
 	ledBlinked bool
+	onMusic    bool
 	chOp       chan Op
 
 	selfdriving   *selfdriving.SelfDriving
@@ -144,6 +145,7 @@ func newService(cfg *Config) (*service, error) {
 		car:        car,
 		led:        led,
 		ledBlinked: true,
+		onMusic:    false,
 		chOp:       make(chan Op, chSize),
 	}
 

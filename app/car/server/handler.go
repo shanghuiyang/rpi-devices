@@ -22,6 +22,7 @@ const (
 	selfDrivingState   = "((selfdriving-state))"
 	selfTrackingState  = "((selftracking-state))"
 	speechDrivingState = "((speechdriving-state))"
+	musicState         = "((music-state))"
 	volumePattern      = "((current-volume))"
 
 	selfDrivingEnabled   = "((selfdriving-enabled))"
@@ -114,6 +115,14 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 				able = "disabled"
 			}
 			sline = strings.Replace(sline, speechDrivingEnabled, able, 1)
+		}
+
+		if strings.Contains(sline, musicState) {
+			state := "unchecked"
+			if s.onMusic {
+				state = "checked"
+			}
+			sline = strings.Replace(sline, musicState, state, 1)
 		}
 
 		wbuf.Write([]byte(sline))
@@ -337,10 +346,18 @@ func (s *service) selfNavOffHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *service) musicOnHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[car]music on")
+	if s.onMusic {
+		return
+	}
+	s.onMusic = true
 	util.PlayMp3("./music/*.mp3")
 }
 
 func (s *service) musicOffHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[car]music off")
+	if !s.onMusic {
+		return
+	}
+	s.onMusic = false
 	util.StopMp3()
 }
