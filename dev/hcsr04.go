@@ -1,8 +1,5 @@
 /*
-Package dev ...
-
-HC-SR04 is an ultrasonic distance meter
-which can measure the distance to the an object like a box.
+HC-SR04 is an ultrasonic distance meter used to measure the distance to objects.
 
 Spec:
   - power supply:	+5V DC
@@ -35,7 +32,7 @@ const (
 	timeout = 3600
 )
 
-// HCSR04 ...
+// HCSR04 implements DistanceMeter interface
 type HCSR04 struct {
 	trig rpio.Pin
 	echo rpio.Pin
@@ -53,8 +50,8 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 	return h
 }
 
-// Dist is to measure the distance in cm
-func (h *HCSR04) Dist() float64 {
+// Value returns distance in cm to objects
+func (h *HCSR04) Dist() (float64, error) {
 	h.trig.Low()
 	h.delay(100)
 	h.trig.High()
@@ -68,7 +65,7 @@ func (h *HCSR04) Dist() float64 {
 	for n := 0; n < timeout && h.echo.Read() != rpio.Low; n++ {
 		h.delay(1)
 	}
-	return time.Now().Sub(start).Seconds() * voiceSpeed / 2.0
+	return time.Since(start).Seconds() * voiceSpeed / 2.0, nil
 }
 
 // Close ...

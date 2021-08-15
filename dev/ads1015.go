@@ -1,7 +1,8 @@
 /*
 Package dev ...
 
-ADS1015 is the driver for ADS1015 module.
+ADS1015 is analog-digital converter. It is a implement of AnalogDigitalConverter interface.
+More details about ADS1015, please ref to:
 https://wenku.baidu.com/view/308f9a69a9114431b90d6c85ec3a87c240288aa7
 
 connect to raspberry pi:
@@ -156,7 +157,7 @@ type ADS1015 struct {
 	config uint16
 }
 
-// NewADS1015 ...
+// NewADS1015 implement AnalogDigitalConverter interface
 func NewADS1015() (*ADS1015, error) {
 	dev, err := i2c.Open(&i2c.Devfs{Dev: ads1015DevFile}, addrADS1015)
 	if err != nil {
@@ -194,8 +195,7 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 	}
 
 	val := (uint32(data[0]) << 8) | uint32(data[1])
-	var v float64
-	v = float64(val*6144/1000) / 32768.0
+	v := float64(val*6144/1000) / 32768.0
 	return v, nil
 
 }

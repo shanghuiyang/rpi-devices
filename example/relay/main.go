@@ -9,7 +9,10 @@ import (
 )
 
 const (
-	p7 = 7 // relay
+	ch1    = 0 // channel 1
+	ch2    = 1 // channel 2
+	ch1pin = 7 // pin for channel 1
+	ch2pin = 8 // pin for channel 1
 )
 
 func main() {
@@ -19,7 +22,8 @@ func main() {
 	}
 	defer rpio.Close()
 
-	r := dev.NewRelay(p7)
+	pins := []uint8{ch1pin, ch2pin}
+	r := dev.NewRelayImp(pins)
 	var op string
 	for {
 		fmt.Printf(">>op: ")
@@ -28,10 +32,14 @@ func main() {
 			continue
 		}
 		switch op {
-		case "on":
-			r.On()
-		case "off":
-			r.Off()
+		case "ch1 on":
+			r.On(ch1)
+		case "ch2 on":
+			r.On(ch2)
+		case "ch1 off":
+			r.Off(ch1)
+		case "ch2 off":
+			r.Off(ch2)
 		case "q":
 			log.Printf("done\n")
 			return

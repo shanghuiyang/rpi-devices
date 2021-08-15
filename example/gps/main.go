@@ -13,7 +13,7 @@ const (
 )
 
 func main() {
-	g := dev.NewGPS(devName, baud)
+	g := dev.NewNeo6mGPS(devName, baud)
 	defer g.Close()
 
 	for {

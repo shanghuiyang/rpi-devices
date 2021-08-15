@@ -34,11 +34,6 @@ const (
 	alertCH2O = float64(0.08)
 )
 
-var bool2int = map[bool]int{
-	false: 0,
-	true:  1,
-}
-
 func main() {
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("[ch2omonitor]failed to open rpio, error: %v", err)
@@ -46,9 +41,9 @@ func main() {
 	}
 	defer rpio.Close()
 
-	sensor := dev.NewZE08CH2O()
-	led := dev.NewLed(pinLed)
-	bzr := dev.NewBuzzer(pinBzr)
+	ze08 := dev.NewZE08CH2O()
+	led := dev.NewLedImp(pinLed)
+	bzr := dev.NewBuzzerImp(pinBzr, true)
 	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
 	wsnCfg := &iot.WsnConfig{
@@ -57,8 +52,7 @@ func main() {
 	}
 	cloud := iot.NewCloud(wsnCfg)
 
-	m := newCH2OMonitor(sensor, led, bzr, dsp, cloud)
-	// m.setMode(util.DevMode)
+	m := newCH2OMonitor(ze08, led, bzr, dsp, cloud)
 	util.WaitQuit(func() {
 		m.stop()
 		rpio.Close()
@@ -67,10 +61,10 @@ func main() {
 }
 
 type ch2oMonitor struct {
-	sensor    *dev.ZE08CH2O
-	led       *dev.Led
-	buzzer    *dev.Buzzer
-	dsp       *dev.LedDisplay
+	ch2ometer dev.CH2OMeter
+	led       dev.Led
+	buzzer    dev.Buzzer
+	dsp       dev.Display
 	cloud     iot.Cloud
 	mode      util.Mode
 	chAlert   chan float64 // for alerting
@@ -78,9 +72,9 @@ type ch2oMonitor struct {
 	chCloud   chan float64 // for pushing to iot cloud
 }
 
-func newCH2OMonitor(sensor *dev.ZE08CH2O, led *dev.Led, buzzer *dev.Buzzer, dsp *dev.LedDisplay, cloud iot.Cloud) *ch2oMonitor {
+func newCH2OMonitor(ch2ometer dev.CH2OMeter, led dev.Led, buzzer dev.Buzzer, dsp dev.Display, cloud iot.Cloud) *ch2oMonitor {
 	return &ch2oMonitor{
-		sensor:    sensor,
+		ch2ometer: ch2ometer,
 		led:       led,
 		buzzer:    buzzer,
 		dsp:       dsp,
@@ -101,30 +95,20 @@ func (m *ch2oMonitor) start() {
 	m.detect()
 }
 
-func (m *ch2oMonitor) setMode(mode util.Mode) {
-	m.mode = mode
-}
-
 func (m *ch2oMonitor) detect() {
 	log.Printf("[ch2omonitor]detecting ch2o")
 	for {
-		var ch2o float64
-		var err error
-		if m.mode == util.PrdMode {
-			ch2o, err = m.sensor.Get()
-		} else {
-			ch2o, err = m.sensor.Mock()
-		}
+		v, err := m.ch2ometer.Value()
 		if err != nil {
 			log.Printf("[ch2omonitor]failed to get ch2o, error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		log.Printf("[ch2omonitor]ch2o: %.4f mg/m3", ch2o)
+		log.Printf("[ch2omonitor]ch2o: %.4f mg/m3", v)
 
-		m.chAlert <- ch2o
-		m.chCloud <- ch2o
-		m.chDisplay <- ch2o
+		m.chAlert <- v
+		m.chCloud <- v
+		m.chDisplay <- v
 
 		sec := 60 * time.Second
 		if m.mode != util.PrdMode {
@@ -211,7 +195,7 @@ func (m *ch2oMonitor) display() {
 }
 
 func (m *ch2oMonitor) stop() {
-	m.sensor.Close()
+	m.ch2ometer.Close()
 	m.led.Off()
 	m.buzzer.Off()
 	m.dsp.Close()

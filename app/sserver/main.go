@@ -26,8 +26,8 @@ type (
 )
 
 type sserver struct {
-	ds18b20 *dev.DS18B20
-	pms7003 *dev.PMS7003
+	thermometer dev.Thermometer
+	pms7003     *dev.PMS7003
 }
 
 type tempResponse struct {
@@ -78,9 +78,9 @@ func main() {
 	os.Exit(0)
 }
 
-func withDS18B20(d *dev.DS18B20) option {
+func withDS18B20(t dev.Thermometer) option {
 	return func(s *sserver) {
-		s.ds18b20 = d
+		s.thermometer = t
 	}
 }
 
@@ -124,7 +124,7 @@ func (s *sserver) response(w http.ResponseWriter, resp interface{}, statusCode i
 
 func (s *sserver) tempHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[sensors]%v %v", r.Method, r.URL.Path)
-	if s.ds18b20 == nil {
+	if s.thermometer == nil {
 		resp := &tempResponse{
 			ErrorMsg: "invaild ds18b20 sensor",
 		}
@@ -132,7 +132,7 @@ func (s *sserver) tempHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := s.ds18b20.GetTemperature()
+	t, err := s.thermometer.Temperature()
 	if err != nil {
 		resp := &tempResponse{
 			ErrorMsg: fmt.Sprintf("failed to get temp, error: %v", err),

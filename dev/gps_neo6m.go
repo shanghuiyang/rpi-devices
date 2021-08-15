@@ -1,7 +1,5 @@
 /*
-Package dev ...
-
-GPS is the driver of NEO-M6 module.
+Neo6mGPS is a GPS module used to get locations(lat/lon).
 
 Config Your Pi:
 1. $ sudo raspi-config
@@ -21,40 +19,6 @@ Connect NEO-6M GPS Sensor to Raspberry Pi:
  - GND: any gnd pin
  - RXT: must connect to pin  8(gpio 14) (TXD)
  - TXD: must connect to pin 10(gpio 15) (RXD)
-
------------------------------------------------------------------------
-
-		                   +-----------------+
-		                   |       GPS       |
-		                   |      NEO-M6     |
-		                   |                 |
-		                   +--+---+---+---+--+
-		                      |   |   |   |
-		                     GND TXD RXD VCC
-		+-----------+         |   |   |   |
-		| o 1   2 * +---------|---|---|---+
-		| o       o |         |   |   |
-		| 8     6 * +---------+   |   |
-		| o     8 * |-------------|---+
-		| o    10 * +-------------+
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o       o |
-		| o 39 40 o |
-		+-----------+
-
------------------------------------------------------------------------
 */
 package dev
 
@@ -80,14 +44,14 @@ var (
 	buf = make([]byte, 1024)
 )
 
-// GPS ...
-type GPS struct {
+// Neo6mGPS implements GPS interface
+type Neo6mGPS struct {
 	port *serial.Port
 }
 
-// NewGPS ...
-func NewGPS(dev string, baud int) *GPS {
-	g := &GPS{}
+// NewNeo6mGPS ...
+func NewNeo6mGPS(dev string, baud int) *Neo6mGPS {
+	g := &Neo6mGPS{}
 	if err := g.open(dev, baud); err != nil {
 		return nil
 	}
@@ -95,7 +59,7 @@ func NewGPS(dev string, baud int) *GPS {
 }
 
 // Loc ...
-func (g *GPS) Loc() (*geo.Point, error) {
+func (g *Neo6mGPS) Loc() (*geo.Point, error) {
 	if err := g.port.Flush(); err != nil {
 		return nil, err
 	}
@@ -162,11 +126,11 @@ func (g *GPS) Loc() (*geo.Point, error) {
 }
 
 // Close ...
-func (g *GPS) Close() {
+func (g *Neo6mGPS) Close() {
 	g.port.Close()
 }
 
-func (g *GPS) open(dev string, baud int) error {
+func (g *Neo6mGPS) open(dev string, baud int) error {
 	c := &serial.Config{Name: dev, Baud: baud}
 	p, err := serial.OpenPort(c)
 	if err != nil {

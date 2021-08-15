@@ -1,5 +1,5 @@
 /*
-Package dev ...
+LedImp is a led module.
 
 Connect to Pi:
   - positive(the longer pin): 	any data pin
@@ -17,14 +17,14 @@ const (
 	logTagLed = "led"
 )
 
-// Led ...
-type Led struct {
+// LedImp implements Led interface
+type LedImp struct {
 	pin rpio.Pin
 }
 
-// NewLed ...
-func NewLed(pin uint8) *Led {
-	l := &Led{
+// NewLedImp ...
+func NewLedImp(pin uint8) *LedImp {
+	l := &LedImp{
 		pin: rpio.Pin(pin),
 	}
 	l.pin.Output()
@@ -32,17 +32,17 @@ func NewLed(pin uint8) *Led {
 }
 
 // On ...
-func (l *Led) On() {
+func (l *LedImp) On() {
 	l.pin.High()
 }
 
 // Off ...
-func (l *Led) Off() {
+func (l *LedImp) Off() {
 	l.pin.Low()
 }
 
 // Blink is let led blink n time, interval Millisecond each time
-func (l *Led) Blink(n int, interval int) {
+func (l *LedImp) Blink(n int, interval int) {
 	d := time.Duration(interval) * time.Millisecond
 	for i := 0; i < n; i++ {
 		l.On()
@@ -53,7 +53,7 @@ func (l *Led) Blink(n int, interval int) {
 }
 
 // Fade ...
-func (l *Led) Fade(n uint8) {
+func (l *LedImp) Fade(n uint8) {
 	l.pin.Pwm()
 	l.pin.Freq(64000)
 	l.pin.DutyCycle(0, 32)

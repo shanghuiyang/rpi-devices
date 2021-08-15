@@ -22,10 +22,8 @@ func main() {
 	}
 	defer rpio.Close()
 
-	m := dev.NewStepMotor(p8, p25, p24, p23)
-	log.Printf("step motor is ready for service\n")
-
-	var angle float32
+	var angle float64
+	motor := dev.NewBYJ2848(p8, p25, p24, p23)
 	for {
 		fmt.Printf(">>op: ")
 		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
@@ -35,7 +33,7 @@ func main() {
 		if angle == 0 {
 			break
 		}
-		m.Roll(angle)
+		motor.Roll(angle)
 	}
 	log.Printf("step motor stop service\n")
 }

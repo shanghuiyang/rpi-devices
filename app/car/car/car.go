@@ -18,19 +18,19 @@ type Car interface {
 	Stop()
 	Speed(speed uint32)
 	Beep(n int, interval int)
-	Turn(angle int)
+	Turn(angle float64)
 }
 
 type CarImp struct {
-	l298n  *dev.L298N
-	gy25   *dev.GY25
-	buzzer *dev.Buzzer
+	engine dev.MotorDriver
+	acc    dev.Accelerometer
+	buzzer dev.Buzzer
 }
 
-func NewCarImp(l298n *dev.L298N, gy25 *dev.GY25, buz *dev.Buzzer) *CarImp {
+func NewCarImp(engine dev.MotorDriver, acc dev.Accelerometer, buz dev.Buzzer) *CarImp {
 	c := &CarImp{
-		l298n:  l298n,
-		gy25:   gy25,
+		engine: engine,
+		acc:    acc,
 		buzzer: buz,
 	}
 	c.Speed(defaultSpeed)
@@ -38,41 +38,41 @@ func NewCarImp(l298n *dev.L298N, gy25 *dev.GY25, buz *dev.Buzzer) *CarImp {
 }
 
 func (c *CarImp) Forward() {
-	c.l298n.Forward()
+	c.engine.Forward()
 }
 
 func (c *CarImp) Backward() {
-	c.l298n.Backward()
+	c.engine.Backward()
 }
 
 func (c *CarImp) Left() {
-	c.l298n.Left()
+	c.engine.Left()
 }
 
 func (c *CarImp) Right() {
-	c.l298n.Right()
+	c.engine.Right()
 }
 
 func (c *CarImp) Stop() {
-	c.l298n.Stop()
+	c.engine.Stop()
 }
 
 func (c *CarImp) Speed(speed uint32) {
-	c.l298n.Speed(speed)
+	c.engine.SetSpeed(speed)
 }
 
 func (c *CarImp) Beep(n int, interval int) {
 	c.buzzer.Beep(n, interval)
 }
 
-func (c *CarImp) Turn(angle int) {
+func (c *CarImp) Turn(angle float64) {
 	turnf := c.Right
 	if angle < 0 {
 		turnf = c.Left
 		angle *= (-1)
 	}
 
-	yaw, _, _, err := c.gy25.Angles()
+	yaw, _, _, err := c.acc.Angles()
 	if err != nil {
 		log.Printf("[car]failed to get angles from gy-25, error: %v", err)
 		return
@@ -81,7 +81,7 @@ func (c *CarImp) Turn(angle int) {
 	retry := 0
 	for {
 		turnf()
-		yaw2, _, _, err := c.gy25.Angles()
+		yaw2, _, _, err := c.acc.Angles()
 		if err != nil {
 			log.Printf("[car]failed to get angles from gy-25, error: %v", err)
 			if retry < 3 {
@@ -90,8 +90,8 @@ func (c *CarImp) Turn(angle int) {
 			}
 			break
 		}
-		ang := c.gy25.IncludedAngle(yaw, yaw2)
-		if ang >= float64(angle) {
+		ang := util.IncludedAngle(yaw, yaw2)
+		if ang >= angle {
 			break
 		}
 		util.DelayMs(100)

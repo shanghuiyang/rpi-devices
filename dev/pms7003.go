@@ -1,7 +1,5 @@
 /*
-Package dev ...
-
-PMS7003 is the driver of PMS7003, an air quality sensor which can be used to detect PM2.5 and PM10.
+PMS7003 is an air quality sensor which can be used to measure PM2.5 and PM10.
 
 Config Your Pi:
 1. $ sudo vim /boot/config.txt

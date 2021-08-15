@@ -37,7 +37,7 @@ type pm25Response struct {
 }
 
 type homeAsst struct {
-	dsp       *dev.LedDisplay
+	dsp       dev.Display
 	cloud     iot.Cloud
 	chDisplay chan *data // for disploying on oled
 	chCloud   chan *data // for pushing to iot cloud
@@ -67,7 +67,7 @@ func main() {
 	asst.start()
 }
 
-func newHomeAsst(dsp *dev.LedDisplay, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dsp dev.Display, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dsp:       dsp,
 		cloud:     cloud,

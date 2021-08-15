@@ -1,5 +1,5 @@
 /*
-Package dev ...
+IRDetector is a sensor used to detected infrared ray.
 
 Connect to Pi:
  - vcc: any 3.3v pin
@@ -13,14 +13,14 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// Infrared ...
-type Infrared struct {
+// IRDetector implements Detector interface
+type IRDetector struct {
 	pin rpio.Pin
 }
 
-// NewInfrared ...
-func NewInfrared(pin uint8) *Infrared {
-	i := &Infrared{
+// NewIRDetector ...
+func NewIRDetector(pin uint8) *IRDetector {
+	i := &IRDetector{
 		pin: rpio.Pin(pin),
 	}
 	i.pin.Input()
@@ -28,6 +28,6 @@ func NewInfrared(pin uint8) *Infrared {
 }
 
 // Detected ...
-func (i *Infrared) Detected() bool {
+func (i *IRDetector) Detected() bool {
 	return i.pin.Read() == rpio.Low
 }

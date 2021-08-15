@@ -17,6 +17,11 @@ const (
 
 	ledPin = 26
 
+	butonAchannel = 3
+	butonBchannel = 2
+	butonCchannel = 1
+	butonDchannel = 0
+
 	// use this rpio as 3.3v pin
 	// if all 3.3v pins were used
 	pin33v = 5
@@ -25,7 +30,7 @@ const (
 var light *rlight
 
 type rlight struct {
-	led   *dev.Led
+	led   dev.Led
 	state bool // on of off
 }
 
@@ -40,7 +45,7 @@ func main() {
 	p33v.Output()
 	p33v.High()
 
-	led := dev.NewLed(ledPin)
+	led := dev.NewLedImp(ledPin)
 	light = &rlight{
 		led:   led,
 		state: false,
@@ -53,31 +58,31 @@ func main() {
 	})
 
 	for {
-		if r.PressA() == true {
+		if r.Received(butonAchannel) {
 			log.Printf("[rlight]pressed A")
-			go light.turn()
+			go light.toggle()
 			continue
 		}
-		if r.PressB() == true {
+		if r.Received(butonBchannel) {
 			log.Printf("[rlight]pressed B")
-			go light.turn()
+			go light.toggle()
 			continue
 		}
-		if r.PressC() == true {
+		if r.Received(butonCchannel) {
 			log.Printf("[rlight]pressed C")
-			go light.turn()
+			go light.toggle()
 			continue
 		}
-		if r.PressD() == true {
+		if r.Received(butonDchannel) {
 			log.Printf("[rlight]pressed D")
-			go light.turn()
+			go light.toggle()
 			continue
 		}
 		time.Sleep(300 * time.Millisecond)
 	}
 }
 
-func (r *rlight) turn() {
+func (r *rlight) toggle() {
 	if r.state {
 		r.led.Off()
 		r.state = false

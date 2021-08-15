@@ -15,12 +15,6 @@ const (
 	TTLMode
 )
 
-// DistMeter ...
-type DistMeter interface {
-	Dist() float64
-	Close()
-}
-
 // US100Config ...
 type US100Config struct {
 	Mode  ComMode

@@ -1,5 +1,5 @@
 /*
-Auto-Fan let you the fan working with a relay and a temperature sensor together.
+Auto-Fan let you the fan working with a single-channel relay and a temperature sensor together.
 The temperature sensor will trigger the relay to control the fan running or stopping.
 
 temperature sensor:
@@ -60,6 +60,7 @@ import (
 
 const (
 	relayPin           = 7
+	relayCh            = 0
 	intervalTime       = 1 * time.Minute
 	triggerTemperature = 27.3
 )
@@ -71,21 +72,21 @@ func main() {
 	}
 	defer rpio.Close()
 
-	temp := dev.NewDS18B20()
-	if temp == nil {
-		log.Printf("[autofan]failed to new a temperature sensor")
+	ds18b20 := dev.NewDS18B20()
+	if ds18b20 == nil {
+		log.Printf("[autofan]failed to new ds18b20 sensor")
 		return
 	}
 
-	r := dev.NewRelay(relayPin)
+	r := dev.NewRelayImp([]uint8{relayPin})
 	if r == nil {
 		log.Printf("[autofan]failed to new a relay")
 		return
 	}
 
 	f := &autoFan{
-		temp:  temp,
-		relay: r,
+		tmeter: ds18b20,
+		relay:  r,
 	}
 	util.WaitQuit(func() {
 		f.off()
@@ -95,14 +96,14 @@ func main() {
 }
 
 type autoFan struct {
-	temp  *dev.DS18B20
-	relay *dev.Relay
+	tmeter dev.Thermometer
+	relay  dev.Relay
 }
 
 func (f *autoFan) start() {
 	for {
 		time.Sleep(intervalTime)
-		c, err := f.temp.GetTemperature()
+		c, err := f.tmeter.Temperature()
 		if err != nil {
 			log.Printf("[autofan]failed to get temperature, error: %v", err)
 			continue
@@ -116,9 +117,9 @@ func (f *autoFan) start() {
 }
 
 func (f *autoFan) on() {
-	f.relay.On()
+	f.relay.On(relayCh)
 }
 
 func (f *autoFan) off() {
-	f.relay.Off()
+	f.relay.Off(relayCh)
 }

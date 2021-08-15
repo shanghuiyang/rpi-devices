@@ -1,8 +1,5 @@
 /*
-Package dev ...
-
-L298N is an motor driver
-which can be used to control the direction and speed of DC motors.
+L298N is a motor driver used to control the direction and speed of DC motors.
 
 Spec:
            _________________________________________
@@ -35,7 +32,7 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// L298N ...
+// L298N implements MotorDriver interface
 type L298N struct {
 	in1 rpio.Pin
 	in2 rpio.Pin
@@ -67,7 +64,7 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l.enb.Pwm()
 	l.ena.Freq(50 * 100)
 	l.enb.Freq(50 * 100)
-	l.Speed(30)
+	l.SetSpeed(30)
 	return l
 }
 
@@ -112,7 +109,7 @@ func (l *L298N) Stop() {
 }
 
 // Speed ...
-func (l *L298N) Speed(s uint32) {
+func (l *L298N) SetSpeed(s uint32) {
 	l.ena.DutyCycle(0, 100)
 	l.enb.DutyCycle(0, 100)
 	l.ena.DutyCycle(s, 100)

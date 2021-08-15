@@ -16,6 +16,11 @@ const (
 	d3 = 8
 
 	ledPin = 21
+
+	channelButonA = 3
+	channelButonB = 2
+	channelButonC = 1
+	channelButonD = 0
 )
 
 func main() {
@@ -26,7 +31,7 @@ func main() {
 	defer rpio.Close()
 
 	r := dev.NewRX480E4(d0, d1, d2, d3)
-	led := dev.NewLed(ledPin)
+	led := dev.NewLedImp(ledPin)
 	util.WaitQuit(func() {
 		led.Off()
 		rpio.Close()
@@ -40,7 +45,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.PressA() == true {
+			if r.Received(channelButonA) == true {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue
@@ -51,7 +56,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.PressB() == true {
+			if r.Received(channelButonB) == true {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue
@@ -62,7 +67,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.PressC() == true {
+			if r.Received(channelButonC) == true {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue
@@ -73,7 +78,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.PressD() == true {
+			if r.Received(channelButonD) == true {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue

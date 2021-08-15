@@ -26,7 +26,7 @@ func main() {
 	})
 
 	for {
-		shaked := sw.Shaked()
+		shaked := sw.Detected()
 		if shaked {
 			log.Printf("shaked")
 			time.Sleep(1 * time.Second)

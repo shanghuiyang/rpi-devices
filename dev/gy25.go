@@ -1,7 +1,5 @@
 /*
-Package dev ...
-
-GY25 is the driver of GY25, an angle sensor which can be used to detect yaw, pitch and roll angle.
+GY25 is an accelerometer used to detect yaw, pitch and roll angles.
 
 Config Your Pi:
 1. $ sudo vim /boot/config.txt
@@ -29,7 +27,6 @@ package dev
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/tarm/serial"
 )
@@ -57,7 +54,7 @@ var (
 	GY25CorrectionYawMode = GY25Mode{0xA5 + 0x55}
 )
 
-// GY25 ...
+// GY25 implements Accelerometer interface
 type GY25 struct {
 	port *serial.Port
 	buf  [bufsize]byte
@@ -119,19 +116,6 @@ func (g *GY25) Angles() (float64, float64, float64, error) {
 	pitch := (int16(data[3]) << 8) | int16(data[4])
 	roll := (int16(data[5]) << 8) | int16(data[6])
 	return float64(yaw) / 100, float64(pitch) / 100, float64(roll) / 100, nil
-}
-
-// IncludedAngle ...
-func (g *GY25) IncludedAngle(yaw, yaw2 float64) float64 {
-	if yaw*yaw2 > 0 {
-		return math.Abs(yaw - yaw2)
-	}
-
-	d := math.Abs(yaw) + math.Abs(yaw2)
-	if d <= 180 {
-		return d
-	}
-	return 360 - d
 }
 
 // Close ...

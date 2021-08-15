@@ -20,12 +20,12 @@ func main() {
 	}
 	defer rpio.Close()
 
-	infr := dev.NewInfrared(pin)
+	ir := dev.NewIRDetector(pin)
 	util.WaitQuit(func() {
 		rpio.Close()
 	})
 	for {
-		detectedObj := infr.Detected()
+		detectedObj := ir.Detected()
 		if detectedObj {
 			log.Printf("detected an object")
 		} else {

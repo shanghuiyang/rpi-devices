@@ -1,3 +1,7 @@
+/*
+GPSSimulator is a simulator used to simulate GPS module, who provides lat/lon sequence from csv file.
+*/
+
 package dev
 
 import (
@@ -10,15 +14,15 @@ import (
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
-// MockGPS ...
-type MockGPS struct {
+// GPSSimulator implements GPS interface
+type GPSSimulator struct {
 	index  int
 	points []*geo.Point
 }
 
-// NewMockGPS ...
-func NewMockGPS(csv string) *MockGPS {
-	m := &MockGPS{}
+// NewGPSSimulator ...
+func NewGPSSimulator(csv string) *GPSSimulator {
+	m := &GPSSimulator{}
 	if err := m.open(csv); err != nil {
 		return nil
 	}
@@ -26,7 +30,7 @@ func NewMockGPS(csv string) *MockGPS {
 }
 
 // Loc ...
-func (m *MockGPS) Loc() (*geo.Point, error) {
+func (m *GPSSimulator) Loc() (*geo.Point, error) {
 	n := len(m.points)
 	if n == 0 {
 		return nil, errors.New("without data")
@@ -40,11 +44,10 @@ func (m *MockGPS) Loc() (*geo.Point, error) {
 }
 
 // Close ...
-func (m *MockGPS) Close() {
-	return
+func (m *GPSSimulator) Close() {
 }
 
-func (m *MockGPS) open(csv string) error {
+func (m *GPSSimulator) open(csv string) error {
 	file, err := os.Open(csv)
 	if err != nil {
 		return err

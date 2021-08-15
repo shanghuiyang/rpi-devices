@@ -1,6 +1,5 @@
 /*
-Package dev ...
-SG90 is the driver of servo motor
+SG90 is servo motor which can roll angels from 0~180 degree.
 
 Connect to Pi:
  - the red line:	any 5v pin
@@ -14,7 +13,7 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// SG90 ...
+// SG90 implements Servo interface
 type SG90 struct {
 	pin rpio.Pin
 	rpi util.RpiModel
@@ -34,9 +33,9 @@ func NewSG90(pin uint8) *SG90 {
 
 // Roll ...
 // angle: [-90, 90]
-// angle < 0: left
+// angle < 0: roll anticlockwise
 // angel = 0: ahead
-// angle > 0: right
+// angle > 0: roll clockwise
 // e.g.
 //
 //     -30  0   30
@@ -46,14 +45,18 @@ func NewSG90(pin uint8) *SG90 {
 //          *
 //         eye
 //
-func (s *SG90) Roll(angle int) {
+func (s *SG90) Roll(angle float64) {
 	if angle < -90 || angle > 90 {
 		return
 	}
-	duty := uint32(10.0 - float32(angle)/15.0)
+	duty := uint32(10.0 - angle/15.0)
 	if s.rpi == util.Rpi4 {
 		// Rpi4 uses a BCM 2711, which is different from the early rpi like rpi3, rpi2, rpiA and rpi0
 		duty = uint32(26.5 - 39*float32(angle)/180)
 	}
 	s.pin.DutyCycle(uint32(duty), 100)
+}
+
+func (s *SG90) SetSpeed(speed int) {
+	// Todo
 }

@@ -33,10 +33,14 @@ github.com/shanghuiyang/a-star v0.0.0-20201223162018-808af3b29f1c h1:MKYrQ+gfbiX
 github.com/shanghuiyang/a-star v0.0.0-20201223162018-808af3b29f1c/go.mod h1:qghzON1OyXfbRbcvlnGs847CBCwT3LXdBlRAaNp/MEs=
 github.com/shanghuiyang/face-recognizer v0.0.0-20201224163157-28d9fb7d4212 h1:eUGaMFt97oveq0UcvoCNgTySDCh0+VVRhAdHyYFw1w4=
 github.com/shanghuiyang/face-recognizer v0.0.0-20201224163157-28d9fb7d4212/go.mod h1:wbijSL9S61Q20F42vS8l9OA3lnBNeVoe4ZA+k9ld/V8=
+github.com/shanghuiyang/face-recognizer v0.0.0-20210812161435-b40b515e82cf h1:C8in/YH5q9jsVHBHrnoh6RTngKj98vMFdTYTGx/iGFA=
+github.com/shanghuiyang/face-recognizer v0.0.0-20210812161435-b40b515e82cf/go.mod h1:Q+Obwe9YHbB0MejSIw9BpRGdjcmpVzde3gAq40xd5kI=
 github.com/shanghuiyang/go-speech v0.0.0-20210502144246-a6d426df3a5f h1:STpadKh3Btuw0jPazP2N71pV5vWeEXxUiMZQIzy/q6w=
 github.com/shanghuiyang/go-speech v0.0.0-20210502144246-a6d426df3a5f/go.mod h1:5YzmnS9VwonXp9qM3OffKoPHWchHrNzZo4QzvCvnmC0=
 github.com/shanghuiyang/image-recognizer v0.0.0-20200626055556-e23f6c489390 h1:DxHSN6hi/U5O7Q465tOUHyycUcCmAdUf9IFOxJkr69E=
 github.com/shanghuiyang/image-recognizer v0.0.0-20200626055556-e23f6c489390/go.mod h1:EZ0BIAKtlRntXgvu5/KMjMvYXojM2rpkLjeXCHo3pFY=
+github.com/shanghuiyang/image-recognizer v0.0.0-20210812155559-5c6b3fbd14fd h1:gsu235xlsEYHOtTEZwCpsm0geQhC4vzUufr4W4tMkhQ=
+github.com/shanghuiyang/image-recognizer v0.0.0-20210812155559-5c6b3fbd14fd/go.mod h1:PIqco2xSj7obACzhuN3B6lYTg6A2ZDt/Ebu45xSG8aM=
 github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/stianeikeland/go-rpio v4.2.0+incompatible h1:CUOlIxdJdT+H1obJPsmg8byu7jMSECLfAN9zynm5QGo=
 github.com/stianeikeland/go-rpio v4.2.0+incompatible/go.mod h1:Sh81rdJwD96E2wja2Gd7rrKM+XZ9LrwvN2w4IXrqLR8=

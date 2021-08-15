@@ -36,7 +36,7 @@ func main() {
 	}
 	defer l.Close()
 
-	j, err := dev.NewJoystick(swPin)
+	j, err := dev.NewJoystickImp(swPin)
 	if err != nil {
 		log.Printf("failed to new joystick")
 		return
@@ -69,7 +69,7 @@ func main() {
 	}
 }
 
-func getOpAndSpeed(j *dev.Joystick) (op, speed byte, err error) {
+func getOpAndSpeed(j dev.Joystick) (op, speed byte, err error) {
 	op, speed = 0, 0
 	err = nil
 

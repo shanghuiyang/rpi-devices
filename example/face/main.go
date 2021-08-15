@@ -18,7 +18,7 @@ const (
 )
 
 func main() {
-	cam := dev.NewCamera()
+	cam := dev.NewMotionCamera()
 	if cam == nil {
 		log.Print("failed to new a camera")
 		return
@@ -35,13 +35,13 @@ func main() {
 			continue
 		}
 
-		imgf, err := cam.TakePhoto()
+		img, err := cam.Photo()
 		if err != nil {
 			log.Printf("failed to take phote, error: %v", err)
 			continue
 		}
 
-		users, err := f.Recognize(imgf, groupID)
+		users, err := f.Recognize(img, groupID)
 		if err != nil {
 			log.Printf("failed to recognize the image, error: %v", err)
 			continue

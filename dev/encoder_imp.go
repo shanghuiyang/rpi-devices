@@ -1,5 +1,5 @@
 /*
-Package dev ...
+Encoder is a sensor used to count number.
 
 Connect to Pi:
  - vcc: any 3.3v or v5 pin
@@ -13,14 +13,14 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// Encoder ...
-type Encoder struct {
+// EncoderImp implements Encoder interface
+type EncoderImp struct {
 	pin rpio.Pin
 }
 
-// NewEncoder ...
-func NewEncoder(pin uint8) *Encoder {
-	e := &Encoder{
+// NewEncoderImp ...
+func NewEncoderImp(pin uint8) *EncoderImp {
+	e := &EncoderImp{
 		pin: rpio.Pin(pin),
 	}
 	e.pin.Input()
@@ -30,12 +30,12 @@ func NewEncoder(pin uint8) *Encoder {
 }
 
 // Detected ...
-func (e *Encoder) Detected() bool {
+func (e *EncoderImp) Detected() bool {
 	return e.pin.EdgeDetected()
 }
 
 // Count1 ...
-func (e *Encoder) Count1() int {
+func (e *EncoderImp) Count1() int {
 	if e.pin.EdgeDetected() {
 		return 1
 	}
@@ -43,11 +43,11 @@ func (e *Encoder) Count1() int {
 }
 
 // Start ...
-func (e *Encoder) Start() {
+func (e *EncoderImp) Start() {
 	e.pin.Detect(rpio.RiseEdge)
 }
 
 // Stop ...
-func (e *Encoder) Stop() {
+func (e *EncoderImp) Stop() {
 	e.pin.Detect(rpio.NoEdge)
 }

@@ -57,12 +57,12 @@ func main() {
 	}
 	defer rpio.Close()
 
-	cam := dev.NewCamera()
-	bzr := dev.NewBuzzer(pinBzr)
-	led := dev.NewLed(pinLed)
-	btn := dev.NewButton(pinBtn)
-	dist := dev.NewHCSR04(pinTrig, pinEcho)
-	if dist == nil {
+	cam := dev.NewMotionCamera()
+	bzr := dev.NewBuzzerImp(pinBzr, true)
+	led := dev.NewLedImp(pinLed)
+	btn := dev.NewButtonImp(pinBtn)
+	hcsr04 := dev.NewHCSR04(pinTrig, pinEcho)
+	if hcsr04 == nil {
 		log.Printf("[doordog]failed to new a HCSR04")
 		return
 	}
@@ -70,7 +70,7 @@ func main() {
 	auth := oauth.New(baiduFaceRecognitionAppKey, baiduFaceRecognitionSecretKey, oauth.NewCacheMan())
 	f := face.New(auth)
 
-	dog := newDoordog(cam, dist, bzr, led, btn, f)
+	dog := newDoordog(cam, hcsr04, bzr, led, btn, f)
 	util.WaitQuit(func() {
 		dog.stop()
 		rpio.Close()
@@ -79,20 +79,20 @@ func main() {
 }
 
 type doordog struct {
-	cam      *dev.Camera
-	dist     *dev.HCSR04
-	buzzer   *dev.Buzzer
-	led      *dev.Led
-	button   *dev.Button
+	cam      dev.Camera
+	dmeter   dev.DistanceMeter
+	buzzer   dev.Buzzer
+	led      dev.Led
+	button   dev.Button
 	face     *face.Face
 	alerting bool
 	chAlert  chan bool
 }
 
-func newDoordog(cam *dev.Camera, dist *dev.HCSR04, buzzer *dev.Buzzer, led *dev.Led, btn *dev.Button, face *face.Face) *doordog {
+func newDoordog(cam dev.Camera, d dev.DistanceMeter, buzzer dev.Buzzer, led dev.Led, btn dev.Button, face *face.Face) *doordog {
 	return &doordog{
 		cam:      cam,
-		dist:     dist,
+		dmeter:   d,
 		buzzer:   buzzer,
 		led:      led,
 		button:   btn,
@@ -112,13 +112,20 @@ func (d *doordog) start() {
 
 func (d *doordog) detect() {
 	// need to warm-up the ultrasonic distance meter first
-	d.dist.Dist()
+	d.dmeter.Dist()
 	time.Sleep(500 * time.Millisecond)
 
 	t := 300 * time.Millisecond
 	for {
 		time.Sleep(t)
-		dist := d.dist.Dist()
+		dist, err := d.dmeter.Dist()
+		for i := 0; err != nil && i < 3; i++ {
+			util.DelayMs(100)
+			dist, err = d.dmeter.Dist()
+		}
+		if err != nil {
+			continue
+		}
 		if dist < 10 {
 			log.Printf("[doordog]bad data from distant meter, distance = %.2fcm", dist)
 			continue
@@ -171,14 +178,14 @@ func (d *doordog) alert() {
 }
 
 func (d *doordog) RecoginzeFace() (name string, err error) {
-	imgf, e := d.cam.TakePhoto()
+	img, e := d.cam.Photo()
 	if e != nil {
 		log.Printf("[doordog]failed to take phote, error: %v", e)
 		name, err = "unknow", e
 		return
 	}
 
-	users, e := d.face.Recognize(imgf, groupID)
+	users, e := d.face.Recognize(img, groupID)
 	if e != nil {
 		log.Printf("[doordog]failed to recognize the image, error: %v", e)
 		name, err = "unknow", e

@@ -1,5 +1,5 @@
 /*
-Package dev ...
+ButtonImp is a button module used to detect whether a button is pressed.
 
 Connect to Pi:
  - vcc: any 3.3v pin
@@ -13,14 +13,14 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
-// Button ...
-type Button struct {
+// ButtonImp implements Button interface
+type ButtonImp struct {
 	pin rpio.Pin
 }
 
-// NewButton ...
-func NewButton(pin uint8) *Button {
-	b := &Button{
+// NewButtonImp ...
+func NewButtonImp(pin uint8) *ButtonImp {
+	b := &ButtonImp{
 		pin: rpio.Pin(pin),
 	}
 	b.pin.Input()
@@ -30,6 +30,6 @@ func NewButton(pin uint8) *Button {
 }
 
 // Pressed ...
-func (b *Button) Pressed() bool {
+func (b *ButtonImp) Pressed() bool {
 	return b.pin.EdgeDetected()
 }

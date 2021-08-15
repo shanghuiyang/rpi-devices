@@ -21,8 +21,8 @@ func main() {
 	}
 	defer rpio.Close()
 
-	led := dev.NewLed(pinLed)
-	btn := dev.NewButton(pin)
+	led := dev.NewLedImp(pinLed)
+	btn := dev.NewButtonImp(pin)
 	util.WaitQuit(func() {
 		rpio.Close()
 	})

@@ -1,8 +1,6 @@
 /*
-Package dev ...
-
-LC12S is wireless transceiver module.
-https://world.taobao.com/item/594554513623.htm
+LC12S is wireless transceiver used to send and receive data via electromagnetic wave.
+More details please ref to: https://world.taobao.com/item/594554513623.htm
 
 Config Your Pi:
 1. $ sudo vim /boot/config.txt
@@ -40,7 +38,7 @@ const (
 	bufsz = 128
 )
 
-// LC12S ...
+// LC12S implement Wireless interface
 type LC12S struct {
 	csPin rpio.Pin
 	port  *serial.Port

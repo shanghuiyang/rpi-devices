@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -118,4 +119,17 @@ func WaitQuit(beforeQuitFunc func()) {
 // DelayMs ...
 func DelayMs(ms int) {
 	time.Sleep(time.Duration(ms) * time.Millisecond)
+}
+
+// IncludedAngle caculates the included angle betweet fromAngle to toAngle
+func IncludedAngle(from, to float64) float64 {
+	if from*to > 0 {
+		return math.Abs(from - to)
+	}
+
+	d := math.Abs(from) + math.Abs(to)
+	if d <= 180 {
+		return d
+	}
+	return 360 - d
 }

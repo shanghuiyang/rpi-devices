@@ -20,7 +20,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	h := dev.NewHumi(pin)
+	h := dev.NewHumidityDetector(pin)
 	util.WaitQuit(func() {
 		rpio.Close()
 	})

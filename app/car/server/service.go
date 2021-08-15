@@ -59,17 +59,16 @@ func init() {
 type service struct {
 	cfg        *Config
 	car        car.Car
-	led        *dev.Led
+	led        dev.Led
 	ledBlinked bool
 	onMusic    bool
 	chOp       chan Op
 
-	selfdriving   *selfdriving.SelfDriving
-	selftracking  *selftracking.SelfTracking
-	selfnav       *selfnav.SelfNav
-	speechdriving *speechdriving.SpeechDriving
-
-	joystick *joystick.Joystick
+	selfdriving   selfdriving.SelfDriving
+	selftracking  selftracking.SelfTracking
+	selfnav       selfnav.SelfNav
+	speechdriving speechdriving.SpeechDriving
+	joystick      joystick.Joystick
 }
 
 func newService(cfg *Config) (*service, error) {
@@ -100,12 +99,12 @@ func newService(cfg *Config) (*service, error) {
 		return nil, errors.New("failed to new L298N")
 	}
 
-	buz := dev.NewBuzzer(int8(cfg.BuzzerPin))
+	buz := dev.NewBuzzerImp(cfg.BuzzerPin, true)
 	if buz == nil {
 		return nil, errors.New("failed to new buzzer")
 	}
 
-	led := dev.NewLed(cfg.LedPin)
+	led := dev.NewLedImp(cfg.LedPin)
 	if led == nil {
 		log.Panicf("[%v]failed to new led", logTag)
 	}
@@ -129,7 +128,7 @@ func newService(cfg *Config) (*service, error) {
 		log.Panicf("[%v]failed to new gy-25", logTag)
 	}
 
-	cam := dev.NewCamera()
+	cam := dev.NewMotionCamera()
 	if cam == nil {
 		log.Panicf("[%v]failed to new a camera", logTag)
 	}
@@ -154,12 +153,12 @@ func newService(cfg *Config) (*service, error) {
 		if err != nil {
 			log.Panicf("[%v]failed to new lc12s, error: %v", logTag, err)
 		}
-		s.joystick = joystick.New(car, lc12s)
+		s.joystick = joystick.NewJoystickImp(car, lc12s)
 		go s.joystick.Start()
 	}
 
 	if cfg.SelfDriving.Enabled {
-		s.selfdriving = selfdriving.New(car, us100, sg90)
+		s.selfdriving = selfdriving.NewSelfDrivingImp(car, us100, sg90)
 	}
 
 	if cfg.SelfTracking.Enabled {
@@ -168,7 +167,7 @@ func newService(cfg *Config) (*service, error) {
 			log.Panicf("[%v]failed to create tracker, error: %v", logTag, err)
 		}
 		st := cv.NewStreamer(cfg.SelfTracking.VideoHost)
-		s.selftracking = selftracking.New(car, t, st)
+		s.selftracking = selftracking.NewSelfTrackingImp(car, t, st)
 	}
 
 	if cfg.SpeechDriving.Enabled {
@@ -177,11 +176,11 @@ func newService(cfg *Config) (*service, error) {
 		asr := speech.NewASR(speechAuth)
 		tts := speech.NewTTS(speechAuth)
 		imgr := recognizer.New(imgAuth)
-		s.speechdriving = speechdriving.New(car, us100, sg90, led, cam, asr, tts, imgr)
+		s.speechdriving = speechdriving.NewSpeechDrivingImp(car, us100, sg90, led, cam, asr, tts, imgr)
 	}
 
 	if cfg.SelfNav.Enabled {
-		gps := dev.NewGPS(cfg.SelfNav.GPSConfig.Dev, cfg.SelfNav.GPSConfig.Baud)
+		gps := dev.NewNeo6mGPS(cfg.SelfNav.GPSConfig.Dev, cfg.SelfNav.GPSConfig.Baud)
 		if gps == nil {
 			log.Panicf("[%v]failed to create gps", logTag)
 		}
@@ -190,7 +189,7 @@ func newService(cfg *Config) (*service, error) {
 			log.Panicf("[%v]failed to read map file: %v, errror: %v", logTag, cfg.SelfNav.TileMapConfig.MapFile, err)
 		}
 		m := tilemap.BuildFromStr(string(data))
-		s.selfnav = selfnav.New(car, gps, m, cfg.SelfNav.TileMapConfig.Box, cfg.SelfNav.TileMapConfig.GridSize)
+		s.selfnav = selfnav.NewSelfNavImp(car, gps, m, cfg.SelfNav.TileMapConfig.Box, cfg.SelfNav.TileMapConfig.GridSize)
 	}
 
 	if err := util.SetVolume(cfg.Volume); err != nil {
@@ -202,7 +201,7 @@ func newService(cfg *Config) (*service, error) {
 
 func (s *service) start() error {
 	go s.operate()
-	go s.blink()
+	go s.ledBlink()
 	return nil
 }
 
@@ -238,7 +237,7 @@ func (s *service) operate() {
 	}
 }
 
-func (s *service) blink() {
+func (s *service) ledBlink() {
 	for s.ledBlinked {
 		s.led.Blink(1, 1000)
 	}

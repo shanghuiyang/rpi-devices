@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	gps := dev.NewGPS("/dev/ttyAMA0", 9600)
-	// gps := dev.NewMockGPS("./dev/test/gps.csv")
+	gps := dev.NewNeo6mGPS("/dev/ttyAMA0", 9600)
+	// gps := dev.NewGPSSimulator("./dev/test/gps.csv")
 	if gps == nil {
 		log.Printf("[gpstracker]failed to new a gps device")
 		return
@@ -41,7 +41,7 @@ func main() {
 }
 
 type gpsTracker struct {
-	gps    *dev.GPS
+	gps    dev.GPS
 	cloud  iot.Cloud
 	logger *util.GPSLogger
 }

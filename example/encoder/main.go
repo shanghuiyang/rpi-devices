@@ -19,7 +19,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	e := dev.NewEncoder(pinEncoder)
+	e := dev.NewEncoderImp(pinEncoder)
 	e.Start()
 	defer e.Stop()
 

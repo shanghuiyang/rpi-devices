@@ -49,13 +49,13 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 	disabled := false
 	selfDriving, selfTracking, speechDriving := false, false, false
 	if s.selfdriving != nil {
-		selfDriving = s.selfdriving.Status()
+		selfDriving = s.selfdriving.InDrving()
 	}
 	if s.selftracking != nil {
-		selfTracking = s.selftracking.Status()
+		selfTracking = s.selftracking.InTracking()
 	}
 	if s.speechdriving != nil {
-		speechDriving = s.speechdriving.Status()
+		speechDriving = s.speechdriving.InDriving()
 	}
 
 	if selfDriving || selfTracking || speechDriving {
@@ -198,7 +198,7 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if s.selftracking.Status() {
+	if s.selftracking.InTracking() {
 		log.Printf("[%v]self-tracking is running", logHandlerTag)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("self-tracking is running"))
@@ -231,7 +231,7 @@ func (s *service) selfTrackingOnHandler(w http.ResponseWriter, r *http.Request) 
 	img := gocv.NewMat()
 	defer img.Close()
 
-	for s.selftracking.Status() {
+	for s.selftracking.InTracking() {
 		util.DelayMs(200)
 		cam.Grab(10)
 		if !cam.Read(&img) {
@@ -285,7 +285,7 @@ func (s *service) speechDrivingOffHandler(w http.ResponseWriter, r *http.Request
 	}
 	s.speechdriving.Stop()
 	s.ledBlinked = true
-	go s.blink()
+	go s.ledBlink()
 }
 
 func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {

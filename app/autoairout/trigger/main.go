@@ -50,7 +50,7 @@ func main() {
 	})
 
 	for {
-		shaked := sw420.KeepShaking()
+		shaked := isKeepShaking(sw420)
 		if shaked && curState == off {
 			curState = on
 			log.Printf("[autoairout]state: on")
@@ -79,5 +79,19 @@ func sendcmd(s state) {
 		return
 	}
 	defer resp.Body.Close()
-	return
+}
+
+// isKeepShaking returns true if the sensor detects the object keeps shaking in 100 millisecond,
+// or returns false
+func isKeepShaking(s *dev.SW420) bool {
+	states := map[bool]int{
+		true:  0,
+		false: 0,
+	}
+	for i := 0; i < 10; i++ {
+		shaked := s.Detected()
+		states[shaked]++
+		time.Sleep(10 * time.Millisecond)
+	}
+	return states[true] > states[false]
 }

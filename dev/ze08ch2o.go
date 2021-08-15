@@ -1,7 +1,5 @@
 /*
-Package dev ...
-
-ZE08CH2O is the driver of ZE08CH2O, an air quality sensor which can be used to detect PM2.5 and PM10.
+ZE08CH2O is a sensor used to detect CH2O.
 
 Config Your Pi:
 1. $ sudo vim /boot/config.txt
@@ -40,12 +38,7 @@ const (
 	maxDeltaCH2O = 0.06
 )
 
-var (
-	mockCH2Os       = []float64{0.052, 0.084, 0.073}
-	mockCH2OArryIdx = -1
-)
-
-// ZE08CH2O ...
+// ZE08CH2O implements CH2OMeter interface
 type ZE08CH2O struct {
 	port     *serial.Port
 	buf      [32]byte
@@ -66,7 +59,7 @@ func NewZE08CH2O() *ZE08CH2O {
 }
 
 // Get returns ch2o in mg/m3
-func (p *ZE08CH2O) Get() (float64, error) {
+func (p *ZE08CH2O) Value() (float64, error) {
 	for i := 0; i < p.maxRetry; i++ {
 		if err := p.port.Flush(); err != nil {
 			return 0, err
@@ -137,13 +130,4 @@ func (p *ZE08CH2O) checkDelta(ch2o float64) bool {
 		p.history.Add(ch2o)
 	}
 	return passed
-}
-
-// Mock ...
-func (p *ZE08CH2O) Mock() (float64, error) {
-	mockCH2OArryIdx++
-	if mockCH2OArryIdx == len(mockCH2Os) {
-		mockCH2OArryIdx = 0
-	}
-	return mockCH2Os[mockCH2OArryIdx], nil
 }

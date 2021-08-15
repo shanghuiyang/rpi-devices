@@ -54,8 +54,8 @@ func main() {
 	}
 	defer rpio.Close()
 
-	led := dev.NewLed(pinLed)
-	light := dev.NewLed(pinLight)
+	led := dev.NewLedImp(pinLed)
+	light := dev.NewLedImp(pinLight)
 	if light == nil {
 		log.Printf("[autolight]failed to new a led light")
 		return
@@ -154,9 +154,9 @@ func operationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type autoLight struct {
-	dist     *dev.HCSR04
-	light    *dev.Led
-	led      *dev.Led
+	dmeter   dev.DistanceMeter
+	light    dev.Led
+	led      dev.Led
 	cloud    iot.Cloud
 	trigTime time.Time
 	state    bool // true: turn on, false: turn off
@@ -164,9 +164,9 @@ type autoLight struct {
 	chLed    chan bool
 }
 
-func newAutoLight(dist *dev.HCSR04, light *dev.Led, led *dev.Led, cloud iot.Cloud) *autoLight {
+func newAutoLight(dmeter dev.DistanceMeter, light dev.Led, led dev.Led, cloud iot.Cloud) *autoLight {
 	return &autoLight{
-		dist:     dist,
+		dmeter:   dmeter,
 		light:    light,
 		led:      led,
 		state:    false,
@@ -187,10 +187,18 @@ func (a *autoLight) start() {
 
 func (a *autoLight) detect() {
 	// need to warm-up the ultrasonic distance meter first
-	a.dist.Dist()
+	a.dmeter.Dist()
 	time.Sleep(500 * time.Millisecond)
 	for {
-		d := a.dist.Dist()
+		d, err := a.dmeter.Dist()
+		for i := 0; err != nil && i < 3; i++ {
+			util.DelayMs(100)
+			d, err = a.dmeter.Dist()
+		}
+		if err != nil {
+			continue
+		}
+
 		detected := (d < 20)
 		a.chLight <- detected
 		a.chLed <- detected
@@ -227,7 +235,7 @@ func (a *autoLight) ctrLight() {
 			a.trigTime = time.Now()
 			continue
 		}
-		timeout := time.Now().Sub(a.trigTime).Seconds() > 45
+		timeout := time.Since(a.trigTime).Seconds() > 45
 		if timeout && a.state {
 			log.Printf("[autolight]timeout, light off")
 			a.off()

@@ -1,5 +1,5 @@
 /*
-Package dev ...
+BYJ2848 is a step-motor with 4-phase and 5-wire.
 
 Connect to Pi:
  - vcc: any 5v pin
@@ -13,7 +13,6 @@ Connect to Pi:
 package dev
 
 import (
-	"log"
 	"time"
 
 	"github.com/stianeikeland/go-rpio"
@@ -39,40 +38,29 @@ var (
 	}
 )
 
-// StepMotor ...
-type StepMotor struct {
-	pins     [4]rpio.Pin
-	chAngles chan float32
+// BYJ2848 implements Motor interface
+type BYJ2848 struct {
+	pins [4]rpio.Pin
 }
 
-// NewStepMotor ...
-func NewStepMotor(in1, in2, in3, in4 uint8) *StepMotor {
-	s := &StepMotor{
+// NewBYJ2848 ...
+func NewBYJ2848(in1, in2, in3, in4 uint8) *BYJ2848 {
+	s := &BYJ2848{
 		pins: [4]rpio.Pin{
 			rpio.Pin(in1),
 			rpio.Pin(in2),
 			rpio.Pin(in3),
 			rpio.Pin(in4),
 		},
-		chAngles: make(chan float32, 8),
 	}
 	for i := 0; i < 4; i++ {
 		s.pins[i].Output()
 		s.pins[i].Low()
 	}
-	go s.start()
 	return s
 }
 
-// Start ...
-func (s *StepMotor) start() {
-	log.Printf("[stepmotor]start working")
-	for angle := range s.chAngles {
-		s.roll(angle)
-	}
-}
-
-func (s *StepMotor) roll(angle float32) {
+func (s *BYJ2848) Roll(angle float64) {
 	var matrix [4][4]uint8
 	if angle > 0 {
 		matrix = clockwise
@@ -95,14 +83,7 @@ func (s *StepMotor) roll(angle float32) {
 	}
 }
 
-// Roll ...
-func (s *StepMotor) Roll(angle float32) {
-	s.chAngles <- angle
-}
-
-// Stop ...
-func (s *StepMotor) Stop() {
-	for i := 0; i < 4; i++ {
-		s.pins[i].Low()
-	}
+// SetSpeed ...
+func (s *BYJ2848) SetSpeed() {
+	// Todo
 }

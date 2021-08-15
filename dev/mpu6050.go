@@ -1,7 +1,5 @@
 /*
-Package dev ...
-
-mpu6050 is the driver of mpu6050 module.
+mpu6050 is a 3-axis gyroscope and a 3-axis accelerometer.
 
 connect to raspberry pi:
 VCC: pin 1 or any 3.3v pin

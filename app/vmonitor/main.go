@@ -78,17 +78,17 @@ func main() {
 		return
 	}
 
-	led := dev.NewLed(pinLed)
+	led := dev.NewLedImp(pinLed)
 	if led == nil {
 		log.Printf("[vmonitor]failed to new a led, will run the monitor without led")
 	}
 
-	bzr := dev.NewBuzzer(pinBzr)
+	bzr := dev.NewBuzzerImp(pinBzr, true)
 	if bzr == nil {
 		log.Printf("[vmonitor]failed to new a buzzer, will run the monitor without buzzer")
 	}
 
-	btn := dev.NewButton(pinBtn)
+	btn := dev.NewButtonImp(pinBtn)
 	if btn == nil {
 		log.Printf("[vmonitor]failed to new a button, will run the monitor without button")
 	}
@@ -109,21 +109,21 @@ func main() {
 }
 
 type videoServer struct {
-	hServo *dev.SG90
-	vServo *dev.SG90
-	led    *dev.Led
-	buzzer *dev.Buzzer
-	button *dev.Button
+	hServo dev.Motor
+	vServo dev.Motor
+	led    dev.Led
+	buzzer dev.Buzzer
+	button dev.Button
 
 	mode        mode
 	inServing   bool
-	hAngle      int
-	vAngle      int
+	hAngle      float64
+	vAngle      float64
 	chAlert     chan int
 	pageContext []byte
 }
 
-func newVideoServer(hServo, vServo *dev.SG90, led *dev.Led, buzzer *dev.Buzzer, button *dev.Button) *videoServer {
+func newVideoServer(hServo, vServo dev.Motor, led dev.Led, buzzer dev.Buzzer, button dev.Button) *videoServer {
 	v := &videoServer{
 		hServo: hServo,
 		vServo: vServo,

@@ -23,8 +23,13 @@ func main() {
 
 	hcsr04 := dev.NewHCSR04(pinTrig, pinEcho)
 	for {
-		dist := hcsr04.Dist()
-		fmt.Printf("%.2f cm\n", dist)
+		d, err := hcsr04.Dist()
+		if err != nil {
+			log.Printf("failed to get distance, error: %v", err)
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+		fmt.Printf("%.2f cm\n", d)
 		time.Sleep(1 * time.Second)
 	}
 }

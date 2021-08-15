@@ -1,7 +1,5 @@
 /*
-Package dev ...
-
-DHT11 is an sensor for getting temperature and humidity.
+DHT11 is a sensor used to meature temperature and humidity.
 config:
 1. sudo vim /boot/config.txt
 2. add following line to the end of config.txt
@@ -12,41 +10,6 @@ config:
 	SIGNAL: must connect to pin 7(gpio 4)
 	GND:	any gnd pin
 	VCC:	any 3.3v pin
-
------------------------------------------------------------------------
-
-      +-------------+
-      |             |
-      |    DHT11    |
-      |             |
-      +-+----+----+-+
-        |    |    |
-      S |   VCC   | -
-        |    |    |
-        |    |    |              +-----------+
-        |    +----|--------------+ * 1   2 o |
-        |         |              | * 3     o |
-        |         |              | o       o |
-        +---------|--------------+ * 7     o |
-                  +--------------+ * 9     o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o       o |
-                                 | o 39 40 o |
-								 +-----------+
-
------------------------------------------------------------------------
 */
 package dev
 
@@ -63,7 +26,7 @@ const (
 	hFile = "/sys/bus/iio/devices/iio:device0/in_humidityrelative_input"
 )
 
-// DHT11 ...
+// DHT11 implements Thermohygrometer interface
 type DHT11 struct {
 	tempHistory [10]float64
 	humiHistory [10]float64
@@ -101,7 +64,6 @@ func (d *DHT11) TempHumidity() (float64, float64, error) {
 			return
 		}
 		ch <- -999
-		return
 	}(chTemp)
 
 	go func(ch chan float64) {
@@ -121,7 +83,6 @@ func (d *DHT11) TempHumidity() (float64, float64, error) {
 			return
 		}
 		ch <- -999
-		return
 	}(chHumi)
 
 	t := <-chTemp

@@ -30,7 +30,7 @@ var (
 	asr  *speech.ASR
 	tts  *speech.TTS
 	imgr *recognizer.Recognizer
-	cam  *dev.Camera
+	cam  dev.Camera
 )
 
 func main() {
@@ -40,11 +40,11 @@ func main() {
 	asr = speech.NewASR(speechAuth)
 	tts = speech.NewTTS(speechAuth)
 	imgr = recognizer.New(imageAuth)
-	cam = dev.NewCamera()
+	cam = dev.NewMotionCamera()
 
 	for {
 		log.Printf("[imgr]take photo")
-		imgf, err := cam.TakePhoto()
+		img, err := cam.Photo()
 		if err != nil {
 			log.Printf("[imgr]failed to take phote, error: %v", err)
 			os.Exit(1)
@@ -52,7 +52,7 @@ func main() {
 		util.PlayWav(wavLetMeThink)
 
 		log.Printf("[imgr]recognize image")
-		objname, err := recognize(imgf)
+		objname, err := recognize(img)
 		if err != nil {
 			log.Printf("[imgr]failed to recognize image, error: %v", err)
 			util.PlayWav(wavIDontKnow)
@@ -75,7 +75,7 @@ func main() {
 	}
 }
 
-func recognize(image string) (string, error) {
+func recognize(image []byte) (string, error) {
 	name, err := imgr.Recognize(image)
 	if err != nil {
 		return "", err

@@ -8,7 +8,7 @@ import (
 
 func main() {
 	d := dev.NewDS18B20()
-	t, err := d.GetTemperature()
+	t, err := d.Temperature()
 	if err != nil {
 		fmt.Printf("failed to get temperature, error: %v", err)
 		return

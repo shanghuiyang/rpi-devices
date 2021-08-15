@@ -20,7 +20,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	j, err := dev.NewJoystick(swPin)
+	j, err := dev.NewJoystickImp(swPin)
 	if err != nil {
 		log.Printf("failed to new joystick")
 		return

@@ -19,7 +19,7 @@ func main() {
 	}
 	defer rpio.Close()
 
-	led := dev.NewLed(p12)
+	led := dev.NewLedImp(p12)
 
 	var op string
 	for {

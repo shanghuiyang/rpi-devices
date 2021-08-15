@@ -1,46 +1,11 @@
 /*
-Package dev ...
-
-OLED is the driver of an oled screen.
-Please NOTE that current version only supports the oled module with ssd1306 driver.
+OLED is a display module used to display text/image via ssd1306 driver.
 
 connect to raspberry pi:
 VCC: pin 1 or any 3.3v pin
 GND: pin 9 or and GND pin
 SDA: pin 3 (SDA)
 SCL: pin 5 (SCL)
-
-		+--------------------+
-		|        OLED        |
-		|                    |
-		+--+----+----+----+--+
-		   |    |    |    |
-		  GND  VCC  SCL  SDA
-		   |    |    |    |
-		   |    |    |    |
-		   |    |    |    |            +-----------+
-		   |    +----|----|------------+ * 1   2 o |
-		   |         |    +------------| * 3     o |
-		   |         +-----------------+ * 5     o |
-		   |                           | o       o |
-		   +---------------------------+ * 9     o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o       o |
-		                               | o 39 40 o |
-									   +-----------+
-
 
 Config Your Pi:
 1. $ sudo apt-get install -y python-smbus

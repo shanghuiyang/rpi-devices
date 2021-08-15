@@ -1,10 +1,7 @@
 /*
-Package dev ...
-
-US-100 is an ultrasonic distance meter,
-which can measure the distance to the an object like a box.
-US-100 works in both modes of UART and Electrical Level.
-This program uses UART mode to drive the module.
+US-100 is an ultrasonic distance meter used to measure the distance to objects.
+US-100 works in both modes of UART and Electrical Level(TTL).
+TTL mode is used by default if you don't specify a mode for it.
 
 Config Your Pi:
 1. $ sudo vim /boot/config.txt
@@ -33,6 +30,7 @@ Connect to Pi:
 package dev
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -76,42 +74,39 @@ func NewUS100(cfg *US100Config) *US100 {
 		u.echo.Input()
 		return u
 	}
-	if u.mode == UartMode {
-		dev := cfg.Dev
-		baud := cfg.Baud
 
-		if cfg.Dev == "" {
-			dev = defaultUS100Name
-		}
-		if cfg.Baud == 0 {
-			baud = defaultUS100Baud
-		}
-		if err := u.open(dev, baud); err != nil {
-			return nil
-		}
-		return u
+	// UART mode
+	dev := cfg.Dev
+	baud := cfg.Baud
+	if cfg.Dev == "" {
+		dev = defaultUS100Name
 	}
-	return nil
+	if cfg.Baud == 0 {
+		baud = defaultUS100Baud
+	}
+	if err := u.open(dev, baud); err != nil {
+		return nil
+	}
+	return u
 }
 
-// Dist is to measure the distance in cm
-func (u *US100) Dist() float64 {
+// Value returns the distance in cm to objects
+func (u *US100) Dist() (float64, error) {
 	if u.mode == UartMode {
-		return u.DistByUart()
+		return u.distByUart()
 	}
-	return u.DistByTTL()
+	return u.distByTTL()
 }
 
-// DistByUart is to measure the distance in cm
-func (u *US100) DistByUart() float64 {
+func (u *US100) distByUart() (float64, error) {
 	if err := u.port.Flush(); err != nil {
 		log.Printf("[us100]failed to flush serial, error: %v", err)
-		return -1
+		return 0, err
 	}
 	// send trigger data
 	n, err := u.port.Write(trigData)
 	if n != 1 || err != nil {
-		return -1
+		return 0, err
 	}
 
 	// read data
@@ -120,7 +115,7 @@ func (u *US100) DistByUart() float64 {
 		n, err := u.port.Read(u.buf[a:])
 		if err != nil {
 			log.Printf("[us100]failed to read serial, error: %v", err)
-			return -1
+			return 0, err
 		}
 		a += n
 	}
@@ -128,14 +123,13 @@ func (u *US100) DistByUart() float64 {
 	// check data len
 	if a != 2 {
 		log.Printf("[us100]incorrect data len, len: %v, expected: 2", a)
-		return -1
+		return 0, fmt.Errorf("incorrect data len, len: %v, expected: 2", a)
 	}
 	// calc distance in cm
-	return float64((uint16(u.buf[0])<<8)|uint16(u.buf[1])) / 10.0
+	return float64((uint16(u.buf[0])<<8)|uint16(u.buf[1])) / 10.0, nil
 }
 
-// DistByTTL is to measure the distance in cm
-func (u *US100) DistByTTL() float64 {
+func (u *US100) distByTTL() (float64, error) {
 	u.trig.Low()
 	u.delay(1)
 	u.trig.High()
@@ -152,10 +146,10 @@ func (u *US100) DistByTTL() float64 {
 	for !u.echo.EdgeDetected() {
 		u.delay(1)
 	}
-	dist := time.Now().Sub(start).Seconds() * voiceSpeed / 2.0
+	dist := time.Since(start).Seconds() * voiceSpeed / 2.0
 	u.echo.Detect(rpio.NoEdge)
 	u.trig.Low()
-	return dist
+	return dist, nil
 }
 
 // Close ...

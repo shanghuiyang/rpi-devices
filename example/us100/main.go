@@ -36,8 +36,8 @@ func main() {
 			Echo: 26,
 		})
 		for {
-			dist := u.Dist()
-			if dist < 0 {
+			dist, err := u.Dist()
+			if err != nil {
 				log.Printf("failed to get distance")
 				continue
 			}
@@ -55,8 +55,8 @@ func main() {
 	defer u.Close()
 
 	for {
-		dist := u.Dist()
-		if dist < 0 {
+		dist, err := u.Dist()
+		if err != nil {
 			log.Printf("failed to get distance")
 			continue
 		}

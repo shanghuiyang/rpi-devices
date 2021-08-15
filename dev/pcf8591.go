@@ -1,6 +1,4 @@
 /*
-Package dev ...
-
 PCF8591 is the driver of PCF8591 module.
 
 connect to raspberry pi:
