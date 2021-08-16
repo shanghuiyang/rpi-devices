@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/go-speech/speech"
-	"github.com/shanghuiyang/image-recognizer/recognizer"
+	"github.com/shanghuiyang/imgr"
+	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/speech"
 )
 
 const (
@@ -27,19 +27,19 @@ const (
 )
 
 var (
-	asr  *speech.ASR
-	tts  *speech.TTS
-	imgr *recognizer.Recognizer
-	cam  dev.Camera
+	asr   speech.ASR
+	tts   speech.TTS
+	imgre imgr.Recognizer
+	cam   dev.Camera
 )
 
 func main() {
 
-	speechAuth := oauth.New(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheMan())
-	imageAuth := oauth.New(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, oauth.NewCacheMan())
-	asr = speech.NewASR(speechAuth)
-	tts = speech.NewTTS(speechAuth)
-	imgr = recognizer.New(imageAuth)
+	speechAuth := oauth.NewBaiduOauth(baiduSpeechAppKey, baiduSpeechSecretKey, oauth.NewCacheImp())
+	imageAuth := oauth.NewBaiduOauth(baiduImgRecognitionAppKey, baiduImgRecognitionSecretKey, oauth.NewCacheImp())
+	asr = speech.NewBaiduASR(speechAuth)
+	tts = speech.NewBaiduTTS(speechAuth)
+	imgre = imgr.NewBaiduRecognizer(imageAuth)
 	cam = dev.NewMotionCamera()
 
 	for {
@@ -76,7 +76,7 @@ func main() {
 }
 
 func recognize(image []byte) (string, error) {
-	name, err := imgr.Recognize(image)
+	name, err := imgre.Recognize(image)
 	if err != nil {
 		return "", err
 	}

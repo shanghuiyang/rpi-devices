@@ -6,9 +6,8 @@ import (
 	"log"
 
 	"github.com/shanghuiyang/a-star/tilemap"
-	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/go-speech/speech"
-	"github.com/shanghuiyang/image-recognizer/recognizer"
+	"github.com/shanghuiyang/imgr"
+	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/app/car/joystick"
 	"github.com/shanghuiyang/rpi-devices/app/car/selfdriving"
@@ -18,6 +17,7 @@ import (
 	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/speech"
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -171,11 +171,11 @@ func newService(cfg *Config) (*service, error) {
 	}
 
 	if cfg.SpeechDriving.Enabled {
-		speechAuth := oauth.New(cfg.BaiduAPIConfig.Speech.APIKey, cfg.BaiduAPIConfig.Speech.SecretKey, oauth.NewCacheMan())
-		imgAuth := oauth.New(cfg.BaiduAPIConfig.Image.APIKey, cfg.BaiduAPIConfig.Image.SecretKey, oauth.NewCacheMan())
-		asr := speech.NewASR(speechAuth)
-		tts := speech.NewTTS(speechAuth)
-		imgr := recognizer.New(imgAuth)
+		speechAuth := oauth.NewBaiduOauth(cfg.BaiduAPIConfig.Speech.APIKey, cfg.BaiduAPIConfig.Speech.SecretKey, oauth.NewCacheImp())
+		imgAuth := oauth.NewBaiduOauth(cfg.BaiduAPIConfig.Image.APIKey, cfg.BaiduAPIConfig.Image.SecretKey, oauth.NewCacheImp())
+		asr := speech.NewBaiduASR(speechAuth)
+		tts := speech.NewBaiduTTS(speechAuth)
+		imgr := imgr.NewBaiduRecognizer(imgAuth)
 		s.speechdriving = speechdriving.NewSpeechDrivingImp(car, us100, sg90, led, cam, asr, tts, imgr)
 	}
 

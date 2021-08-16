@@ -7,9 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/shanghuiyang/imgr"
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/speech"
 )
 
 const (
@@ -42,24 +44,24 @@ type SpeechDrivingImp struct {
 	servo     dev.Motor
 	led       dev.Led
 	camera    dev.Camera
-	asr       ASR
-	tts       TTS
-	imgr      ImgRecognizer
+	asr       speech.ASR
+	tts       speech.TTS
+	imgr      imgr.Recognizer
 	lock      sync.Mutex
 	inDriving bool
 }
 
-func NewSpeechDrivingImp(c car.Car, d dev.DistanceMeter, servo dev.Motor, led dev.Led, cam dev.Camera, a ASR, t TTS, imr ImgRecognizer) *SpeechDrivingImp {
+func NewSpeechDrivingImp(car car.Car, dmeter dev.DistanceMeter, servo dev.Motor, led dev.Led, cam dev.Camera, asr speech.ASR, tts speech.TTS, imgr imgr.Recognizer) *SpeechDrivingImp {
 	servo.Roll(0)
 	return &SpeechDrivingImp{
-		car:       c,
-		dmeter:    d,
+		car:       car,
+		dmeter:    dmeter,
 		servo:     servo,
 		led:       led,
 		camera:    cam,
-		asr:       a,
-		tts:       t,
-		imgr:      imr,
+		asr:       asr,
+		tts:       tts,
+		imgr:      imgr,
 		inDriving: false,
 	}
 }
@@ -190,7 +192,12 @@ func (s *SpeechDrivingImp) detectSpeech(chOp chan operator, wg *sync.WaitGroup) 
 		go s.led.Off()
 		log.Printf("[%v]stop recording", logTag)
 
-		text, err := s.asr.ToText(wav)
+		wavData, err := ioutil.ReadFile(wav)
+		if err != nil {
+			log.Printf("[%v]failed to read %v, error: %v", logTag, wav, err)
+			continue
+		}
+		text, err := s.asr.ToText(wavData, speech.Wav)
 		if err != nil {
 			log.Printf("[%v]failed to recognize the speech, error: %v", logTag, err)
 			continue

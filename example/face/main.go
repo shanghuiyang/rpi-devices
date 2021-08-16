@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/face-recognizer/face"
-	"github.com/shanghuiyang/go-speech/oauth"
+	"github.com/shanghuiyang/face"
+	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
@@ -25,8 +25,8 @@ func main() {
 	}
 
 	var input string
-	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
-	f := face.New(auth)
+	auth := oauth.NewBaiduOauth(appKey, secretKey, oauth.NewCacheImp())
+	f := face.NewBaiduFace(auth, groupID)
 	for {
 		fmt.Printf(">>press Enter to go: ")
 		if _, err := fmt.Scanln(); err != nil {
@@ -41,7 +41,7 @@ func main() {
 			continue
 		}
 
-		users, err := f.Recognize(img, groupID)
+		users, err := f.Recognize(img)
 		if err != nil {
 			log.Printf("failed to recognize the image, error: %v", err)
 			continue

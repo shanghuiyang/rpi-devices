@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/shanghuiyang/face-recognizer/face"
-	"github.com/shanghuiyang/go-speech/oauth"
+	"github.com/shanghuiyang/face"
+	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio"
@@ -67,8 +67,8 @@ func main() {
 		return
 	}
 
-	auth := oauth.New(baiduFaceRecognitionAppKey, baiduFaceRecognitionSecretKey, oauth.NewCacheMan())
-	f := face.New(auth)
+	auth := oauth.NewBaiduOauth(baiduFaceRecognitionAppKey, baiduFaceRecognitionSecretKey, oauth.NewCacheImp())
+	f := face.NewBaiduFace(auth, groupID)
 
 	dog := newDoordog(cam, hcsr04, bzr, led, btn, f)
 	util.WaitQuit(func() {
@@ -84,19 +84,19 @@ type doordog struct {
 	buzzer   dev.Buzzer
 	led      dev.Led
 	button   dev.Button
-	face     *face.Face
+	face     face.Face
 	alerting bool
 	chAlert  chan bool
 }
 
-func newDoordog(cam dev.Camera, d dev.DistanceMeter, buzzer dev.Buzzer, led dev.Led, btn dev.Button, face *face.Face) *doordog {
+func newDoordog(cam dev.Camera, d dev.DistanceMeter, buzzer dev.Buzzer, led dev.Led, btn dev.Button, f face.Face) *doordog {
 	return &doordog{
 		cam:      cam,
 		dmeter:   d,
 		buzzer:   buzzer,
 		led:      led,
 		button:   btn,
-		face:     face,
+		face:     f,
 		alerting: false,
 		chAlert:  make(chan bool, 4),
 	}
@@ -177,33 +177,20 @@ func (d *doordog) alert() {
 	}
 }
 
-func (d *doordog) RecoginzeFace() (name string, err error) {
-	img, e := d.cam.Photo()
-	if e != nil {
-		log.Printf("[doordog]failed to take phote, error: %v", e)
-		name, err = "unknow", e
-		return
+func (d *doordog) RecoginzeFace() (string, error) {
+	img, err := d.cam.Photo()
+	if err != nil {
+		log.Printf("[doordog]failed to take phote, error: %v", err)
+		return "unknow", err
 	}
 
-	users, e := d.face.Recognize(img, groupID)
-	if e != nil {
-		log.Printf("[doordog]failed to recognize the image, error: %v", e)
-		name, err = "unknow", e
-		return
+	name, err := d.face.Recognize(img)
+	if err != nil {
+		log.Printf("[doordog]failed to recognize the image, error: %v", err)
+		return "unknow", err
 	}
 
-	if len(users) == 0 {
-		name, err = "unknow", nil
-		return
-	}
-
-	log.Printf("who: %v", *(users[0]))
-	if users[0].Score > 50 {
-		return users[0].UserID, nil
-	}
-
-	name, err = "unknow", nil
-	return
+	return name, nil
 }
 
 func (d *doordog) stopAlert() {

@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shanghuiyang/go-speech/oauth"
-	"github.com/shanghuiyang/go-speech/speech"
+	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/speech"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 )
 
 type ttsServer struct {
-	tts         *speech.TTS
+	tts         speech.TTS
 	pageContext []byte
 }
 
@@ -38,8 +38,8 @@ func main() {
 }
 
 func newTTSServer(appKey, secretKey string) *ttsServer {
-	auth := oauth.New(appKey, secretKey, oauth.NewCacheMan())
-	tts := speech.NewTTS(auth)
+	auth := oauth.NewBaiduOauth(appKey, secretKey, oauth.NewCacheImp())
+	tts := speech.NewBaiduTTS(auth)
 	return &ttsServer{
 		tts: tts,
 	}
