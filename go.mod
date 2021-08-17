@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hybridgroup/mjpeg v0.0.0-20140228234708-4680f319790e
 	github.com/mdp/monochromeoled v0.0.0-20171027213216-a0c6b5c996cf
-	github.com/shanghuiyang/a-star v0.0.0-20201223162018-808af3b29f1c
+	github.com/shanghuiyang/astar v0.0.0-20210817164024-507fb2d0e0a2
 	github.com/shanghuiyang/face v0.0.0-20210816164012-67ef07d49cd2
 	github.com/shanghuiyang/imgr v0.0.0-20210815164509-8b24f5e0104c
 	github.com/shanghuiyang/oauth v0.0.0-20210815163430-0403e002fe02

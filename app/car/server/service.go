@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/shanghuiyang/a-star/tilemap"
+	"github.com/shanghuiyang/astar/tilemap"
 	"github.com/shanghuiyang/imgr"
 	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/app/car/car"

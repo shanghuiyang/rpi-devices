@@ -29,8 +29,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/rs/zerolog v1.21.0/go.mod h1:ZPhntP/xmq1nnND05hhpAh2QMhSsA4UN3MGZ6O2J3hM=
-github.com/shanghuiyang/a-star v0.0.0-20201223162018-808af3b29f1c h1:MKYrQ+gfbiXeq805ZN+fO/z1m2XahF3dWeZpX6zuzEg=
-github.com/shanghuiyang/a-star v0.0.0-20201223162018-808af3b29f1c/go.mod h1:qghzON1OyXfbRbcvlnGs847CBCwT3LXdBlRAaNp/MEs=
+github.com/shanghuiyang/astar v0.0.0-20210817164024-507fb2d0e0a2 h1:c+nedIsWZO+NmXCuDbPYm2vKfBa8d7XlraQ5vkcmKXA=
+github.com/shanghuiyang/astar v0.0.0-20210817164024-507fb2d0e0a2/go.mod h1:b5leq+sRAkLCfpZwS5bPgu06A44+MOWwJrIianCJzDg=
 github.com/shanghuiyang/face v0.0.0-20210816164012-67ef07d49cd2 h1:537055SmHPSoz4QE3b3FPGmCQRwA/+StJH+vp57qrLc=
 github.com/shanghuiyang/face v0.0.0-20210816164012-67ef07d49cd2/go.mod h1:Rr1AwMyB9wxJDfLkIGhzejXst/uhnnOIwn0rvN94MVs=
 github.com/shanghuiyang/imgr v0.0.0-20210815164509-8b24f5e0104c h1:FRshaUXtA9mp4b+bk/Cay8pz7bUs5GCa+gHlUVMDJYM=

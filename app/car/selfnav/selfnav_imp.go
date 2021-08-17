@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/shanghuiyang/a-star/astar"
-	"github.com/shanghuiyang/a-star/tilemap"
+	"github.com/shanghuiyang/astar"
+	"github.com/shanghuiyang/astar/tilemap"
 	"github.com/shanghuiyang/rpi-devices/app/car/car"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
