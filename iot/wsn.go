@@ -9,26 +9,22 @@ import (
 	"github.com/shanghuiyang/rpi-devices/util"
 )
 
-const (
-	logTagWsn = "wsn"
-)
-
-// WsnCloud is the implement of Cloud
-type WsnCloud struct {
+// Wsn is the implement of Cloud
+type Wsn struct {
 	token string
 	api   string
 }
 
-// NewWsnClound ...
-func NewWsnClound(cfg *WsnConfig) *WsnCloud {
-	return &WsnCloud{
+// NewWsn ...
+func NewWsn(cfg *Config) *Wsn {
+	return &Wsn{
 		token: cfg.Token,
 		api:   cfg.API,
 	}
 }
 
 // Push ...
-func (w *WsnCloud) Push(v *Value) error {
+func (w *Wsn) Push(v *Value) error {
 	var formData url.Values
 	api := w.api
 	if v.Device == "gps" {

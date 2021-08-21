@@ -14,12 +14,17 @@ const (
 	memoryInterval = 10 * time.Minute
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 func main() {
-	onenetCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(onenetCfg)
+	cloud := iot.NewOnenet(cfg)
 	if cloud == nil {
 		log.Printf("[memmonitor]failed to new OneNet iot cloud")
 		return

@@ -14,18 +14,23 @@ const (
 	cpuInterval = 5 * time.Minute
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 func main() {
-	onenetCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(onenetCfg)
-	if cloud == nil {
+	onenet := iot.NewOnenet(cfg)
+	if onenet == nil {
 		log.Printf("cpumonitor]failed to new OneNet iot cloud")
 		return
 	}
 	monitor := &cpuMonitor{
-		cloud: cloud,
+		cloud: onenet,
 	}
 	monitor.start()
 }

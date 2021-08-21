@@ -34,6 +34,11 @@ const (
 	alertCH2O = float64(0.08)
 )
 
+const (
+	wsnToken        = "your_wsn_token"
+	wsnNumericalAPI = "http://www.wsncloud.com/api/data/v1/numerical/insert"
+)
+
 func main() {
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("[ch2omonitor]failed to open rpio, error: %v", err)
@@ -46,13 +51,13 @@ func main() {
 	bzr := dev.NewBuzzerImp(pinBzr, true)
 	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
-	wsnCfg := &iot.WsnConfig{
-		Token: iot.WsnToken,
-		API:   iot.WsnNumericalAPI,
+	cfg := &iot.Config{
+		Token: wsnToken,
+		API:   wsnNumericalAPI,
 	}
-	cloud := iot.NewCloud(wsnCfg)
+	wsn := iot.NewWsn(cfg)
 
-	m := newCH2OMonitor(ze08, led, bzr, dsp, cloud)
+	m := newCH2OMonitor(ze08, led, bzr, dsp, wsn)
 	util.WaitQuit(func() {
 		m.stop()
 		rpio.Close()

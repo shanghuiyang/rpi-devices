@@ -14,12 +14,17 @@ const (
 	maxRetry = 10
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 func main() {
-	oneCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	oneCfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(oneCfg)
+	cloud := iot.NewOnenet(oneCfg)
 	if cloud == nil {
 		log.Printf("[ip]failed to new OneNet iot cloud")
 		return

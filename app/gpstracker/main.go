@@ -9,6 +9,11 @@ import (
 	"github.com/shanghuiyang/rpi-devices/util"
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 func main() {
 	gps := dev.NewNeo6mGPS("/dev/ttyAMA0", 9600)
 	// gps := dev.NewGPSSimulator("./dev/test/gps.csv")
@@ -21,11 +26,11 @@ func main() {
 		log.Printf("[gpstracker]failed to new a tracker")
 		return
 	}
-	oneNetCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(oneNetCfg)
+	cloud := iot.NewOnenet(cfg)
 	if cloud == nil {
 		log.Printf("[gpstracker]failed to new OneNet iot cloud")
 		return

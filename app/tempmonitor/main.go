@@ -19,6 +19,11 @@ const (
 	intervalTime           = 1 * time.Minute
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 func main() {
 	if err := rpio.Open(); err != nil {
 		log.Fatalf("[tempmonitor]failed to open rpio, error: %v", err)
@@ -37,11 +42,11 @@ func main() {
 		return
 	}
 
-	oneNetCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(oneNetCfg)
+	cloud := iot.NewOnenet(cfg)
 	if cloud == nil {
 		log.Printf("[tempmonitor]failed to new OneNet iot cloud")
 		return
@@ -103,5 +108,4 @@ func (m *tempMonitor) notitfy(temperatue float32) {
 	if err := cmd.Run(); err != nil {
 		log.Printf("[tempmonitor]failed to send email")
 	}
-	return
 }

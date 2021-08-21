@@ -7,47 +7,40 @@ import (
 	"time"
 )
 
-const (
-	logTagOneNet = "onenet"
-)
-
-// OneNetCloud is the implement of Cloud
-type OneNetCloud struct {
+// Onenet is the implement of Cloud
+type Onenet struct {
 	token string
 	api   string
 }
 
-// OneNetData ...
-type OneNetData struct {
-	Datastreams []*Datastream `json:"datastreams"`
+type onenetData struct {
+	OnenetStreams []*onenetStream `json:"datastreams"`
 }
 
-// Datastream ...
-type Datastream struct {
+type onenetStream struct {
 	ID         string       `json:"id"`
-	Datapoints []*Datapoint `json:"datapoints"`
+	Datapoints []*datapoint `json:"datapoints"`
 }
 
-// Datapoint ...
-type Datapoint struct {
+type datapoint struct {
 	Value interface{} `json:"value"`
 }
 
-// NewOneNetCloud ...
-func NewOneNetCloud(cfg *OneNetConfig) *OneNetCloud {
-	return &OneNetCloud{
+// NewOnenet ...
+func NewOnenet(cfg *Config) *Onenet {
+	return &Onenet{
 		token: cfg.Token,
 		api:   cfg.API,
 	}
 }
 
 // Push ...
-func (o *OneNetCloud) Push(v *Value) error {
-	datapoint := OneNetData{
-		Datastreams: []*Datastream{
+func (o *Onenet) Push(v *Value) error {
+	datapoint := onenetData{
+		OnenetStreams: []*onenetStream{
 			{
 				ID: v.Device,
-				Datapoints: []*Datapoint{
+				Datapoints: []*datapoint{
 					{
 						Value: v.Value,
 					},
@@ -61,6 +54,9 @@ func (o *OneNetCloud) Push(v *Value) error {
 	}
 
 	req, err := http.NewRequest("POST", o.api, bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
 	req.Header.Set("api-key", o.token)
 	req.Header.Set("Content-Type", "application/json")
 

@@ -11,12 +11,17 @@ const (
 	heartBeatInterval = 1 * time.Minute
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 func main() {
-	oneNetCfg := &iot.WsnConfig{
-		Token: iot.WsnToken,
-		API:   iot.WsnNumericalAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(oneNetCfg)
+	cloud := iot.NewOnenet(cfg)
 	if cloud == nil {
 		log.Printf("[heartbeat]failed to new OneNet iot cloud")
 		return

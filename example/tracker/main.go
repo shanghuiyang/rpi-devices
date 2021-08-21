@@ -35,7 +35,7 @@ const (
 	host = "0.0.0.0:8088"
 )
 
-var eng *dev.L298N
+var eng dev.MotorDriver
 
 func main() {
 	if err := rpio.Open(); err != nil {
@@ -86,7 +86,7 @@ func main() {
 		if ok {
 			gocv.Rectangle(&img, *rect, rcolor, 2)
 		}
-		streamer.SetImage(&img)
+		streamer.Push(&img)
 
 		if !ok {
 			continue

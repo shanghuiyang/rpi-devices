@@ -20,6 +20,11 @@ const (
 	sclkPin = 11
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 type data struct {
 	name  string
 	text  string
@@ -53,13 +58,13 @@ func main() {
 
 	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
-	onenetCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(onenetCfg)
+	onenet := iot.NewOnenet(cfg)
 
-	asst := newHomeAsst(dsp, cloud)
+	asst := newHomeAsst(dsp, onenet)
 	util.WaitQuit(func() {
 		asst.stop()
 		rpio.Close()

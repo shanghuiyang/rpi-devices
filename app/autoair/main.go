@@ -27,6 +27,11 @@ const (
 	trigOffPm25 = 100
 )
 
+const (
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+)
+
 var (
 	autoair  *autoAir
 	bool2int = map[bool]int{
@@ -41,7 +46,7 @@ type pm25Response struct {
 }
 
 type autoAir struct {
-	sg      *dev.SG90
+	serov   dev.Motor
 	cloud   iot.Cloud
 	state   bool        // true: turn on, false: turn off
 	chClean chan uint16 // for turning on/off the air-cleaner
@@ -56,11 +61,11 @@ func main() {
 	defer rpio.Close()
 
 	sg := dev.NewSG90(pinSG)
-	onenetCfg := &iot.OneNetConfig{
-		Token: iot.OneNetToken,
-		API:   iot.OneNetAPI,
+	cfg := &iot.Config{
+		Token: onenetToken,
+		API:   onenetAPI,
 	}
-	cloud := iot.NewCloud(onenetCfg)
+	cloud := iot.NewOnenet(cfg)
 
 	autoair = newAutoAir(sg, cloud)
 	util.WaitQuit(func() {
@@ -70,9 +75,9 @@ func main() {
 	autoair.start()
 }
 
-func newAutoAir(sg *dev.SG90, cloud iot.Cloud) *autoAir {
+func newAutoAir(serov dev.Motor, cloud iot.Cloud) *autoAir {
 	return &autoAir{
-		sg:      sg,
+		serov:   serov,
 		cloud:   cloud,
 		state:   false,
 		chClean: make(chan uint16, 4),
@@ -82,7 +87,7 @@ func newAutoAir(sg *dev.SG90, cloud iot.Cloud) *autoAir {
 
 func (a *autoAir) start() {
 	log.Printf("[autoair]service starting")
-	go a.sg.Roll(45)
+	go a.serov.Roll(45)
 	go a.clean()
 	go a.push()
 	a.detect()
@@ -168,19 +173,19 @@ func (a *autoAir) getPM25() (uint16, error) {
 }
 
 func (a *autoAir) on() {
-	a.sg.Roll(0)
+	a.serov.Roll(0)
 	time.Sleep(1 * time.Second)
-	a.sg.Roll(-45)
+	a.serov.Roll(-45)
 	a.state = true
 }
 
 func (a *autoAir) off() {
-	a.sg.Roll(0)
+	a.serov.Roll(0)
 	time.Sleep(1 * time.Second)
-	a.sg.Roll(45)
+	a.serov.Roll(45)
 	a.state = false
 }
 
 func (a *autoAir) stop() {
-	a.sg.Roll(45)
+	a.serov.Roll(45)
 }

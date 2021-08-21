@@ -37,6 +37,11 @@ const (
 	datetimeFormat  = "2006-01-02 15:04:05"
 )
 
+const (
+	wsnToken        = "your_wsn_token"
+	wsnNumericalAPI = "http://www.wsncloud.com/api/data/v1/numerical/insert"
+)
+
 var (
 	alight      *autoLight
 	pageContext []byte
@@ -66,13 +71,13 @@ func main() {
 		return
 	}
 
-	wsnCfg := &iot.WsnConfig{
-		Token: iot.WsnToken,
-		API:   iot.WsnNumericalAPI,
+	cfg := &iot.Config{
+		Token: wsnToken,
+		API:   wsnNumericalAPI,
 	}
-	cloud := iot.NewCloud(wsnCfg)
+	wsn := iot.NewWsn(cfg)
 
-	alight = newAutoLight(dist, light, led, cloud)
+	alight = newAutoLight(dist, light, led, wsn)
 	util.WaitQuit(func() {
 		alight.off()
 		rpio.Close()
@@ -122,12 +127,12 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		s := string(line)
 		switch {
-		case strings.Index(s, ipPattern) >= 0:
+		case strings.Contains(s, ipPattern):
 			s = strings.Replace(s, ipPattern, ip, 1)
-		case strings.Index(s, datetimePattern) >= 0:
+		case strings.Contains(s, datetimePattern):
 			datetime := time.Now().Format(datetimeFormat)
 			s = strings.Replace(s, datetimePattern, datetime, 1)
-		case strings.Index(s, statePattern) >= 0:
+		case strings.Contains(s, statePattern):
 			state := "unchecked"
 			if alight.state {
 				state = "checked"
