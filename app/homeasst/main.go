@@ -11,7 +11,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -50,12 +49,6 @@ type homeAsst struct {
 }
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[homeasst]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
 
 	cfg := &iot.Config{
@@ -67,7 +60,6 @@ func main() {
 	asst := newHomeAsst(dsp, onenet)
 	util.WaitQuit(func() {
 		asst.stop()
-		rpio.Close()
 	})
 	asst.start()
 }

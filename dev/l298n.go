@@ -64,7 +64,6 @@ func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l.enb.Pwm()
 	l.ena.Freq(50 * 100)
 	l.enb.Freq(50 * 100)
-	l.SetSpeed(30)
 	return l
 }
 

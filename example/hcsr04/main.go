@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -15,12 +14,6 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	hcsr04 := dev.NewHCSR04(pinTrig, pinEcho)
 	for {
 		d, err := hcsr04.Dist()

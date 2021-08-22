@@ -11,8 +11,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 	"gocv.io/x/gocv"
 )
 
@@ -38,12 +36,6 @@ const (
 var eng dev.MotorDriver
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[tracking]failed to open rpio, error: %v", err)
-		os.Exit(1)
-	}
-	defer rpio.Close()
-
 	eng = dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
 		log.Fatal("[tracking]failed to new a L298N as engine, a car can't without any engine")
@@ -72,9 +64,6 @@ func main() {
 	defer img.Close()
 
 	rcolor := color.RGBA{G: 255, A: 255}
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
 	for {
 		cam.Grab(10)
 		if !cam.Read(&img) {

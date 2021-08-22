@@ -55,7 +55,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -66,12 +65,6 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[autofan]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	ds18b20 := dev.NewDS18B20()
 	if ds18b20 == nil {
 		log.Printf("[autofan]failed to new ds18b20 sensor")
@@ -90,7 +83,6 @@ func main() {
 	}
 	util.WaitQuit(func() {
 		f.off()
-		rpio.Close()
 	})
 	f.start()
 }

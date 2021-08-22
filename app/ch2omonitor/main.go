@@ -19,7 +19,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -40,12 +39,6 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[ch2omonitor]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	ze08 := dev.NewZE08CH2O()
 	led := dev.NewLedImp(pinLed)
 	bzr := dev.NewBuzzerImp(pinBzr, true)
@@ -60,7 +53,6 @@ func main() {
 	m := newCH2OMonitor(ze08, led, bzr, dsp, wsn)
 	util.WaitQuit(func() {
 		m.stop()
-		rpio.Close()
 	})
 	m.start()
 }

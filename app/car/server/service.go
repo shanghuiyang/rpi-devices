@@ -18,7 +18,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/shanghuiyang/speech"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -40,10 +39,6 @@ const (
 type Op string
 
 func init() {
-	if err := rpio.Open(); err != nil {
-		log.Panicf("failed to open rpio, error: %v", err)
-	}
-
 	var err error
 	pageContext, err = ioutil.ReadFile("home.html")
 	if err != nil {
@@ -211,7 +206,6 @@ func (s *service) Shutdown() error {
 	close(s.chOp)
 	s.car.Stop()
 	s.led.Off()
-	rpio.Close()
 	return nil
 }
 

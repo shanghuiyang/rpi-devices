@@ -6,7 +6,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -21,10 +20,6 @@ const (
 	butonBchannel = 2
 	butonCchannel = 1
 	butonDchannel = 0
-
-	// use this rpio as 3.3v pin
-	// if all 3.3v pins were used
-	pin33v = 5
 )
 
 var light *rlight
@@ -35,16 +30,6 @@ type rlight struct {
 }
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[rlight]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
-	p33v := rpio.Pin(pin33v)
-	p33v.Output()
-	p33v.High()
-
 	led := dev.NewLedImp(ledPin)
 	light = &rlight{
 		led:   led,
@@ -54,7 +39,6 @@ func main() {
 
 	util.WaitQuit(func() {
 		led.Off()
-		rpio.Close()
 	})
 
 	for {

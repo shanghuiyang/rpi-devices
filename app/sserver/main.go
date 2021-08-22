@@ -12,8 +12,6 @@ import (
 	"os"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -41,12 +39,6 @@ type pm25Response struct {
 }
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[sensors]failed to open rpio, error: %v", err)
-		os.Exit(1)
-	}
-	defer rpio.Close()
-
 	d := dev.NewDS18B20()
 	if d == nil {
 		log.Printf("[sensors]failed to new DS18B20")
@@ -68,9 +60,6 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
 	if err := s.start(); err != nil {
 		log.Printf("[sensors]failed to start sserver, error: %v", err)
 		os.Exit(1)

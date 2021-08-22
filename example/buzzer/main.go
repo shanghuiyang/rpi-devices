@@ -5,8 +5,6 @@ import (
 	"log"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -14,16 +12,8 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
 
 	buz := dev.NewBuzzerImp(pin, true)
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
 
 	var op string
 	for {

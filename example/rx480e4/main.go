@@ -6,7 +6,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -24,17 +23,10 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	r := dev.NewRX480E4(d0, d1, d2, d3)
 	led := dev.NewLedImp(ledPin)
 	util.WaitQuit(func() {
 		led.Off()
-		rpio.Close()
 	})
 
 	ledOn := false
@@ -45,7 +37,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.Received(channelButonA) == true {
+			if r.Received(channelButonA) {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue
@@ -56,7 +48,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.Received(channelButonB) == true {
+			if r.Received(channelButonB) {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue
@@ -67,7 +59,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.Received(channelButonC) == true {
+			if r.Received(channelButonC) {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue
@@ -78,7 +70,7 @@ func main() {
 
 	go func(ch chan bool) {
 		for {
-			if r.Received(channelButonD) == true {
+			if r.Received(channelButonD) {
 				ch <- true
 				time.Sleep(1 * time.Second)
 				continue

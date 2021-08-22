@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -16,12 +15,6 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	pins := []uint8{ch1pin, ch2pin}
 	r := dev.NewRelayImp(pins)
 	var op string

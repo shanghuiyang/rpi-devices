@@ -8,8 +8,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -25,12 +23,6 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[tempmonitor]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	ds18b20 := dev.NewDS18B20()
 	if ds18b20 == nil {
 		log.Printf("[tempmonitor]failed to new temperature sensor")
@@ -57,11 +49,6 @@ func main() {
 		cloud:       cloud,
 		led:         led,
 	}
-
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
-
 	monitor.start()
 }
 

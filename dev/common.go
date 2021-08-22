@@ -14,13 +14,3 @@ const (
 	// TTLMode ...
 	TTLMode
 )
-
-// US100Config ...
-type US100Config struct {
-	Mode  ComMode
-	Trig  int8
-	Echo  int8
-	Dev   string
-	Baud  int
-	Retry int
-}

@@ -12,8 +12,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 type state string
@@ -33,21 +31,11 @@ var (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[autoairout]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	sw420 := dev.NewSW420(sw420Pin)
 	if sw420 == nil {
 		log.Printf("[autoairout]failed to new a sw420 sensor")
 		return
 	}
-
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
 
 	for {
 		shaked := isKeepShaking(sw420)

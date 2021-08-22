@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/stianeikeland/go-rpio"
 )
 
 func main() {
@@ -24,12 +23,6 @@ func main() {
 
 	// ttl mode
 	if mode == 1 {
-		if err := rpio.Open(); err != nil {
-			log.Fatalf("failed to open rpio, error: %v", err)
-			return
-		}
-		defer rpio.Close()
-
 		u := dev.NewUS100(&dev.US100Config{
 			Mode: dev.TTLMode,
 			Trig: 21,

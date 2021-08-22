@@ -47,6 +47,16 @@ var (
 	trigData = []byte{0x55}
 )
 
+// US100Config ...
+type US100Config struct {
+	Mode  ComMode
+	Trig  int8
+	Echo  int8
+	Dev   string
+	Baud  int
+	Retry int
+}
+
 // US100 ...
 type US100 struct {
 	mode ComMode

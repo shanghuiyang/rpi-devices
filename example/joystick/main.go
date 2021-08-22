@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -14,20 +12,11 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	j, err := dev.NewJoystickImp(swPin)
 	if err != nil {
 		log.Printf("failed to new joystick")
 		return
 	}
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
 
 	for {
 		x := j.X()

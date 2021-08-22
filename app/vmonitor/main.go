@@ -14,7 +14,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -47,9 +46,8 @@ const (
 type mode string
 
 var (
-	normalMode  mode = "normal"
-	babyMode    mode = "bady"
-	unknownMode mode = "unknown"
+	normalMode mode = "normal"
+	babyMode   mode = "bady"
 )
 
 var (
@@ -60,12 +58,6 @@ var (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[vmonitor]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	hServo := dev.NewSG90(pinSGH)
 	if hServo == nil {
 		log.Printf("[vmonitor]failed to new a sg90")
@@ -101,7 +93,6 @@ func main() {
 
 	util.WaitQuit(func() {
 		server.stop()
-		rpio.Close()
 	})
 
 	log.Printf("[vmonitor]video server started")
@@ -190,10 +181,7 @@ func (v *videoServer) loadHomePage() error {
 			if err == io.EOF {
 				break
 			}
-			s := string(line)
-			if strings.Index(s, ipPattern) >= 0 {
-				s = strings.Replace(s, ipPattern, ip, 1)
-			}
+			s := strings.Replace(string(line), ipPattern, ip, 1)
 			wbuf.Write([]byte(s))
 		}
 		v.pageContext = wbuf.Bytes()

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -23,12 +21,6 @@ const (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	l, err := dev.NewLC12S(devName, baud, csPin)
 	if err != nil {
 		log.Fatalf("failed to new LC12S, error: %v", err)
@@ -41,10 +33,6 @@ func main() {
 		log.Printf("failed to new joystick")
 		return
 	}
-
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
 
 	l.Wakeup()
 

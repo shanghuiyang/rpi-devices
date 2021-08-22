@@ -12,7 +12,6 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -29,12 +28,6 @@ var (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[autoairout]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	sg := dev.NewSG90(pinSG)
 	if sg == nil {
 		log.Printf("[autoairout]failed to new a sg90, will build a car without servo")
@@ -42,11 +35,6 @@ func main() {
 	fan = newAuotFan(sg)
 
 	log.Printf("[autoairout]fan server started")
-
-	util.WaitQuit(func() {
-		rpio.Close()
-	})
-
 	http.HandleFunc("/", fanServer)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
@@ -103,12 +91,12 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		s := string(line)
 		switch {
-		case strings.Index(s, ipPattern) >= 0:
+		case strings.Contains(s, ipPattern):
 			s = strings.Replace(s, ipPattern, ip, 1)
-		case strings.Index(s, datetimePattern) >= 0:
+		case strings.Contains(s, datetimePattern):
 			datetime := time.Now().Format(datetimeFormat)
 			s = strings.Replace(s, datetimePattern, datetime, 1)
-		case strings.Index(s, statePattern) >= 0:
+		case strings.Contains(s, statePattern):
 			state := "unchecked"
 			if fan.state == "on" {
 				state = "checked"

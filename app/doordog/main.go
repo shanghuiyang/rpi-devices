@@ -15,7 +15,6 @@ import (
 	"github.com/shanghuiyang/oauth"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -51,12 +50,6 @@ var (
 )
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[doordog]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	cam := dev.NewMotionCamera()
 	bzr := dev.NewBuzzerImp(pinBzr, true)
 	led := dev.NewLedImp(pinLed)
@@ -73,7 +66,6 @@ func main() {
 	dog := newDoordog(cam, hcsr04, bzr, led, btn, f)
 	util.WaitQuit(func() {
 		dog.stop()
-		rpio.Close()
 	})
 	dog.start()
 }
@@ -169,7 +161,7 @@ func (d *doordog) alert() {
 			trigTime = time.Now()
 			continue
 		}
-		timeout := time.Now().Sub(trigTime).Seconds() > alertTime
+		timeout := time.Since(trigTime).Seconds() > alertTime
 		if timeout && d.alerting {
 			log.Printf("[doordog]timeout, stop alert")
 			d.alerting = false

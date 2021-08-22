@@ -15,7 +15,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -54,12 +53,6 @@ type autoAir struct {
 }
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[autoair]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	sg := dev.NewSG90(pinSG)
 	cfg := &iot.Config{
 		Token: onenetToken,
@@ -70,7 +63,6 @@ func main() {
 	autoair = newAutoAir(sg, cloud)
 	util.WaitQuit(func() {
 		autoair.stop()
-		rpio.Close()
 	})
 	autoair.start()
 }

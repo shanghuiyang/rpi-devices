@@ -20,7 +20,6 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
 )
 
 const (
@@ -53,12 +52,6 @@ var bool2int = map[bool]int{
 }
 
 func main() {
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("[autolight]failed to open rpio, error: %v", err)
-		return
-	}
-	defer rpio.Close()
-
 	led := dev.NewLedImp(pinLed)
 	light := dev.NewLedImp(pinLight)
 	if light == nil {
@@ -80,7 +73,6 @@ func main() {
 	alight = newAutoLight(dist, light, led, wsn)
 	util.WaitQuit(func() {
 		alight.off()
-		rpio.Close()
 	})
 	alight.start()
 
