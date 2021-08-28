@@ -110,7 +110,7 @@ type MotorDriver interface {
 
 // RFReciver is the interface of radio-frequency receiver
 type RFReceiver interface {
-	Received(ch int)
+	Received(ch int) bool
 }
 
 // Relay ...

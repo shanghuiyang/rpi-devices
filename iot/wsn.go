@@ -55,3 +55,8 @@ func (w *Wsn) Push(v *Value) error {
 	defer resp.Body.Close()
 	return nil
 }
+
+// Get ...
+func (w *Wsn) Get(params map[string]interface{}) ([]byte, error) {
+	return nil, fmt.Errorf("not implement")
+}

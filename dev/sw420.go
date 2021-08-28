@@ -10,7 +10,7 @@ Connect to Pi:
 package dev
 
 import (
-	"github.com/stianeikeland/go-rpio"
+	"github.com/stianeikeland/go-rpio/v4"
 )
 
 // SW420 implements Detector interface

@@ -29,7 +29,7 @@ Pins:
 package dev
 
 import (
-	"github.com/stianeikeland/go-rpio"
+	"github.com/stianeikeland/go-rpio/v4"
 )
 
 // L298N implements MotorDriver interface

@@ -10,7 +10,7 @@ package dev
 
 import (
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio"
+	"github.com/stianeikeland/go-rpio/v4"
 )
 
 // SG90 implements Servo interface

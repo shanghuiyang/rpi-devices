@@ -5,7 +5,7 @@ HumidityDetector is a sensor used to deteched the humidity.
 package dev
 
 import (
-	"github.com/stianeikeland/go-rpio"
+	"github.com/stianeikeland/go-rpio/v4"
 )
 
 // HumidityDetector implements Detector interface

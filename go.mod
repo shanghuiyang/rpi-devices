@@ -12,7 +12,7 @@ require (
 	github.com/shanghuiyang/imgr v0.0.0-20210815164509-8b24f5e0104c
 	github.com/shanghuiyang/oauth v0.0.0-20210815163430-0403e002fe02
 	github.com/shanghuiyang/speech v0.0.0-20210816160130-8d24c10c5f98
-	github.com/stianeikeland/go-rpio v4.2.0+incompatible
+	github.com/stianeikeland/go-rpio/v4 v4.5.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 	gocv.io/x/gocv v0.23.0

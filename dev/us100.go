@@ -34,7 +34,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/stianeikeland/go-rpio"
+	"github.com/stianeikeland/go-rpio/v4"
 	"github.com/tarm/serial"
 )
 

@@ -40,8 +40,8 @@ github.com/shanghuiyang/oauth v0.0.0-20210815163430-0403e002fe02/go.mod h1:vKO1H
 github.com/shanghuiyang/speech v0.0.0-20210816160130-8d24c10c5f98 h1:Jl+AGI8xDcQKj2yYQRvmTHp4bD9FFYQmrUvHDlylx9o=
 github.com/shanghuiyang/speech v0.0.0-20210816160130-8d24c10c5f98/go.mod h1:/LV7HAkvY+T2brRLydPOSz+LhomUR4rijSAfIhJBlJ4=
 github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
-github.com/stianeikeland/go-rpio v4.2.0+incompatible h1:CUOlIxdJdT+H1obJPsmg8byu7jMSECLfAN9zynm5QGo=
-github.com/stianeikeland/go-rpio v4.2.0+incompatible/go.mod h1:Sh81rdJwD96E2wja2Gd7rrKM+XZ9LrwvN2w4IXrqLR8=
+github.com/stianeikeland/go-rpio/v4 v4.5.0 h1:9jkc3cQor8gd40GeXVfcWI4mlZTTyXG6yROZCpKdV0c=
+github.com/stianeikeland/go-rpio/v4 v4.5.0/go.mod h1:A3GvHxC1Om5zaId+HqB3HKqx4K/AqeckxB7qRjxMK7o=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
