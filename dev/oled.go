@@ -111,7 +111,7 @@ func (o *OLED) Off() {
 
 func (o *OLED) drawText(text string, size float64, x, y int) (image.Image, error) {
 	dst := image.NewRGBA(image.Rect(0, 0, o.width, o.height))
-	draw.Draw(dst, dst.Bounds(), image.Transparent, image.ZP, draw.Src)
+	draw.Draw(dst, dst.Bounds(), image.Transparent, image.Point{}, draw.Src)
 
 	c := freetype.NewContext()
 	c.SetDst(dst)

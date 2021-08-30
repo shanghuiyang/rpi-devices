@@ -13,10 +13,6 @@ import (
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
-const (
-	logTagLed = "led"
-)
-
 // LedImp implements Led interface
 type LedImp struct {
 	pin rpio.Pin

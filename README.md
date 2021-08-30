@@ -1,7 +1,7 @@
 ![](img/go-devices.png)
 
 ## rpi-devices 
-[![Build Status](https://travis-ci.org/shanghuiyang/rpi-devices.svg?branch=master)](https://travis-ci.org/shanghuiyang/rpi-devices)
+[![Build Status](https://app.travis-ci.com/shanghuiyang/rpi-devices.svg?branch=master)](https://app.travis-ci.com/shanghuiyang/rpi-devices)
 
 rpi-devices implements the drivers of devices or sensors for raspberry pi in pure golang. The drivers for the sensors below have been implemented, and I will keep developing for new sensors.
 
