@@ -1,11 +1,11 @@
 ![](img/go-devices.png)
 
-## rpi-devices 
+# rpi-devices 
 [![Build Status](https://app.travis-ci.com/shanghuiyang/rpi-devices.svg?branch=master)](https://app.travis-ci.com/shanghuiyang/rpi-devices)
 
 rpi-devices drives sensors using raspberry pi in pure golang. 
 
-### Usage
+## Usage
 ```go
 package main
 
@@ -28,7 +28,7 @@ func main() {
 }
 ```
 
-### Currently Implemented Drivers
+## Currently Implemented Drivers
 
 |Sensors|Image|Description|Example|App|
 |-------|-----|-----|-------|---|
@@ -62,7 +62,7 @@ func main() {
 |ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch2o/main.go)|[ch2o-monitor](/app/ch2omonitor)|
 
 
-### Compile & Deploy
+## Compile & Deploy
 
 It is very easy to cross-compile and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
 ```shell
@@ -108,18 +108,18 @@ $ ./led
 $ nohub ./led > test.log 2>&1 &
 ```
 
-### App
+## App
 Using the driver programs, I built several applications. The most complex app is the [smart car](/app/car), more than 10 sensers were used to build the car. I highlight few funny apps here, please go to [app](/app) for all apps I developed. You can learn how to use the drivers from my apps.
-#### [Self-Dirving Car](/app/car)
+### [Self-Dirving Car](/app/car)
 play the video on [youtube](https://www.youtube.com/watch?v=RNqe4byzXmw).
 
 <img src="img/car.gif" width=80% height=80% />
 
-#### [Video Monitor](/app/vmonitor)
+### [Video Monitor](/app/vmonitor)
 <img src="img/vmonitor.gif" width=80% height=80% />
 
-#### [Auto-Air](/app/autoair)
+### [Auto-Air](/app/autoair)
 <img src="img/auto-air.gif" width=80% height=80% />
 
-#### [Auto-Light](/app/autolight)
+### [Auto-Light](/app/autolight)
 <img src="img/auto-light.gif" width=80% height=80% />
