@@ -5,7 +5,7 @@
 
 rpi-devices drives sensors using raspberry pi in pure golang. 
 
-## usage
+### Usage
 ```go
 package main
 
@@ -28,8 +28,7 @@ func main() {
 }
 ```
 
-The drivers for the sensors below have been implemented, and I will keep developing for new sensors.
-
+### Currently Implemented Drivers
 
 |Sensors|Image|Description|Example|App|
 |-------|-----|-----|-------|---|
