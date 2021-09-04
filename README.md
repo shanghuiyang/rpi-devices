@@ -3,7 +3,32 @@
 ## rpi-devices 
 [![Build Status](https://app.travis-ci.com/shanghuiyang/rpi-devices.svg?branch=master)](https://app.travis-ci.com/shanghuiyang/rpi-devices)
 
-rpi-devices implements the drivers of devices or sensors for raspberry pi in pure golang. The drivers for the sensors below have been implemented, and I will keep developing for new sensors.
+rpi-devices drives sensors using raspberry pi in pure golang. 
+
+## usage
+```go
+package main
+
+import (
+	"time"
+
+	"github.com/shanghuiyang/rpi-devices/dev"
+)
+
+const (
+	pin = 26
+)
+
+func main() {
+	led := dev.NewLedImp(pin)
+
+	led.On()
+	time.Sleep(3 * time.Second)
+	led.Off()
+}
+```
+
+The drivers for the sensors below have been implemented, and I will keep developing for new sensors.
 
 
 |Sensors|Image|Description|Example|App|
@@ -11,14 +36,14 @@ rpi-devices implements the drivers of devices or sensors for raspberry pi in pur
 |ADS1015|![](img/ads1015.jpg)|Analog-to-digital converter|N/A|[joystick](/app/joystick)|
 |Button|![](img/button.jpg)|Button module|[example](/example/button/main.go)|[vedio-monitor](/app/vmonitor)|
 |Buzzer|![](img/buzzer.jpg)|Buzzer module|N/A|[car](/app/car), [door-dog](/app/doordog)|
-|Collision Switch|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collision/main.go)|[car](/app/car)|
+|Collision Detector|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collision_detector/main.go)|[car](/app/car)|
 |DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/main.go)|[home-asst](/app/homeasst)|
 |DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/main.go)|[auto-fan](/app/autofan)|
-|Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/main.go)|[car](/app/car)|
+|Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/main.go)|N/A|
 |GPS|![](img/gps.jpg)|location sensor|[example](/example/gps/main.go)|[gps-tracker](/app/gpstracker)|
 |GY-25|![](img/gy25.jpg)|angle sensor|[example](/example/gy25/main.go)|[car](/app/car)|
 |HC-SR04|![](img/hc-sr04.jpg)|ultrasonic distance meter|[example](/example/hcsr04/main.go)|[auto-light](/app/autolight), [doordog](/app/doordog)|
-|Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/infrared/main.go)|N/A|
+|Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/ir_detector/main.go)|N/A|
 |Joystick|![](img/joystick.jpg)|XY Dual Axis Joystick|[example](/example/joystick/main.go)|[car](/app/car)|
 |L298N|![](img/l298n.jpg)|motor driver|N/A|[car](/app/car)|
 |LC12S|![](img/lc12s.jpg)|2.4g wireless module|[example](/example/lc12s/main.go)|[car](/app/car)|
@@ -42,7 +67,7 @@ rpi-devices implements the drivers of devices or sensors for raspberry pi in pur
 
 It is very easy to cross-compile and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
 ```shell
-$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o test main.go
+$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o led example/led/main.go
 ````
 
 If you aren't sure the cpu info of your raspberry pi, check it out by,
@@ -70,7 +95,7 @@ $ lscpu
 
 And then, deploy the binary to your raspberry pi by,
 ```shell
-$ scp test pi@192.168.31.57:/home/pi
+$ scp led pi@192.168.31.57:/home/pi
 ```
 `192.168.31.57` is the ip address of my raspberry pi, you need to replace it with yours.
 
@@ -78,14 +103,14 @@ ssh to you raspberry pi, and run the binary.
 ```shell
 # from /home/pi
 $ ssh pi@192.168.31.57
-$ ./test
+$ ./led
 
 # or, run it in background
-$ nohub ./test > test.log 2>&1 &
+$ nohub ./led > test.log 2>&1 &
 ```
 
 ### App
-Using the driver programs, I built several applications. The most complex and interesting project is the [self-driving car](/app/car), more than 10 sensers were used to build the smart car. I highlight few interesting apps here, please go to [app](/app) for all apps I development. You can learn how to use the driver programs from my apps.
+Using the driver programs, I built several applications. The most complex app is the [smart car](/app/car), more than 10 sensers were used to build the car. I highlight few funny apps here, please go to [app](/app) for all apps I developed. You can learn how to use the drivers from my apps.
 #### [Self-Dirving Car](/app/car)
 play the video on [youtube](https://www.youtube.com/watch?v=RNqe4byzXmw).
 

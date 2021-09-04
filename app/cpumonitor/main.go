@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -43,16 +44,23 @@ type cpuMonitor struct {
 func (c *cpuMonitor) start() {
 	log.Printf("[cpumonitor]cpu monitor start working")
 	for {
-		f, err := c.idle()
+		info, err := c.idle()
 		if err != nil {
 			log.Printf("[cpumonitor]failed to get cpu idle, error: %v", err)
 			time.Sleep(30 * time.Second)
 			continue
 		}
 
+		usage, err := c.usage(info)
+		if err != nil {
+			log.Printf("[cpumonitor]failed to get cpu usage, error: %v", err)
+			time.Sleep(30 * time.Second)
+			continue
+		}
+
 		v := &iot.Value{
 			Device: "cpu",
-			Value:  f,
+			Value:  usage,
 		}
 		go c.cloud.Push(v)
 		time.Sleep(cpuInterval)
@@ -68,30 +76,37 @@ func (c *cpuMonitor) start() {
 // MiB Mem :    432.7 total,    330.8 free,     34.7 used,     67.2 buff/cache
 // MiB Swap:    100.0 total,    100.0 free,      0.0 used.    347.1 avail Mem
 // ---------------------------------------------------------------------------------
-func (c *cpuMonitor) idle() (float32, error) {
+func (c *cpuMonitor) idle() (string, error) {
 	cmd := exec.Command("top", "-b", "-n", "3", "-d", "3")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return -1, err
+		return "", err
 	}
-	str := string(out)
-	lines := strings.Split(str, "\n")
+
+	return string(out), nil
+}
+
+func (c *cpuMonitor) usage(cpuinfo string) (float64, error) {
+	lines := strings.Split(cpuinfo, "\n")
 	var cpuline string
 	for _, line := range lines {
 		if strings.Contains(line, "Cpu") {
 			cpuline = line
+			break
 		}
 	}
-	var cpu string
-	items := strings.Split(cpuline, " ")
-	for i, item := range items {
-		if item == "id," && i > 0 {
-			cpu = items[i-1]
-		}
+
+	items := strings.Split(cpuline, ",")
+	if len(items) != 8 {
+		return 0, errors.New("invalid cup info")
 	}
-	var v float32
-	if n, err := fmt.Sscanf(cpu, "%f", &v); n != 1 || err != nil {
-		return 0, fmt.Errorf("failed to parse")
+	id := items[3]
+	id = strings.Trim(id, " ")
+	id = strings.TrimRight(id, " id")
+	idle, err := strconv.ParseFloat(id, 32)
+	if err != nil {
+		return 0, err
 	}
-	return v, nil
+	used := 100 - idle
+	return used, nil
 }

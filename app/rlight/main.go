@@ -120,7 +120,7 @@ func (r *rlight) toggledByCloud() {
 				log.Printf("empty data")
 				continue
 			}
-			turnon := data.Datastreams[0].Datapoints[0].Value.(float64) == 1
+			turnon := util.AlmostEqual(data.Datastreams[0].Datapoints[0].Value.(float64), 1.0)
 			if turnon {
 				r.cloudLed.On()
 			} else {

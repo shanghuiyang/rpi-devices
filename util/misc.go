@@ -19,6 +19,9 @@ type Mode string
 type RpiModel string
 
 const (
+	// Epsilon ...
+	Epsilon = 1e-9
+
 	// DevMode ...
 	DevMode = "dev"
 	// PrdMode ...
@@ -74,22 +77,22 @@ func GetRpiModel() RpiModel {
 		return ""
 	}
 	s := string(out)
-	if strings.Index(s, string(Rpi0)) >= 0 {
+	if strings.Contains(s, string(Rpi0)) {
 		return Rpi0
 	}
-	if strings.Index(s, string(RpiA)) >= 0 {
+	if strings.Contains(s, string(RpiA)) {
 		return RpiA
 	}
-	if strings.Index(s, string(RpiB)) >= 0 {
+	if strings.Contains(s, string(RpiB)) {
 		return RpiB
 	}
-	if strings.Index(s, string(Rpi2)) >= 0 {
+	if strings.Contains(s, string(Rpi2)) {
 		return Rpi2
 	}
-	if strings.Index(s, string(Rpi3)) >= 0 {
+	if strings.Contains(s, string(Rpi3)) {
 		return Rpi3
 	}
-	if strings.Index(s, string(Rpi4)) >= 0 {
+	if strings.Contains(s, string(Rpi4)) {
 		return Rpi4
 	}
 	return RpiUnknown
@@ -132,4 +135,8 @@ func IncludedAngle(from, to float64) float64 {
 		return d
 	}
 	return 360 - d
+}
+
+func AlmostEqual(a, b float64) bool {
+	return math.Abs(a-b) < Epsilon
 }
