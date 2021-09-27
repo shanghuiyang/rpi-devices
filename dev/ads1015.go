@@ -1,6 +1,4 @@
 /*
-Package dev ...
-
 ADS1015 is analog-digital converter. It is a implement of AnalogDigitalConverter interface.
 More details about ADS1015, please ref to:
 https://wenku.baidu.com/view/308f9a69a9114431b90d6c85ec3a87c240288aa7
