@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
+
+var celsiusChar = []byte{0xDF}
+var celsiusStr string = string(celsiusChar[:])
 
 func main() {
 	lcd, err := dev.NewLcdDisplay(16, 2)
@@ -19,7 +23,16 @@ func main() {
 		log.Printf("failed to turn backlight on, error: %v", err)
 		return
 	}
-	if err := lcd.Display(3, 0, "hello world"); err != nil {
+
+	//  display following context on a 16x2 LCD.
+	//
+	//   0 _____________ 15
+	// 0 |     27.3'C     |
+	// 1 |    15:04:05    |
+	//   +----------------+
+	//
+	text := fmt.Sprintf("27.3%sC", celsiusStr) // 27.3'C
+	if err := lcd.Display(5, 0, text); err != nil {
 		log.Printf("failed to display time, error: %v", err)
 		return
 	}
