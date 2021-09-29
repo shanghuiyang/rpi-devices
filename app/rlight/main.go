@@ -8,17 +8,16 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/stianeikeland/go-rpio/v4"
 )
 
 const (
-	d0 = 16
-	d1 = 20
-	d2 = 21
-	d3 = 6
+	d0 = 22
+	d1 = 0
+	d2 = 0
+	d3 = 0
 
-	localLedPin = 26
-	cloudLedPin = 12
+	localLedPin = 17
+	cloudLedPin = 27
 
 	butonAchannel = 3
 	butonBchannel = 2
@@ -27,10 +26,6 @@ const (
 
 	onenetToken = "your_onenet_token"
 	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
-
-	// use this rpio as 3.3v pin
-	// if all 3.3v pins were used
-	pin33v = 5
 )
 
 var light *rlight
@@ -44,10 +39,6 @@ type rlight struct {
 }
 
 func main() {
-	p33v := rpio.Pin(pin33v)
-	p33v.Output()
-	p33v.High()
-
 	localLed := dev.NewLedImp(localLedPin)
 	cloudLed := dev.NewLedImp(cloudLedPin)
 	r := dev.NewRX480E4(d0, d1, d2, d3)

@@ -14,20 +14,21 @@ import (
 )
 
 const (
-	dioPin  = 9
-	rclkPin = 10
-	sclkPin = 11
-)
-
-const (
 	onenetToken = "your_onenet_token"
 	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
 )
 
+var (
+	celsiusChar        = []byte{0xDF}
+	celsiusStr  string = string(celsiusChar[:])
+)
+
 type data struct {
-	name  string
-	text  string
-	value interface{}
+	name        string
+	value       interface{}
+	displayText string
+	displayX    int
+	displayY    int
 }
 
 type tempResponse struct {
@@ -41,7 +42,7 @@ type pm25Response struct {
 }
 
 type homeAsst struct {
-	dsp       dev.Display
+	dsp       *dev.LcdDisplay
 	cloud     iot.Cloud
 	chDisplay chan *data // for disploying on oled
 	chCloud   chan *data // for pushing to iot cloud
@@ -49,7 +50,11 @@ type homeAsst struct {
 }
 
 func main() {
-	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
+	dsp, err := dev.NewLcdDisplay(16, 2)
+	if err != nil {
+		log.Printf("failed to new lcd display, error: %v", err)
+		return
+	}
 
 	cfg := &iot.Config{
 		Token: onenetToken,
@@ -64,7 +69,7 @@ func main() {
 	asst.start()
 }
 
-func newHomeAsst(dsp dev.Display, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dsp *dev.LcdDisplay, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dsp:       dsp,
 		cloud:     cloud,
@@ -92,9 +97,11 @@ func (h *homeAsst) getData() {
 			}
 			log.Printf("[homeasst]temp: %v", t)
 			d := &data{
-				name:  "temp",
-				text:  fmt.Sprintf("%.1f", t),
-				value: t,
+				name:        "temp",
+				value:       t,
+				displayText: fmt.Sprintf("%.1f%sC", t, celsiusStr),
+				displayX:    0,
+				displayY:    0,
 			}
 			h.chDisplay <- d
 			h.chCloud <- d
@@ -110,9 +117,11 @@ func (h *homeAsst) getData() {
 			log.Printf("[homeasst]pm2.5: %v", pm25)
 
 			d := &data{
-				name:  "pm2.5",
-				text:  fmt.Sprintf("%v", pm25),
-				value: pm25,
+				name:        "pm2.5",
+				value:       pm25,
+				displayText: fmt.Sprintf("Air:%v", pm25),
+				displayX:    8,
+				displayY:    0,
 			}
 			h.chDisplay <- d
 			h.chCloud <- d
@@ -124,8 +133,22 @@ func (h *homeAsst) getData() {
 }
 
 func (h *homeAsst) display() {
-	h.dsp.Open()
-	opened := true
+	h.dsp.BackLightOn()
+	backlight := true
+
+	go func() {
+		for {
+			d := &data{
+				name:        "time",
+				displayText: time.Now().Format("15:04:05"),
+				displayX:    4,
+				displayY:    1,
+			}
+			h.chDisplay <- d
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
 	cache := map[string]*data{}
 	for {
 		select {
@@ -135,31 +158,22 @@ func (h *homeAsst) display() {
 			// do nothing, just use the latest temp
 		}
 
-		if h.dsp == nil {
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
 		hour := time.Now().Hour()
 		if hour >= 20 || hour < 8 {
-			// turn off led display at 20:00-08:00
-			if opened {
-				h.dsp.Close()
-				opened = false
+			// turn off backlight at 20:00-08:00
+			if backlight {
+				h.dsp.BackLightOff()
+				backlight = false
 			}
-			time.Sleep(10 * time.Second)
-			continue
-		}
-
-		if !opened {
-			h.dsp.Open()
-			opened = true
+		} else if !backlight {
+			h.dsp.BackLightOn()
+			backlight = true
 		}
 
 		for _, d := range cache {
-			h.dsp.Display(d.text)
-			time.Sleep(5 * time.Second)
+			h.dsp.Display(d.displayX, d.displayY, d.displayText)
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 
