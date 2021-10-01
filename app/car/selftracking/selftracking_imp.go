@@ -18,12 +18,11 @@ const (
 type SelfTrackingImp struct {
 	car        car.Car
 	tracker    *cv.Tracker
-	streamer   *cv.Streamer
+	streamer   *util.Streamer
 	inTracking bool
 }
 
-func NewSelfTrackingImp(c car.Car, t *cv.Tracker, s *cv.Streamer) *SelfTrackingImp {
-	go s.Start()
+func NewSelfTrackingImp(c car.Car, t *cv.Tracker, s *util.Streamer) *SelfTrackingImp {
 	return &SelfTrackingImp{
 		car:        c,
 		tracker:    t,
@@ -54,7 +53,12 @@ func (s *SelfTrackingImp) Start(chImg chan *gocv.Mat) {
 		if ok {
 			gocv.Rectangle(img, *rect, rcolor, 2)
 		}
-		s.streamer.Push(img)
+		buf, err := gocv.IMEncode(".jpg", *img)
+		if err != nil {
+			log.Printf("[%v]failed to encode image, err: %v", logTag, err)
+			continue
+		}
+		s.streamer.Push(buf)
 
 		if !ok {
 			log.Printf("[%v]ball not found", logTag)

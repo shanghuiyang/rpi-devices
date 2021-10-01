@@ -5,12 +5,12 @@ package main
 import (
 	"log"
 
-	"github.com/shanghuiyang/rpi-devices/cv"
+	"github.com/shanghuiyang/rpi-devices/util"
 	"gocv.io/x/gocv"
 )
 
 const (
-	host = "0.0.0.0:8088"
+	url = ":8088/video"
 )
 
 func main() {
@@ -26,18 +26,24 @@ func main() {
 	cam.Set(gocv.VideoCaptureFrameWidth, 640)
 	cam.Set(gocv.VideoCaptureFrameHeight, 480)
 
-	streamer := cv.NewStreamer(host)
-	defer streamer.Close()
-	go streamer.Start()
-
+	streamer, err := util.NewStreamer(url)
+	if err != nil {
+		log.Printf("failed to create streamer, error: %v", err)
+		return
+	}
 	img := gocv.NewMat()
 	defer img.Close()
 	for {
 		cam.Grab(10)
 		if !cam.Read(&img) {
-			log.Printf("[car]failed to read img from camera")
+			log.Printf("failed to get img from camera")
 			continue
 		}
-		streamer.SetImage(&img)
+		buf, err := gocv.IMEncode(".jpg", img)
+		if err != nil {
+			log.Printf("failed to encode image, err: %v", err)
+			continue
+		}
+		streamer.Push(buf)
 	}
 }

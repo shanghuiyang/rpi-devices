@@ -3,7 +3,9 @@ module github.com/shanghuiyang/rpi-devices
 go 1.15
 
 require (
+	github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/gorilla/mux v1.8.0
 	github.com/hybridgroup/mjpeg v0.0.0-20140228234708-4680f319790e
 	github.com/mdp/monochromeoled v0.0.0-20171027213216-a0c6b5c996cf

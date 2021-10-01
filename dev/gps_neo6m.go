@@ -50,12 +50,12 @@ type Neo6mGPS struct {
 }
 
 // NewNeo6mGPS ...
-func NewNeo6mGPS(dev string, baud int) *Neo6mGPS {
+func NewNeo6mGPS(dev string, baud int) (*Neo6mGPS, error) {
 	g := &Neo6mGPS{}
 	if err := g.open(dev, baud); err != nil {
-		return nil
+		return nil, err
 	}
-	return g
+	return g, nil
 }
 
 // Loc ...

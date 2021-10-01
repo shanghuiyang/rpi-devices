@@ -21,12 +21,12 @@ type GPSSimulator struct {
 }
 
 // NewGPSSimulator ...
-func NewGPSSimulator(csv string) *GPSSimulator {
+func NewGPSSimulator(csv string) (*GPSSimulator, error) {
 	m := &GPSSimulator{}
 	if err := m.open(csv); err != nil {
-		return nil
+		return nil, err
 	}
-	return m
+	return m, nil
 }
 
 // Loc ...

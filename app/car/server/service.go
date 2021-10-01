@@ -28,12 +28,12 @@ const (
 	stop     Op = "stop"
 	beep     Op = "beep"
 
-	chSize                   = 8
-	defaultVolume            = 40
-	defaultSpeed             = 30
-	defaultHost              = ":8080"
-	defaultVideoHost         = ":8081"
-	defaultTrackingVideoHost = ":8082"
+	chSize                  = 8
+	defaultVolume           = 40
+	defaultSpeed            = 30
+	defaultHost             = ":8080"
+	defaultVideoHost        = ":8081"
+	defaultTrackingVideoURL = ":8082/tracking"
 )
 
 type Op string
@@ -79,8 +79,8 @@ func newService(cfg *Config) (*service, error) {
 	if cfg.VideoHost == "" {
 		cfg.Host = defaultVideoHost
 	}
-	if cfg.SelfTracking.VideoHost == "" {
-		cfg.SelfTracking.VideoHost = defaultTrackingVideoHost
+	if cfg.SelfTracking.VideoURL == "" {
+		cfg.SelfTracking.VideoURL = defaultTrackingVideoURL
 	}
 
 	l298n := dev.NewL298N(
@@ -161,7 +161,10 @@ func newService(cfg *Config) (*service, error) {
 		if err != nil {
 			log.Panicf("[%v]failed to create tracker, error: %v", logTag, err)
 		}
-		st := cv.NewStreamer(cfg.SelfTracking.VideoHost)
+		st, err := util.NewStreamer(cfg.SelfTracking.VideoURL)
+		if err != nil {
+			log.Panicf("[%v]failed to create streamer, error: %v", logTag, err)
+		}
 		s.selftracking = selftracking.NewSelfTrackingImp(car, t, st)
 	}
 
@@ -175,9 +178,9 @@ func newService(cfg *Config) (*service, error) {
 	}
 
 	if cfg.SelfNav.Enabled {
-		gps := dev.NewNeo6mGPS(cfg.SelfNav.GPSConfig.Dev, cfg.SelfNav.GPSConfig.Baud)
-		if gps == nil {
-			log.Panicf("[%v]failed to create gps", logTag)
+		gps, err := dev.NewNeo6mGPS(cfg.SelfNav.GPSConfig.Dev, cfg.SelfNav.GPSConfig.Baud)
+		if err != nil {
+			log.Panicf("[%v]failed to create gps, error: %v", logTag, err)
 		}
 		data, err := ioutil.ReadFile(cfg.SelfNav.TileMapConfig.MapFile)
 		if err != nil {

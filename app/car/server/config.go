@@ -61,14 +61,14 @@ type SelfDrivingConfig struct {
 }
 
 type SelfTrackingConfig struct {
-	Enabled   bool    `json:"enabled"`
-	VideoHost string  `json:"videoHost"`
-	LH        float64 `json:"lh"`
-	LS        float64 `json:"ls"`
-	LV        float64 `json:"lv"`
-	HH        float64 `json:"hh"`
-	HS        float64 `json:"hs"`
-	HV        float64 `json:"hv"`
+	Enabled  bool    `json:"enabled"`
+	VideoURL string  `json:"videoURL"`
+	LH       float64 `json:"lh"`
+	LS       float64 `json:"ls"`
+	LV       float64 `json:"lv"`
+	HH       float64 `json:"hh"`
+	HS       float64 `json:"hs"`
+	HV       float64 `json:"hv"`
 }
 
 type SpeechDrivingConfig struct {

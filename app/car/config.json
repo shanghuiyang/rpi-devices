@@ -31,7 +31,7 @@
     },
     "SelfTracking": {
         "enabled": true,
-        "videoHost": ":8082",
+        "videoURL": ":8082/tracking",
         "lh": 33,
         "ls": 108,
         "lv": 138,

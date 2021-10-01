@@ -13,12 +13,16 @@ const (
 )
 
 func main() {
-	g := dev.NewNeo6mGPS(devName, baud)
-	defer g.Close()
+	gps, err := dev.NewNeo6mGPS(devName, baud)
+	if err != nil {
+		log.Printf("failed to create gps, error: %v", err)
+		return
+	}
+	defer gps.Close()
 
 	for {
 		time.Sleep(1 * time.Second)
-		pt, err := g.Loc()
+		pt, err := gps.Loc()
 		if err != nil {
 			log.Printf("failed, error: %v", err)
 			continue

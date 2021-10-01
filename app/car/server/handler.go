@@ -72,7 +72,7 @@ func (s *service) loadHomeHandler(w http.ResponseWriter, r *http.Request) {
 		sline = strings.Replace(sline, ipPattern, ip, 1)
 		sline = strings.Replace(sline, volumePattern, fmt.Sprintf("%v", volume), 1)
 		if selfTracking {
-			sline = strings.Replace(sline, s.cfg.VideoHost, s.cfg.SelfTracking.VideoHost+"/video", 1)
+			sline = strings.Replace(sline, s.cfg.VideoHost, s.cfg.SelfTracking.VideoURL, 1)
 		}
 
 		if strings.Contains(sline, selfDrivingState) {

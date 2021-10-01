@@ -3,55 +3,54 @@ package util
 import (
 	"fmt"
 	"os"
-	"time"
-
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
-const (
-	timeFormat = "2006-01-02T15:04:05"
-)
+type Logger interface {
+	Printf(format string, v ...interface{})
+	Close()
+}
 
 // GPSLogger ...
 type GPSLogger struct {
-	f        *os.File
-	chPoints chan *geo.Point
+	f      *os.File
+	chLine chan string
 }
 
 // NewGPSLogger ...
-func NewGPSLogger() *GPSLogger {
-	fname := time.Now().Format(timeFormat) + ".csv"
-	f, err := os.OpenFile(fname, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+func NewGPSLogger(file string) (*GPSLogger, error) {
+	f, err := os.OpenFile(file, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	f.WriteString("timestamp,lat,lon\n")
 	t := &GPSLogger{
-		f:        f,
-		chPoints: make(chan *geo.Point, 32),
+		f:      f,
+		chLine: make(chan string, 32),
 	}
 	go t.start()
-	return t
+	return t, nil
 }
 
 func (l *GPSLogger) start() {
-	for pt := range l.chPoints {
-		tm := time.Now().Format(timeFormat)
-		line := fmt.Sprintf("%v,%.6f,%.6f\n", tm, pt.Lat, pt.Lon)
+	for line := range l.chLine {
 		l.f.WriteString(line)
 	}
 }
 
-// AddPoint ...
-func (l *GPSLogger) AddPoint(pt *geo.Point) {
-	if pt == nil {
-		return
-	}
-	l.chPoints <- pt
+func (l *GPSLogger) Printf(format string, v ...interface{}) {
+	l.chLine <- fmt.Sprintf(format, v...)
 }
 
 // Close ...
 func (l *GPSLogger) Close() {
 	l.f.Close()
-	close(l.chPoints)
+	close(l.chLine)
 }
+
+type NoopLogger struct{}
+
+func NewNoopLogger() *NoopLogger {
+	return &NoopLogger{}
+}
+
+func (n *NoopLogger) Printf(format string, v ...interface{}) {}
+func (l *NoopLogger) Close()                                 {}

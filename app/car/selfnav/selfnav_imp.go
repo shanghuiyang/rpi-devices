@@ -3,6 +3,7 @@ package selfnav
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/shanghuiyang/astar"
 	"github.com/shanghuiyang/astar/tilemap"
@@ -13,29 +14,36 @@ import (
 )
 
 const (
-	logTag = "selfnav"
+	logTag     = "selfnav"
+	timeFormat = "2006-01-02T15:04:05"
 )
 
 type SelfNavImp struct {
-	car       car.Car
-	astar     *astar.AStar
-	mapBBox   *geo.Bbox
-	gridSize  float64
-	gps       dev.GPS
-	lastLoc   *geo.Point
-	gpslogger *util.GPSLogger
-	inNaving  bool
+	car      car.Car
+	astar    *astar.AStar
+	mapBBox  *geo.Bbox
+	gridSize float64
+	gps      dev.GPS
+	lastLoc  *geo.Point
+	logger   util.Logger
+	inNaving bool
 }
 
 func NewSelfNavImp(c car.Car, gps dev.GPS, tilemap *tilemap.Tilemap, bbox *geo.Bbox, gridsize float64) *SelfNavImp {
+	logfile := time.Now().Format(timeFormat) + ".csv"
+	gpslogger, err := util.NewGPSLogger(logfile)
+	if err != nil {
+		return nil
+	}
+
 	return &SelfNavImp{
-		car:       c,
-		gps:       gps,
-		astar:     astar.New(tilemap),
-		mapBBox:   bbox,
-		gridSize:  gridsize,
-		gpslogger: util.NewGPSLogger(),
-		inNaving:  false,
+		car:      c,
+		gps:      gps,
+		astar:    astar.New(tilemap),
+		mapBBox:  bbox,
+		gridSize: gridsize,
+		logger:   gpslogger,
+		inNaving: false,
 	}
 }
 
@@ -61,7 +69,7 @@ func (s *SelfNavImp) Start(dest *geo.Point) {
 			util.DelayMs(1000)
 			continue
 		}
-		s.gpslogger.AddPoint(org)
+		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), org.Lat, org.Lon)
 		if !s.mapBBox.IsInside(pt) {
 			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, pt, s.mapBBox)
 			continue
@@ -134,7 +142,7 @@ func (s *SelfNavImp) navTo(dest *geo.Point) error {
 			continue
 		}
 
-		s.gpslogger.AddPoint(loc)
+		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), loc.Lat, loc.Lon)
 		log.Printf("[%v]current loc: %v", logTag, loc)
 
 		d := loc.DistanceWith(s.lastLoc)
