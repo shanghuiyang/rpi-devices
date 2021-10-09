@@ -15,7 +15,7 @@ Config Your Pi:
 	should see somethings output
 
 Connect NEO-6M GPS Sensor to Raspberry Pi:
- - VCC: any 5v pin
+ - VCC: any 3.3v or 5v pin
  - GND: any gnd pin
  - RXT: must connect to pin  8(gpio 14) (TXD)
  - TXD: must connect to pin 10(gpio 15) (RXD)
@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 	"github.com/tarm/serial"
@@ -131,7 +132,11 @@ func (g *Neo6mGPS) Close() {
 }
 
 func (g *Neo6mGPS) open(dev string, baud int) error {
-	c := &serial.Config{Name: dev, Baud: baud}
+	c := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 1 * time.Second,
+	}
 	p, err := serial.OpenPort(c)
 	if err != nil {
 		return err

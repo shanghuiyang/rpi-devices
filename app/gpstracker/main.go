@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"log"
+	"net/http"
+
 	"time"
 
 	"image/color"
@@ -14,7 +17,13 @@ import (
 )
 
 const (
-	url         = ":8088/map"
+	zoomInBtnPin  = 18
+	zoomOutBtnPin = 23
+
+	defautZoom  = 17
+	minZoom     = 0
+	maxZoom     = 17
+	streamerURL = ":8088/map"
 	timeFormat  = "2006-01-02T15:04:05"
 	onenetToken = "your_onenet_token"
 	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
@@ -22,7 +31,7 @@ const (
 
 func main() {
 	gps, err := dev.NewNeo6mGPS("/dev/ttyAMA0", 9600)
-	// gps, err := dev.NewGPSSimulator("./dev/test/gps.csv")
+	// gps, err := dev.NewGPSSimulator("gps.csv")
 	if err != nil {
 		log.Printf("[gpstracker]failed to new a gps device: %v", err)
 		return
@@ -36,23 +45,28 @@ func main() {
 	}
 	// logger := util.NewNoopLogger()
 
-	cfg := &iot.Config{
-		Token: onenetToken,
-		API:   onenetAPI,
-	}
-	cloud := iot.NewOnenet(cfg)
-	// cloud := iot.NewNoop()
+	// cfg := &iot.Config{
+	// 	Token: onenetToken,
+	// 	API:   onenetAPI,
+	// }
+	// cloud := iot.NewOnenet(cfg)
+	cloud := iot.NewNoop()
 
-	streamer, err := util.NewStreamer(url)
+	streamer, err := util.NewStreamer(streamerURL)
 	if err != nil {
 		log.Printf("failed to create streamer, error: %v", err)
 		return
 	}
+	zoomInBtn := dev.NewButtonImp(zoomInBtnPin)
+	zoomOutBtn := dev.NewButtonImp(zoomOutBtnPin)
 	t := &gpsTracker{
-		gps:      gps,
-		logger:   logger,
-		cloud:    cloud,
-		streamer: streamer,
+		gps:        gps,
+		zoomInBtn:  zoomInBtn,
+		zoomOutBtn: zoomOutBtn,
+		logger:     logger,
+		cloud:      cloud,
+		streamer:   streamer,
+		zoom:       defautZoom,
 	}
 
 	util.WaitQuit(t.close)
@@ -60,24 +74,32 @@ func main() {
 }
 
 type gpsTracker struct {
-	gps      dev.GPS
-	cloud    iot.Cloud
-	logger   util.Logger
-	streamer *util.Streamer
+	gps        dev.GPS
+	cloud      iot.Cloud
+	logger     util.Logger
+	streamer   *util.Streamer
+	zoomInBtn  dev.Button
+	zoomOutBtn dev.Button
+	zoom       int
 }
 
 func (t *gpsTracker) start() {
 	log.Printf("[gpstracker]start working")
+	go t.detectZoomIn()
+	go t.detectZoomOut()
+	t.detectLoc()
+}
 
+func (t *gpsTracker) detectLoc() {
 	m := util.NewMapRender()
-	m.SetSize(400, 400)
-	m.SetZoom(16)
+	m.SetSize(240, 240)
 
 	for {
-		time.Sleep(2 * time.Second)
+		// time.Sleep(500 * time.Millisecond)
 		pt, err := t.gps.Loc()
 		if err != nil {
 			log.Printf("[gpstracker]failed to get gps locations: %v", err)
+			util.DelayMs(1000)
 			continue
 		}
 
@@ -92,19 +114,75 @@ func (t *gpsTracker) start() {
 		marker := sm.NewMarker(
 			s2.LatLngFromDegrees(pt.Lat, pt.Lon),
 			color.RGBA{0xff, 0, 0, 0xff},
-			16.0,
+			12.0,
 		)
 		m.ClearMarker()
 		m.AddMarker(marker)
+		m.SetZoom(t.zoom)
+
 		img, err := m.Render()
 		if err != nil {
 			log.Printf("[gpstracker]failed to render map: %v", err)
+			util.DelayMs(100)
 			continue
 		}
-		if t.streamer != nil {
-			t.streamer.Push(img)
+
+		req, err := http.NewRequest("POST", "http://localhost:8080/display", bytes.NewBuffer(img))
+		if err != nil {
+			log.Printf("[gpstracker]failed to new http request: %v", err)
+			util.DelayMs(100)
+			continue
 		}
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{
+			Timeout: 1 * time.Second,
+		}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("[gpstracker]failed to send http request: %v", err)
+			util.DelayMs(200)
+			continue
+		}
+		resp.Body.Close()
 	}
+}
+
+func (t *gpsTracker) detectZoomIn() {
+	for {
+		if t.zoomInBtn.Pressed() {
+			t.zoomIn()
+			log.Printf("[gpstracker]zoom in: z = %v", t.zoom)
+			util.DelayMs(1000)
+			continue
+		}
+		util.DelayMs(100)
+	}
+}
+
+func (t *gpsTracker) detectZoomOut() {
+	for {
+		if t.zoomOutBtn.Pressed() {
+			t.zoomOut()
+			log.Printf("[gpstracker]zoom out: z = %v", t.zoom)
+			util.DelayMs(1000)
+			continue
+		}
+		util.DelayMs(100)
+	}
+}
+
+func (t *gpsTracker) zoomIn() {
+	if t.zoom >= maxZoom {
+		return
+	}
+	t.zoom++
+}
+
+func (t *gpsTracker) zoomOut() {
+	if t.zoom <= minZoom {
+		return
+	}
+	t.zoom--
 }
 
 func (t *gpsTracker) close() {

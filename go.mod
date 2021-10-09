@@ -20,3 +20,5 @@ require (
 	gocv.io/x/gocv v0.23.0
 	golang.org/x/exp v0.0.0-20210526181343-b47a03e3048a
 )
+
+// replace github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28 => /Users/shanghui.yang/go/src/github.com/flopp/go-staticmaps

@@ -27,6 +27,7 @@ package dev
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/tarm/serial"
 )
@@ -69,7 +70,11 @@ func (ir *IRCoder) Close() error {
 }
 
 func (ir *IRCoder) open(dev string, baud int) error {
-	c := &serial.Config{Name: dev, Baud: baud}
+	c := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 3 * time.Second,
+	}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err

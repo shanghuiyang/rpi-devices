@@ -27,6 +27,7 @@ package dev
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"math"
 
@@ -106,7 +107,11 @@ func (p *ZE08CH2O) Close() {
 }
 
 func (p *ZE08CH2O) open() error {
-	c := &serial.Config{Name: "/dev/ttyAMA0", Baud: 9600}
+	c := &serial.Config{
+		Name:        "/dev/ttyAMA0",
+		Baud:        9600,
+		ReadTimeout: 5 * time.Second,
+	}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err

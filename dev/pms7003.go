@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/tarm/serial"
@@ -124,7 +125,11 @@ func (p *PMS7003) Close() {
 }
 
 func (p *PMS7003) open(dev string, baud int) error {
-	c := &serial.Config{Name: dev, Baud: baud}
+	c := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 5 * time.Second,
+	}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err

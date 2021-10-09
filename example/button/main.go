@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	pin    = 17
+	pin    = 21
 	pinLed = 26
 )
 

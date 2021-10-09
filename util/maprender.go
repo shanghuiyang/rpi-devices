@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"image"
 
 	"image/jpeg"
 
@@ -50,4 +51,12 @@ func (m *MapRender) Render() ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func (m *MapRender) RenderImg() (*image.Image, error) {
+	img, err := m.ctx.Render()
+	if err != nil {
+		return nil, err
+	}
+	return &img, nil
 }

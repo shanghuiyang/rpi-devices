@@ -170,7 +170,11 @@ func (u *US100) Close() {
 }
 
 func (u *US100) open(dev string, baud int) error {
-	c := &serial.Config{Name: dev, Baud: baud}
+	c := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 1 * time.Second,
+	}
 	port, err := serial.OpenPort(c)
 	if err != nil {
 		return err

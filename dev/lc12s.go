@@ -29,6 +29,7 @@ package dev
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
 	"github.com/tarm/serial"
@@ -108,8 +109,9 @@ func (l *LC12S) Close() {
 
 func (l *LC12S) open(dev string, baud int) error {
 	c := &serial.Config{
-		Name: dev,
-		Baud: baud,
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 3 * time.Second,
 	}
 	port, err := serial.OpenPort(c)
 	if err != nil {
