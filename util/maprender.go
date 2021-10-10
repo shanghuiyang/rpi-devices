@@ -33,6 +33,14 @@ func (m *MapRender) SetCenter(pt *geo.Point) {
 	m.ctx.SetCenter(s2.LatLngFromDegrees(pt.Lat, pt.Lon))
 }
 
+func (m *MapRender) SetCache(cache sm.TileCache) {
+	m.ctx.SetCache(cache)
+}
+
+func (m *MapRender) SetTileProvider(tileProvider *sm.TileProvider) {
+	m.ctx.SetTileProvider(tileProvider)
+}
+
 func (m *MapRender) AddMarker(marker *sm.Marker) {
 	m.ctx.AddObject(marker)
 }

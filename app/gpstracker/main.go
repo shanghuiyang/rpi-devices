@@ -11,23 +11,36 @@ import (
 
 	sm "github.com/flopp/go-staticmaps"
 	"github.com/golang/geo/s2"
+	"github.com/shanghuiyang/rpi-devices/app/gpstracker/cache"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 const (
 	zoomInBtnPin  = 18
 	zoomOutBtnPin = 23
 
-	defautZoom  = 17
-	minZoom     = 0
-	maxZoom     = 17
+	minZoom    = 0
+	maxZoom    = 17
+	defautZoom = 17
+	cacheDir   = ".cache/maptiles"
+
 	streamerURL = ":8088/map"
 	timeFormat  = "2006-01-02T15:04:05"
 	onenetToken = "your_onenet_token"
 	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+
+	osmTiles             = "osm"
+	googleSatelliteTiles = "google-satellite"
+	bingSatelliteTiles   = "bing-satellite"
 )
+
+var defaultLoction = &geo.Point{
+	Lat: 40.002369,
+	Lon: 116.421977,
+}
 
 func main() {
 	gps, err := dev.NewNeo6mGPS("/dev/ttyAMA0", 9600)
@@ -74,13 +87,14 @@ func main() {
 }
 
 type gpsTracker struct {
-	gps        dev.GPS
-	cloud      iot.Cloud
-	logger     util.Logger
-	streamer   *util.Streamer
-	zoomInBtn  dev.Button
-	zoomOutBtn dev.Button
-	zoom       int
+	gps          dev.GPS
+	cloud        iot.Cloud
+	logger       util.Logger
+	streamer     *util.Streamer
+	zoomInBtn    dev.Button
+	zoomOutBtn   dev.Button
+	zoom         int
+	tileProvider *sm.TileProvider
 }
 
 func (t *gpsTracker) start() {
@@ -91,17 +105,22 @@ func (t *gpsTracker) start() {
 }
 
 func (t *gpsTracker) detectLoc() {
+	c := cache.NewTileCache(cacheDir, 0777)
+	t.tileProvider = sm.NewTileProviderOpenStreetMaps()
 	m := util.NewMapRender()
+	m.SetCache(c)
+	m.SetTileProvider(t.tileProvider)
 	m.SetSize(240, 240)
 
+	lastPt := defaultLoction
 	for {
 		// time.Sleep(500 * time.Millisecond)
 		pt, err := t.gps.Loc()
 		if err != nil {
 			log.Printf("[gpstracker]failed to get gps locations: %v", err)
-			util.DelayMs(1000)
-			continue
+			pt = lastPt
 		}
+		lastPt = pt
 
 		t.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), pt.Lat, pt.Lon)
 
@@ -148,13 +167,34 @@ func (t *gpsTracker) detectLoc() {
 }
 
 func (t *gpsTracker) detectZoomIn() {
+	n := 0
 	for {
 		if t.zoomInBtn.Pressed() {
+			if n > 2 {
+				// toggle tile type when keep pressing the button in 3s
+				if t.tileProvider.Name == osmTiles {
+					t.tileProvider.Name = bingSatelliteTiles
+				} else {
+					t.tileProvider.Name = osmTiles
+				}
+				log.Printf("[gpstracker]changed tile provider to: %v", t.tileProvider.Name)
+				n = 0
+				util.DelayMs(2000)
+				continue
+			}
+			if n > 0 {
+				n++
+				util.DelayMs(1000)
+				continue
+			}
+
+			n++
 			t.zoomIn()
 			log.Printf("[gpstracker]zoom in: z = %v", t.zoom)
 			util.DelayMs(1000)
 			continue
 		}
+		n = 0
 		util.DelayMs(100)
 	}
 }

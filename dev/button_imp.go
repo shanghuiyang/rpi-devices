@@ -24,12 +24,10 @@ func NewButtonImp(pin uint8) *ButtonImp {
 		pin: rpio.Pin(pin),
 	}
 	b.pin.Input()
-	b.pin.PullDown()
-	b.pin.Detect(rpio.RiseEdge)
 	return b
 }
 
 // Pressed ...
 func (b *ButtonImp) Pressed() bool {
-	return b.pin.EdgeDetected()
+	return b.pin.Read() == rpio.High
 }
