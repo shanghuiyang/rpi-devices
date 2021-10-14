@@ -3,7 +3,6 @@ module github.com/shanghuiyang/rpi-devices
 go 1.15
 
 require (
-	github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
 	github.com/gorilla/mux v1.8.0
@@ -11,6 +10,7 @@ require (
 	github.com/mdp/monochromeoled v0.0.0-20171027213216-a0c6b5c996cf
 	github.com/shanghuiyang/astar v0.0.0-20210817164024-507fb2d0e0a2
 	github.com/shanghuiyang/face v0.0.0-20210816164012-67ef07d49cd2
+	github.com/shanghuiyang/go-staticmaps v0.0.0-20211013173802-508a73a32a4e
 	github.com/shanghuiyang/imgr v0.0.0-20210815164509-8b24f5e0104c
 	github.com/shanghuiyang/oauth v0.0.0-20210815163430-0403e002fe02
 	github.com/shanghuiyang/speech v0.0.0-20210816160130-8d24c10c5f98
@@ -20,5 +20,3 @@ require (
 	gocv.io/x/gocv v0.23.0
 	golang.org/x/exp v0.0.0-20210526181343-b47a03e3048a
 )
-
-// replace github.com/flopp/go-staticmaps v0.0.0-20210425143944-2e6e19a99c28 => /Users/shanghui.yang/go/src/github.com/flopp/go-staticmaps

@@ -1,0 +1,28 @@
+{
+    "zoomInButtonPin": 18,
+    "zoomOutButtonPin": 23,
+    "gps": {
+        "dev": "/dev/ttyAMA0",
+        "baud": 9600
+    },
+    "iot": {
+        "token": "your_onenet_token",
+        "api": "http://api.heclouds.com/devices/540381180/datapoints"
+    },
+    "tile": {
+        "minZoom": 0,
+        "maxZoom": 17,
+        "defaultZoom": 17,
+        "tileProviders": [
+            "osm",
+            "bing-satellite"
+        ],
+        "defaultTileProvider": "osm",
+        "cacheDir": ".cache/maptiles",
+        "online": false
+    },
+    "defaultLocation": {
+        "Lat": 40.002369,
+        "Lon": 116.421977
+    }
+}
