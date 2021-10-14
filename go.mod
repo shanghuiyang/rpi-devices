@@ -19,4 +19,5 @@ require (
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 	gocv.io/x/gocv v0.23.0
 	golang.org/x/exp v0.0.0-20210526181343-b47a03e3048a
+	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 )

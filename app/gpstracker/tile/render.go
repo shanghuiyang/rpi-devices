@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"image"
 
-	"image/jpeg"
+	"image/png"
 
 	"github.com/golang/geo/s2"
 	sm "github.com/shanghuiyang/go-staticmaps"
@@ -41,10 +41,6 @@ func (m *Render) SetTileProvider(tileProvider *sm.TileProvider) {
 	m.ctx.SetTileProvider(tileProvider)
 }
 
-// func (m *Render) SetTileFetcher(tileFetecher *sm.TileFetcher) {
-// 	m.ctx.SetTileFetcher(tileFetecher)
-// }
-
 func (m *Render) SetOnline(online bool) {
 	m.ctx.SetOnline(online)
 }
@@ -63,7 +59,7 @@ func (m *Render) Render() ([]byte, error) {
 		return nil, err
 	}
 	buf := new(bytes.Buffer)
-	if err := jpeg.Encode(buf, img, nil); err != nil {
+	if err := png.Encode(buf, img); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

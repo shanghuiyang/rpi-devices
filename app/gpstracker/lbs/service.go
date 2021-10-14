@@ -2,6 +2,7 @@ package lbs
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 
@@ -21,6 +22,8 @@ const (
 	timeFormat = "2006-01-02T15:04:05"
 )
 
+var timer *time.Timer
+
 type service struct {
 	cfg             *Config
 	gps             dev.GPS
@@ -29,6 +32,7 @@ type service struct {
 	zoomInBtn       dev.Button
 	zoomOutBtn      dev.Button
 	tileProviders   map[string]*sm.TileProvider
+	statusBarText   string
 	curTileProvider *sm.TileProvider
 	curZoom         int
 	chImage         chan []byte
@@ -112,6 +116,7 @@ func (s *service) detectLocation() {
 		}
 		go s.cloud.Push(v)
 
+		s.curTileProvider.Attribution = s.statusBarText
 		marker := sm.NewMarker(
 			s2.LatLngFromDegrees(pt.Lat, pt.Lon),
 			color.RGBA{0xff, 0, 0, 0xff},
@@ -129,34 +134,6 @@ func (s *service) detectLocation() {
 			continue
 		}
 		s.chImage <- img
-	}
-}
-
-func (s *service) detectZoomInBtn() {
-	n := 0
-	for {
-		if s.zoomInBtn.Pressed() {
-			if n > 2 {
-				// toggle tile type when keep pressing the button in 3s
-				s.toggleTileProvider()
-				n = 0
-				util.DelayMs(2000)
-				continue
-			}
-			if n > 0 {
-				n++
-				util.DelayMs(1000)
-				continue
-			}
-
-			n++
-			s.zoomIn()
-			log.Printf("[locator]zoom in: z = %v", s.curZoom)
-			util.DelayMs(1000)
-			continue
-		}
-		n = 0
-		util.DelayMs(100)
 	}
 }
 
@@ -187,13 +164,44 @@ func (s *service) toggleTileProvider() {
 
 	}
 	s.curTileProvider = provider
+	s.SetStatusBarText(fmt.Sprintf("Tile: %v", s.curTileProvider.Name))
 	log.Printf("[locator]changed tile provider to: %v", provider.Name)
+}
+
+func (s *service) detectZoomInBtn() {
+	n := 0
+	for {
+		if s.zoomInBtn.Pressed() {
+			if n > 2 {
+				// toggle tile type when keep pressing the button in 3s
+				s.toggleTileProvider()
+				n = 0
+				util.DelayMs(2000)
+				continue
+			}
+			if n > 0 {
+				n++
+				util.DelayMs(1000)
+				continue
+			}
+
+			n++
+			s.zoomIn()
+			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
+			log.Printf("[locator]zoom in: z = %v", s.curZoom)
+			util.DelayMs(1000)
+			continue
+		}
+		n = 0
+		util.DelayMs(100)
+	}
 }
 
 func (s *service) detectZoomOutBtn() {
 	for {
 		if s.zoomOutBtn.Pressed() {
 			s.zoomOut()
+			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
 			log.Printf("[locator]zoom out: z = %v", s.curZoom)
 			util.DelayMs(1000)
 			continue
@@ -214,6 +222,16 @@ func (s *service) zoomOut() {
 		return
 	}
 	s.curZoom--
+}
+
+func (s *service) SetStatusBarText(text string) {
+	if timer != nil {
+		timer.Stop()
+	}
+	s.statusBarText = text
+
+	// status bar will dispear after 5s
+	timer = time.AfterFunc(5*time.Second, func() { s.statusBarText = "" })
 }
 
 func (s *service) Close() {
