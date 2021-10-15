@@ -3,10 +3,12 @@ package lbs
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"log"
 	"os"
 
 	"image/color"
+	"image/png"
 	"net/http"
 	"time"
 
@@ -35,7 +37,7 @@ type service struct {
 	statusBarText   string
 	curTileProvider *sm.TileProvider
 	curZoom         int
-	chImage         chan []byte
+	chImage         chan image.Image
 }
 
 func newService(cfg *Config) (*service, error) {
@@ -77,7 +79,7 @@ func newService(cfg *Config) (*service, error) {
 		tileProviders:   tileProviders,
 		curZoom:         cfg.Tile.DefaultZoom,
 		curTileProvider: tileProviders[cfg.Tile.DefaultTileProvider],
-		chImage:         make(chan []byte),
+		chImage:         make(chan image.Image, 16),
 	}, nil
 }
 
@@ -91,19 +93,17 @@ func (s *service) start() error {
 
 func (s *service) detectLocation() {
 	c := sm.NewTileCache(s.cfg.Tile.CacheDir, os.ModePerm)
-	// f := sm.NewTileFetcher(s.curTileProvider, c, s.cfg.Online)
-	r := tile.NewRender()
-	// r.SetTileFetcher(f)
-	r.SetCache(c)
-	r.SetOnline(s.cfg.Online)
-	r.SetSize(240, 240)
+	ctx := sm.NewContext()
+	ctx.SetCache(c)
+	ctx.SetOnline(s.cfg.Online)
+	ctx.SetSize(240, 240)
 
 	lastPt := s.cfg.DefaultLocation
 	for {
 		// time.Sleep(500 * time.Millisecond)
 		pt, err := s.gps.Loc()
 		if err != nil {
-			log.Printf("[locator]failed to get gps locations: %v", err)
+			log.Printf("failed to get gps locations: %v", err)
 			pt = lastPt
 		}
 		lastPt = pt
@@ -122,14 +122,14 @@ func (s *service) detectLocation() {
 			color.RGBA{0xff, 0, 0, 0xff},
 			12.0,
 		)
-		r.ClearMarker()
-		r.AddMarker(marker)
-		r.SetZoom(s.curZoom)
-		r.SetTileProvider(s.curTileProvider)
+		ctx.ClearObjects()
+		ctx.AddObject(marker)
+		ctx.SetZoom(s.curZoom)
+		ctx.SetTileProvider(s.curTileProvider)
 
-		img, err := r.Render()
+		img, err := ctx.Render()
 		if err != nil {
-			log.Printf("[locator]failed to render map: %v", err)
+			log.Printf("failed to render map: %v", err)
 			util.DelayMs(100)
 			continue
 		}
@@ -139,9 +139,14 @@ func (s *service) detectLocation() {
 
 func (s *service) dispalyMap() {
 	for img := range s.chImage {
-		req, err := http.NewRequest("POST", "http://localhost:8080/display", bytes.NewBuffer(img))
+		buf := &bytes.Buffer{}
+		if err := png.Encode(buf, img); err != nil {
+			log.Printf("failed to encode image, error: %v", err)
+			continue
+		}
+		req, err := http.NewRequest("POST", "http://localhost:8080/display", buf)
 		if err != nil {
-			log.Printf("[locator]failed to new http request, error: %v", err)
+			log.Printf("failed to new http request, error: %v", err)
 			continue
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -150,7 +155,7 @@ func (s *service) dispalyMap() {
 		}
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Printf("[locator]failed to send http request, error: %v", err)
+			log.Printf("failed to send http request, error: %v", err)
 			continue
 		}
 		resp.Body.Close()
@@ -165,7 +170,7 @@ func (s *service) toggleTileProvider() {
 	}
 	s.curTileProvider = provider
 	s.SetStatusBarText(fmt.Sprintf("Tile: %v", s.curTileProvider.Name))
-	log.Printf("[locator]changed tile provider to: %v", provider.Name)
+	log.Printf("changed tile provider to: %v", provider.Name)
 }
 
 func (s *service) detectZoomInBtn() {
@@ -176,19 +181,19 @@ func (s *service) detectZoomInBtn() {
 				// toggle tile type when keep pressing the button in 3s
 				s.toggleTileProvider()
 				n = 0
-				util.DelayMs(2000)
+				util.DelayMs(5000)
 				continue
 			}
 			if n > 0 {
 				n++
-				util.DelayMs(1000)
+				util.DelayMs(600)
 				continue
 			}
 
 			n++
 			s.zoomIn()
 			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
-			log.Printf("[locator]zoom in: z = %v", s.curZoom)
+			log.Printf("zoom in: z = %v", s.curZoom)
 			util.DelayMs(1000)
 			continue
 		}
@@ -202,8 +207,8 @@ func (s *service) detectZoomOutBtn() {
 		if s.zoomOutBtn.Pressed() {
 			s.zoomOut()
 			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
-			log.Printf("[locator]zoom out: z = %v", s.curZoom)
-			util.DelayMs(1000)
+			log.Printf("zoom out: z = %v", s.curZoom)
+			util.DelayMs(600)
 			continue
 		}
 		util.DelayMs(100)
