@@ -11,7 +11,7 @@
     },
     "tile": {
         "minZoom": 0,
-        "maxZoom": 17,
+        "maxZoom": 18,
         "defaultZoom": 17,
         "tileProviders": [
             "osm",
