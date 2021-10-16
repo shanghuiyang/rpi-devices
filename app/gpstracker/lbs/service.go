@@ -41,8 +41,12 @@ type service struct {
 }
 
 func newService(cfg *Config) (*service, error) {
+	var gps dev.GPS
 	gps, err := dev.NewNeo6mGPS(cfg.GPS.Dev, cfg.GPS.Baud)
-	// gps, err := dev.NewGPSSimulator("gps.csv")
+	if cfg.GPSSimulator.Enable {
+		gps, err = dev.NewGPSSimulator(cfg.GPSSimulator.Source)
+	}
+
 	if err != nil {
 		log.Printf("[gpstracker]failed to new a gps device: %v", err)
 		return nil, err

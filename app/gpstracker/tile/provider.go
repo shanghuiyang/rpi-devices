@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	OsmTile             = "osm"
+	OsmTile             = "osm-outdoor"
 	BingSatelliteTile   = "bing-satellite"
 	GoogleSatelliteTile = "google-satellite"
 )

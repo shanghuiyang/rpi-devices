@@ -12,17 +12,21 @@
     "tile": {
         "minZoom": 0,
         "maxZoom": 18,
-        "defaultZoom": 17,
+        "defaultZoom": 16,
         "tileProviders": [
-            "osm",
+            "osm-outdoor",
             "bing-satellite"
         ],
-        "defaultTileProvider": "osm",
+        "defaultTileProvider": "osm-outdoor",
         "cacheDir": ".cache/maptiles",
         "online": false
     },
     "defaultLocation": {
-        "Lat": 40.002369,
-        "Lon": 116.421977
+        "lat": 40.002369,
+        "lon": 116.421977
+    },
+    "gpsSimulator": {
+        "enable": true,
+        "source": "gps.csv"
     }
 }

@@ -10,23 +10,19 @@ import (
 
 // Config ...
 type Config struct {
-	ZoomInButtonPin  uint8       `json:"zoomInButtonPin"`
-	ZoomOutButtonPin uint8       `json:"zoomOutButtonPin"`
-	GPS              *GPSConfig  `json:"gps"`
-	IOT              *iot.Config `json:"iot"`
-	Tile             *TileConfig `json:"tile"`
-	Online           bool        `json:"online"`
-	DefaultLocation  *geo.Point  `json:"defaultLocation"`
+	ZoomInButtonPin  uint8               `json:"zoomInButtonPin"`
+	ZoomOutButtonPin uint8               `json:"zoomOutButtonPin"`
+	GPS              *GPSConfig          `json:"gps"`
+	IOT              *iot.Config         `json:"iot"`
+	Tile             *TileConfig         `json:"tile"`
+	Online           bool                `json:"online"`
+	DefaultLocation  *geo.Point          `json:"defaultLocation"`
+	GPSSimulator     *GPSSimulatorConfig `json:"gpsSimulator"`
 }
 
 type GPSConfig struct {
 	Dev  string `json:"dev"`
 	Baud int    `json:"baud"`
-}
-
-type BaiduKey struct {
-	APIKey    string `json:"apiKey"`
-	SecretKey string `json:"secretKey"`
 }
 
 type TileConfig struct {
@@ -36,6 +32,11 @@ type TileConfig struct {
 	TileProviders       []string `json:"tileProviders"`
 	DefaultTileProvider string   `json:"defaultTileProvider"`
 	CacheDir            string   `json:"cacheDir"`
+}
+
+type GPSSimulatorConfig struct {
+	Enable bool `json:"enable"`
+	Source string `json:"source"`
 }
 
 func LoadConfig(file string) (*Config, error) {
