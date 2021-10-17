@@ -43,8 +43,8 @@ type service struct {
 func newService(cfg *Config) (*service, error) {
 	var gps dev.GPS
 	gps, err := dev.NewNeo6mGPS(cfg.GPS.Dev, cfg.GPS.Baud)
-	if cfg.GPSSimulator.Enable {
-		gps, err = dev.NewGPSSimulator(cfg.GPSSimulator.Source)
+	if cfg.GPS.Simulator.Enable {
+		gps, err = dev.NewGPSSimulator(cfg.GPS.Simulator.Source)
 	}
 
 	if err != nil {
@@ -60,12 +60,15 @@ func newService(cfg *Config) (*service, error) {
 	}
 	// logger := util.NewNoopLogger()
 
-	// cfg := &iot.Config{
-	// 	Token: onenetToken,
-	// 	API:   onenetAPI,
-	// }
-	// cloud := iot.NewOnenet(cfg)
-	cloud := iot.NewNoop()
+	var cloud iot.Cloud = iot.NewNoop()
+	if cfg.IOT.Enable {
+		iotcfg := &iot.Config{
+			Token: cfg.IOT.Onenet.Token,
+			API:   cfg.IOT.Onenet.API,
+		}
+		cloud = iot.NewOnenet(iotcfg)
+	}
+
 	zoomInBtn := dev.NewButtonImp(cfg.ZoomInButtonPin)
 	zoomOutBtn := dev.NewButtonImp(cfg.ZoomOutButtonPin)
 	tileProviders := map[string]*sm.TileProvider{}
@@ -99,10 +102,10 @@ func (s *service) detectLocation() {
 	c := sm.NewTileCache(s.cfg.Tile.CacheDir, os.ModePerm)
 	ctx := sm.NewContext()
 	ctx.SetCache(c)
-	ctx.SetOnline(s.cfg.Online)
+	ctx.SetOnline(s.cfg.Tile.Online)
 	ctx.SetSize(240, 240)
 
-	lastPt := s.cfg.DefaultLocation
+	lastPt := s.cfg.GPS.DefaultLoc
 	for {
 		// time.Sleep(500 * time.Millisecond)
 		pt, err := s.gps.Loc()

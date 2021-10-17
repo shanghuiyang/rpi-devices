@@ -10,19 +10,28 @@ import (
 
 // Config ...
 type Config struct {
-	ZoomInButtonPin  uint8               `json:"zoomInButtonPin"`
-	ZoomOutButtonPin uint8               `json:"zoomOutButtonPin"`
-	GPS              *GPSConfig          `json:"gps"`
-	IOT              *iot.Config         `json:"iot"`
-	Tile             *TileConfig         `json:"tile"`
-	Online           bool                `json:"online"`
-	DefaultLocation  *geo.Point          `json:"defaultLocation"`
-	GPSSimulator     *GPSSimulatorConfig `json:"gpsSimulator"`
+	ZoomInButtonPin  uint8       `json:"zoomInButtonPin"`
+	ZoomOutButtonPin uint8       `json:"zoomOutButtonPin"`
+	GPS              *GPSConfig  `json:"gps"`
+	IOT              *IOTConfig  `json:"iot"`
+	Tile             *TileConfig `json:"tile"`
 }
 
 type GPSConfig struct {
-	Dev  string `json:"dev"`
-	Baud int    `json:"baud"`
+	Dev        string              `json:"dev"`
+	Baud       int                 `json:"baud"`
+	DefaultLoc *geo.Point          `json:"defaultLoc"`
+	Simulator  *GPSSimulatorConfig `json:"simulator"`
+}
+
+type GPSSimulatorConfig struct {
+	Enable bool   `json:"enable"`
+	Source string `json:"source"`
+}
+
+type IOTConfig struct {
+	Enable bool        `json:"enable"`
+	Onenet *iot.Config `json:"onenet"`
 }
 
 type TileConfig struct {
@@ -32,11 +41,7 @@ type TileConfig struct {
 	TileProviders       []string `json:"tileProviders"`
 	DefaultTileProvider string   `json:"defaultTileProvider"`
 	CacheDir            string   `json:"cacheDir"`
-}
-
-type GPSSimulatorConfig struct {
-	Enable bool `json:"enable"`
-	Source string `json:"source"`
+	Online              bool     `json:"online"`
 }
 
 func LoadConfig(file string) (*Config, error) {

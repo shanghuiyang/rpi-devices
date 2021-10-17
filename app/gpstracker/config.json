@@ -3,11 +3,22 @@
     "zoomOutButtonPin": 23,
     "gps": {
         "dev": "/dev/ttyAMA0",
-        "baud": 9600
+        "baud": 9600,
+        "defaultLoc": {
+            "lat": 39.956767,
+            "lon": 116.447697
+        },
+        "simulator": {
+            "enable": false,
+            "source": "gps.csv"
+        }
     },
     "iot": {
-        "token": "your_onenet_token",
-        "api": "http://api.heclouds.com/devices/540381180/datapoints"
+        "enable": false,
+        "onenet": {
+            "token": "your_onenet_token",
+            "api": "http://api.heclouds.com/devices/540381180/datapoints"
+        }
     },
     "tile": {
         "minZoom": 0,
@@ -20,13 +31,5 @@
         "defaultTileProvider": "osm-outdoor",
         "cacheDir": ".cache/maptiles",
         "online": false
-    },
-    "defaultLocation": {
-        "lat": 40.002369,
-        "lon": 116.421977
-    },
-    "gpsSimulator": {
-        "enable": true,
-        "source": "gps.csv"
     }
 }
