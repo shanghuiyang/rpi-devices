@@ -86,7 +86,7 @@ func newService(cfg *Config) (*service, error) {
 		tileProviders:   tileProviders,
 		curZoom:         cfg.Tile.DefaultZoom,
 		curTileProvider: tileProviders[cfg.Tile.DefaultTileProvider],
-		chImage:         make(chan image.Image, 16),
+		chImage:         make(chan image.Image, 1),
 	}, nil
 }
 
