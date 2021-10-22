@@ -64,54 +64,7 @@ func main() {
 |Voice|![](img/voice.jpg)|Voice sensor|N/A|N/A|
 |ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch2o/main.go)|[ch2o-monitor](/app/ch2omonitor)|
 
-
-## Compile & Deploy
-
-It is very easy to cross-compile and deploy for golang. It is an example that compiles the binary for raspberry pi on MacOS.
-```shell
-$ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o led example/led/main.go
-````
-
-If you aren't sure the cpu info of your raspberry pi, check it out by,
-```shell
-$ lscpu
-# those are the cpu info of my raspberry pi 2.
-# ------------------------------------------------------------
-# Architecture:        armv6l
-# Byte Order:          Little Endian
-# CPU(s):              1
-# On-line CPU(s) list: 0
-# Thread(s) per core:  1
-# Core(s) per socket:  1
-# Socket(s):           1
-# Vendor ID:           ARM
-# Model:               7
-# Model name:          ARM1176
-# Stepping:            r0p7
-# CPU max MHz:         700.0000
-# CPU min MHz:         700.0000
-# BogoMIPS:            697.95
-# Flags:               half thumb fastmult vfp edsp java tls
-# ------------------------------------------------------------
-```
-
-And then, deploy the binary to your raspberry pi by,
-```shell
-$ scp led pi@192.168.31.57:/home/pi
-```
-`192.168.31.57` is the ip address of my raspberry pi, you need to replace it with yours.
-
-ssh to you raspberry pi, and run the binary.
-```shell
-# from /home/pi
-$ ssh pi@192.168.31.57
-$ ./led
-
-# or, run it in background
-$ nohub ./led > test.log 2>&1 &
-```
-
-## App
+## Apps
 Using the driver programs, I built several applications. The most complex app is the [smart car](/app/car), more than 10 sensers were used to build the car. I highlight few funny apps here, please go to [app](/app) for all apps I developed. You can learn how to use the drivers from my apps.
 ### [Self-Dirving Car](/app/car)
 play the video on [youtube](https://www.youtube.com/watch?v=RNqe4byzXmw).
