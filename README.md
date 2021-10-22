@@ -3,7 +3,7 @@
 # rpi-devices 
 [![Build Status](https://app.travis-ci.com/shanghuiyang/rpi-devices.svg?branch=master)](https://app.travis-ci.com/shanghuiyang/rpi-devices)
 
-rpi-devices drives sensors using raspberry pi in pure golang. 
+rpi-devices implements drivers for various kinds of sensors or devices based on raspberry pi in pure golang.
 
 ## Usage
 ```go
@@ -39,13 +39,16 @@ func main() {
 |DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/main.go)|[home-asst](/app/homeasst)|
 |DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/main.go)|[auto-fan](/app/autofan)|
 |Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/main.go)|N/A|
-|GPS|![](img/gps.jpg)|location sensor|[example](/example/gps/main.go)|[gps-tracker](/app/gpstracker)|
-|GY-25|![](img/gy25.jpg)|angle sensor|[example](/example/gy25/main.go)|[car](/app/car)|
-|HC-SR04|![](img/hc-sr04.jpg)|ultrasonic distance meter|[example](/example/hcsr04/main.go)|[auto-light](/app/autolight), [doordog](/app/doordog)|
+|GPS|![](img/gps.jpg)|Location sensor|[example](/example/gps/main.go)|[gps-tracker](/app/gpstracker)|
+|GY-25|![](img/gy25.jpg)|Angle sensor|[example](/example/gy25/main.go)|[car](/app/car)|
+|HC-SR04|![](img/hc-sr04.jpg)|Ultrasonic distance meter|[example](/example/hcsr04/main.go)|[auto-light](/app/autolight), [doordog](/app/doordog)|
+|Humidity Detector|![](img/humidity-detector.jpg)|Soil humidity detector|[example](/example/humidity-detector/main.go)|N/A|
 |Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/ir_detector/main.go)|N/A|
+|Infrared Encoder/Decoder|![](img/ir-encoder-decoder.jpg)|Infrared encoder/decoder|[example](/example/ir_coder/main.go)|N/A|
 |Joystick|![](img/joystick.jpg)|XY Dual Axis Joystick|[example](/example/joystick/main.go)|[car](/app/car)|
 |L298N|![](img/l298n.jpg)|motor driver|N/A|[car](/app/car)|
 |LC12S|![](img/lc12s.jpg)|2.4g wireless module|[example](/example/lc12s/main.go)|[car](/app/car)|
+|LCD 1602A Display|![](img/lcd1602a.jpg)|lcd display module|[example](/example/lcddisplay/main.go)|[home-asst](/app/homeasst)
 |Led|![](img/led.jpg)|Led light|[example](/example/led/main.go)|[car](/app/car), [vedio-monitor](/app/vmonitor)|
 |Led Display|![](img/digital-led-display.jpg)|led digital module|[example](/example/leddisplay/main.go)|[auto-air](/app/autoair)|
 |MPU6050|![](img/mpu6050.jpg)|6-axis motion sensor|[example](/example/mpu6050/main.go)|N/A|
