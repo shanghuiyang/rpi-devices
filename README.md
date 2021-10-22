@@ -116,13 +116,13 @@ Using the driver programs, I built several applications. The most complex app is
 ### [Self-Dirving Car](/app/car)
 play the video on [youtube](https://www.youtube.com/watch?v=RNqe4byzXmw).
 
-<img src="img/car.gif" width=80% height=80% />
+<img src="img/car.gif" width=60% height=60% />
 
 ### [Video Monitor](/app/vmonitor)
-<img src="img/vmonitor.gif" width=80% height=80% />
+<img src="img/vmonitor.gif" width=60% height=60% />
 
 ### [Auto-Air](/app/autoair)
-<img src="img/auto-air.gif" width=80% height=80% />
+<img src="img/auto-air.gif" width=60% height=60% />
 
-### [Auto-Light](/app/autolight)
-<img src="img/auto-light.gif" width=80% height=80% />
+### [GPS-Tracker](/app/gpstracker)
+<img src="img/gpstracker-v2.gif" width=60% height=60% />
