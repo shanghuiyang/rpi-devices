@@ -2,7 +2,7 @@
 LC12S is wireless transceiver used to send and receive data via electromagnetic wave.
 More details please ref to: https://world.taobao.com/item/594554513623.htm
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -17,12 +17,13 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: any 3.3v
  - GND: any gnd pin
  - CS: any data pin. high-level: sleep, low-level: work
- - TX: must connect to pin 10(gpio 15) (RXD)
- - RX: must connect to pin  8(gpio 14) (TXD)
+ - RX: must connect to GPIO-14/TXD
+ - TX: must connect to GPIO-15/RXD
+
 */
 package dev
 

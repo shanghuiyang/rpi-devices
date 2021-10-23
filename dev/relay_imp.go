@@ -1,10 +1,10 @@
 /*
 relay is an electrically operated switch module.
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - vcc: any 5v pin
  - gnd: any gnd pin
- - in:  pin 26(gpio 7) or any data pin
+ - in:  any data pin
  - on:  the outside device
  - com: the bettery
 

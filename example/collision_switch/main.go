@@ -12,7 +12,7 @@ const (
 )
 
 func main() {
-	c := dev.NewCollisionDetector(pin)
+	c := dev.NewCollisionSwitch(pin)
 	for {
 		collided := c.Detected()
 		if collided {

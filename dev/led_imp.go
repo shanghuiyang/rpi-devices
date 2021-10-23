@@ -1,7 +1,7 @@
 /*
 LedImp is a led module.
 
-Connect to Pi:
+Connect to Raspberry Pi:
   - positive(the longer pin): 	any data pin
   - negative(she shorter pin): 	any gnd pin
 */

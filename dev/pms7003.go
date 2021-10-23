@@ -1,7 +1,7 @@
 /*
 PMS7003 is an air quality sensor which can be used to measure PM2.5 and PM10.
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -16,11 +16,11 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: any 5v pin
  - GND: any gnd pin
- - TXD: must connect to pin 10(gpio 15) (RXD)
- - RXT: must connect to pin  8(gpio 14) (TXD)
+ - RX: must connect to GPIO-14/TXD
+ - TX: must connect to GPIO-15/RXD
 
 */
 package dev

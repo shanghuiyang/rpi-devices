@@ -1,10 +1,10 @@
 /*
 SG90 is servo motor which can roll angels from 0~180 degree.
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - the red line:	any 5v pin
  - the brown line: 	any gnd pin
- - the yellow line:	any pwn pin(must be one of gpio 12, 13, 18, 19)
+ - the yellow line:	must be one of gpio 12, 13, 18 or 19 (pwn pins)
 */
 package dev
 

@@ -13,11 +13,11 @@ Spec:
          |     |     |     |
         vcc  trig   echo  gnd
 
-Connect to Pi:
+Connect to Raspberry Pi:
   - vcc:	any 5v pin
-  - trig:	any data pin for triggering(input)
-  - echo:	any data pin for echoing(output)
   - gnd:	any gnd pin
+  - trig:	any data pin
+  - echo:	any data pin
 
 */
 package dev

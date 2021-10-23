@@ -1,7 +1,7 @@
 /*
 DS18B20 is sensor used to meature temperature.
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 2. add following line at the end of the file
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,10 +15,10 @@ Config Your Pi:
 	ca 01 55 00 7f ff 0c 10 bf t=28625
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - vcc: any 3.3v pin
  - gnd: any gnd pin
- - dat: must connect to pin 7(gpio 4)
+ - dat: must connect to GPIO-4
 
 */
 package dev

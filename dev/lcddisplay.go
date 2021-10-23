@@ -3,13 +3,7 @@ package dev
 /*
 LcdDisplay is a LCD Dispaly.
 
-connect to raspberry pi:
-- VCC: pin 1 or any 3.3v pin
-- GND: pin 9 or and GND pin
-- SDA: pin 3 (SDA)
-- SCL: pin 5 (SCL)
-
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo apt-get install -y python-smbus
 2. $ sudo apt-get install -y i2c-tools
 3. $ sudo raspi-config
@@ -28,6 +22,13 @@ Config Your Pi:
 	60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	70: -- -- -- -- -- -- -- --
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Connect to Raspberry Pi:
+- VCC: any 3.3v pin
+- GND: any GND pin
+- SDA: GPIO-2 (SDA)
+- SCL: GPIO-3 (SCL)
+
 */
 import (
 	"github.com/shanghuiyang/rpi-devices/util"

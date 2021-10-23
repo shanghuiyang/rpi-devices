@@ -1,12 +1,12 @@
 /*
-Package dev ...
+JoystickImp is 2-axis joystick module.
 
 Connect to Pi:
  - +V5: any 5v
  - GND: any gnd pin
  - SM : any data pin
- - Rx: PCF8591->AIN0
- - Ry: PCF8591->AIN1
+ - Rx: ADS1015->A0
+ - Ry: ADS1015->A1
 */
 package dev
 

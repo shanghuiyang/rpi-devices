@@ -10,7 +10,7 @@ a b c d h i j l o p q s t u y
 (and blank char ' ')
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: 	any v3.3 pin
  - GND: 	any gnd pin
  - DIO: 	any data pin

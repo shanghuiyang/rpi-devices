@@ -18,12 +18,14 @@ Pins:
  - OUT3: dc motor B+
  - OUT4: dc motor B-
 
- - IN1: input 1 for motor A
- - IN2: input 2 for motor A
- - IN3: input 3 for motor B
- - IN4: input 1 for motor B
- - EN1: enable pin for motor A
- - EN2: enable pin for motor B
+ - 12v: +battery
+ - GND: -battery (and any gnd pin of raspberry pi if motors and raspberry pi use different battery sources)
+ - IN1: any data pin
+ - IN2: any data pin
+ - IN3: any data pin
+ - IN4: any data pin
+ - EN1: must be one of GPIO 12, 13, 18 or 19 (pwn pins)
+ - EN2: must be one of GPIO 12, 13, 18 or 19 (pwn pins)
 
 */
 package dev

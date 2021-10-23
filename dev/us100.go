@@ -3,7 +3,7 @@ US-100 is an ultrasonic distance meter used to measure the distance to objects.
 US-100 works in both modes of UART and Electrical Level(TTL).
 TTL mode is used by default if you don't specify a mode for it.
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -18,14 +18,15 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: any 3.3v or 5v pin
  - GND: any gnd pin
  - ...............................................
  - !!! NOTE: TX->TXD, RX-RXD, NOT TX->RXD, RX-TXD
  - ...............................................
- - Trig/TX: must connect to pin  8(gpio 14) (TXD)
- - Echo/RX: must connect to pin 10(gpio 15) (RXD)
+ - Trig/TX: must connect to GPIO-14 (TXD)
+ - Echo/RX: must connect to GPIO-15 (RXD)
+
 */
 package dev
 

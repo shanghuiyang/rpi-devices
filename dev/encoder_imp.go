@@ -1,7 +1,7 @@
 /*
 Encoder is a sensor used to count number.
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - vcc: any 3.3v or v5 pin
  - gnd: any gnd pin
  - out: any data pin

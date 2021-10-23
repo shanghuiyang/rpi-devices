@@ -1,7 +1,7 @@
 /*
 ZE08CH2O is a sensor used to detect CH2O.
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -16,10 +16,10 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: any 5v pin
  - GND: any gnd pin
- - TXD: must connect to pin 10(gpio 15) (RXD)
+ - TXD: must connect to GPIO-15 (RXD)
 
 */
 package dev

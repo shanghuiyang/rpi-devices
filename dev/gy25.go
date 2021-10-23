@@ -1,7 +1,7 @@
 /*
 GY25 is an accelerometer used to detect yaw, pitch and roll angles.
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -16,11 +16,11 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: any 5v pin
  - GND: any gnd pin
- - TXD: must connect to pin 10(gpio 15) (RXD)
- - RXT: must connect to pin  8(gpio 14) (TXD)
+ - RXT: must connect to GPIO-14/TXD
+ - TXD: must connect to GPIO-15/RXD
 
 */
 package dev

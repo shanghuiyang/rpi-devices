@@ -1,10 +1,10 @@
 /*
 VoiceDetector is an sensor used to detect voice.
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - vcc: any 3.3v or 5v pin
  - gnd: any gnd pin
- - out : any data pin
+ - out: any data pin
 
 */
 

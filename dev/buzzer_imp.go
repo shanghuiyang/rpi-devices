@@ -1,7 +1,7 @@
 /*
 BuzzerImp is a buzzer module used to generate "beep, beep, ..." sound.
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - vcc: any v3.3 pin
  - gnd: and gnd pin
  - i/o: any data pin

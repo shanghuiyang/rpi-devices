@@ -1,5 +1,5 @@
 /*
-GPSSimulator is a simulator used to simulate GPS module, who provides lat/lon sequence from csv file.
+GPSSimulator is a simulator used to simulate GPS module, it provides lat/lon sequence from csv file.
 */
 
 package dev

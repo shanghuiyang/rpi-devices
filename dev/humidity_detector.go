@@ -1,5 +1,11 @@
 /*
-HumidityDetector is a sensor used to deteched the humidity.
+HumidityDetector detects the humidity/soisture of soil.
+
+Connect to Raspberry Pi:
+ - vcc: any 3.3v or v5 pin
+ - gnd: any gnd pin
+ - out: any data pin
+
 */
 
 package dev

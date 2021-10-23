@@ -1,7 +1,7 @@
 /*
-IRCode is an infrared(IR) encoder and decoder
+IRCoder is an infrared(IR) encoder and decoder
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo vim /boot/config.txt
 	add following new line:
 	~~~~~~~~~~~~~~~~~
@@ -16,11 +16,12 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - VCC: any 5v pin
  - GND: any gnd pin
- - TXD: gpio-15(RXD)
- - RXD: gpio-14(TXD)
+ - RXT: must connect to GPIO-14/TXD
+ - TXD: must connect to GPIO-15/RXD
+
 */
 package dev
 

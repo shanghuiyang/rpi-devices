@@ -1,7 +1,7 @@
 /*
 Neo6mGPS is a GPS module used to get locations(lat/lon).
 
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo raspi-config
 	-> [P5 interface] -> P6 Serial: disable -> [no] -> [yes]
 2. $ sudo vim /boot/config.txt
@@ -14,11 +14,11 @@ Config Your Pi:
 4. $ sudo cat /dev/ttyAMA0
 	should see somethings output
 
-Connect NEO-6M GPS Sensor to Raspberry Pi:
+Connect to Raspberry Pi:
  - VCC: any 3.3v or 5v pin
  - GND: any gnd pin
- - RXT: must connect to pin  8(gpio 14) (TXD)
- - TXD: must connect to pin 10(gpio 15) (RXD)
+ - RXT: must connect to GPIO-14/TXD
+ - TXD: must connect to GPIO-15/RXD
 */
 package dev
 

@@ -1,7 +1,7 @@
 /*
 RX480E4 is a transmitter receiver decoding module with 4 channels.
 
-Connect to Pi:
+Connect to Raspberry Pi:
  - +v: any v3.3 or 5v pin
  - gnd: any gnd pin
  - d0: any data pin

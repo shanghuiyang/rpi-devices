@@ -1,18 +1,10 @@
 /*
-ADS1015 is analog-digital converter. It is a implement of AnalogDigitalConverter interface.
+ADS1015 is a 12-bit analog-digital converter. It is a implement of AnalogDigitalConverter interface.
 More details about ADS1015, please ref to:
-https://wenku.baidu.com/view/308f9a69a9114431b90d6c85ec3a87c240288aa7
+https://www.adafruit.com/product/1083
+https://cdn-learn.adafruit.com/downloads/pdf/adafruit-4-channel-adc-breakouts.pdf
 
-connect to raspberry pi:
-- VCC: pin 1 or any 3.3v pin
-- GND: pin 9 or and GND pin
-- SDA: pin 3 (SDA)
-- SCL: pin 5 (SCL)
-
-Jumper:
-- remove jumpers on P4 & P5, keep the jumper on P6
-
-Config Your Pi:
+Config Raspberry Pi:
 1. $ sudo apt-get install -y python-smbus
 2. $ sudo apt-get install -y i2c-tools
 3. $ sudo raspi-config
@@ -31,6 +23,13 @@ Config Your Pi:
 	60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	70: -- -- -- -- -- -- -- --
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Connect to Raspberry Pi:
+- VCC: any 3.3v pin
+- GND: any GND pin
+- SDA: GPIO-2 (SDA)
+- SCL: GPIO-3 (SCL)
+
 */
 package dev
 

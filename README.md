@@ -35,7 +35,7 @@ func main() {
 |ADS1015|![](img/ads1015.jpg)|Analog-to-digital converter|N/A|[joystick](/app/joystick)|
 |Button|![](img/button.jpg)|Button module|[example](/example/button/main.go)|[vedio-monitor](/app/vmonitor)|
 |Buzzer|![](img/buzzer.jpg)|Buzzer module|N/A|[car](/app/car), [door-dog](/app/doordog)|
-|Collision Detector|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collision_detector/main.go)|[car](/app/car)|
+|Collision Switch|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collision_switch/main.go)|[car](/app/car)|
 |DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/main.go)|[home-asst](/app/homeasst)|
 |DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/main.go)|[auto-fan](/app/autofan)|
 |Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/main.go)|N/A|
