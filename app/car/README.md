@@ -10,7 +10,7 @@ Self-Dirving Car
 
 **control the car from mobile phone.**
 
-<img src="../../img/car-control.jpg" width=40% height=40% />
+<img src="../../img/car-control.jpg" width=30% height=30% />
 
 
 **control the car from joystick.**

@@ -1,4 +1,4 @@
-<img src="../../img/auto-light.gif" width=80% height=80% />
+<img src="../../img/auto-light.gif" width=60% height=60% />
 
 # Auto Light
 Auto-Light let you control a led light working with a infared detector together.

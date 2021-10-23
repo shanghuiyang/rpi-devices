@@ -3,7 +3,7 @@
 # video monitor
 video-monitor let you control the camera from a mobile phone.
 
-**Hardware:**
+**Hardwares:**
 - Raspebrry Pi 3B
 - Camera, 500w Pixels
 - Servo SG90 x2
