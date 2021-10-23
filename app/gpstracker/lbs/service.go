@@ -44,7 +44,12 @@ func newService(cfg *Config) (*service, error) {
 	var gps dev.GPS
 	gps, err := dev.NewNeo6mGPS(cfg.GPS.Dev, cfg.GPS.Baud)
 	if cfg.GPS.Simulator.Enable {
-		gps, err = dev.NewGPSSimulator(cfg.GPS.Simulator.Source)
+		points, e := loadPoints(cfg.GPS.Simulator.Source)
+		if e != nil {
+			log.Printf("[gpstracker]failed to load points from %v, error: %v", cfg.GPS.Simulator.Source, e)
+			return nil, e
+		}
+		gps, err = dev.NewGPSSimulator(points)
 	}
 
 	if err != nil {
