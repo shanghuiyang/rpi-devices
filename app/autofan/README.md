@@ -6,14 +6,14 @@ The temperature sensor will trigger the relay to control the fan running or stop
 
 ## Connect
 temperature sensor:
-- vcc: phys.1/3.3v
-- dat: phys.7/BCM.4
-- gnd: phys.9/GND
+- vcc: 3.3v
+- dat: GPIO-4
+- gnd: GND
 
 realy:
-- vcc: phys.2/5v
-- in:  phys.26/BCM.7
-- gnd: phys.34/GND
+- vcc: 5v
+- in:  GPIO-7
+- gnd: GND
 - on:  fan(+)
 - com: bettery(+)
 

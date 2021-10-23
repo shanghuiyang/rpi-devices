@@ -7,13 +7,13 @@ and the led will turn off after 30 seconds.
 
 ## Connect
 infrared detector:
-- vcc: phys.1/3.3v
-- out: phys.3/BMC.2
-- gnd: phys.9/GND
+- vcc: 3.3v
+- out: GPIO-2
+- gnd: GND
 
 led:
-- positive: phys.36/BMC.16
-- negative: phys.34/GND
+- positive: GPIO-16
+- negative: GND
 
 ```go
 

@@ -3,13 +3,11 @@
 # GPS Tracker
 GPS-Tracker displays current location on street/satellite map using a 240x240 display mudule.
 
-hardware:
-- raspberry pi zero wh
-- gps module
-- TFT 240x240 display
+**Hardwares:**
+- Raspberry Pi Zero WH
+- GPS Module
+- TFT 240x240 Display
 - Buttons
-
-
 
 <img src="../../img/gpstracker-v2.gif" width=40% height=40% />
 

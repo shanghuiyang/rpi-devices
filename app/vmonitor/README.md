@@ -3,12 +3,12 @@
 # video monitor
 video-monitor let you control the camera from a mobile phone.
 
-hardware:
-- raspebrry pi 3B
-- camera, 500w pixel
-- servo SG90 x2
-- two-degree-of-freedom pan-tilt
-- buzzer
-- led
+**Hardware:**
+- Raspebrry Pi 3B
+- Camera, 500w Pixels
+- Servo SG90 x2
+- Two-Tegree-of-Freedom Pan-Tilt
+- Buzzer
+- Led
 
 <img src="../../img/vmonitor.png" width=30% height=30% />
