@@ -3,6 +3,10 @@
 # Self-Driving Car
 Self-Dirving Car
 
+**Self-Tracking**
+
+<img src="../../img/self-tracking.gif" width=30% height=30% />
+
 **Parts & Sensors**
 
 <img src="../../img/car-parts.jpg" width=60% height=60% />
