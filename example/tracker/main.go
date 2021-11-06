@@ -11,6 +11,7 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/cv"
 	"github.com/shanghuiyang/rpi-devices/dev"
+	"github.com/shanghuiyang/rpi-devices/util"
 	"gocv.io/x/gocv"
 )
 
@@ -30,7 +31,7 @@ const (
 	hs float64 = 255
 	hv float64 = 255
 
-	host = "0.0.0.0:8088"
+	url = ":8088/stracking"
 )
 
 var eng dev.MotorDriver
@@ -38,7 +39,7 @@ var eng dev.MotorDriver
 func main() {
 	eng = dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
 	if eng == nil {
-		log.Fatal("[tracking]failed to new a L298N as engine, a car can't without any engine")
+		log.Fatal("failed to new a L298N as engine, a car can't without any engine")
 		os.Exit(1)
 	}
 
@@ -51,14 +52,16 @@ func main() {
 
 	t, err := cv.NewTracker(lh, ls, lv, hh, hs, hv)
 	if err != nil {
-		log.Printf("[carapp]failed to create a tracker, error: %v", err)
+		log.Printf("failed to create a tracker, error: %v", err)
 		return
 	}
 	defer t.Close()
 
-	streamer := cv.NewStreamer(host)
-	defer streamer.Close()
-	go streamer.Start()
+	streamer, err := util.NewStreamer(url)
+	if err != nil {
+		log.Printf("failed to create a streamer, error: %v", err)
+		return
+	}
 
 	img := gocv.NewMat()
 	defer img.Close()
@@ -75,7 +78,12 @@ func main() {
 		if ok {
 			gocv.Rectangle(&img, *rect, rcolor, 2)
 		}
-		streamer.Push(&img)
+		buf, err := gocv.IMEncode(".jpg", img)
+		if err != nil {
+			log.Printf("[car]failed to encode image, err: %v", err)
+			continue
+		}
+		streamer.Push(buf)
 
 		if !ok {
 			continue

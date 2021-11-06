@@ -57,7 +57,7 @@ func (s *SelfNavImp) Start(dest *geo.Point) {
 
 	s.car.Beep(3, 300)
 	if !s.mapBBox.IsInside(dest) {
-		log.Printf("[%v]destination isn't in bbox, stop nav", logTag)
+		log.Printf("[%v]destination is outside of map boundary, nav stopped", logTag)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (s *SelfNavImp) Start(dest *geo.Point) {
 			util.DelayMs(1000)
 			continue
 		}
-		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), org.Lat, org.Lon)
+		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), pt.Lat, pt.Lon)
 		if !s.mapBBox.IsInside(pt) {
 			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, pt, s.mapBBox)
 			continue

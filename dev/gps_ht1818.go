@@ -33,25 +33,18 @@ import (
 	"github.com/tarm/serial"
 )
 
-const (
-	// Recommended Minimum Specific Data from GPS
-	GPRMC = "$GPRMC,"
-	// Recommended Minimum Specific Data from GPS & Beidou/China
-	GNRMC = "$GNRMC,"
-)
-
 var (
-	buf = make([]byte, 1024)
+	ht1818Buf = make([]byte, 2048)
 )
 
-// Neo6mGPS implements GPS interface
-type Neo6mGPS struct {
+// HT1818GPS implements GPS interface
+type HT1818GPS struct {
 	port *serial.Port
 }
 
-// NewNeo6mGPS ...
-func NewNeo6mGPS(dev string, baud int) (*Neo6mGPS, error) {
-	g := &Neo6mGPS{}
+// NewHT1818GPS ...
+func NewHT1818GPS(dev string, baud int) (*HT1818GPS, error) {
+	g := &HT1818GPS{}
 	if err := g.open(dev, baud); err != nil {
 		return nil, err
 	}
@@ -59,19 +52,19 @@ func NewNeo6mGPS(dev string, baud int) (*Neo6mGPS, error) {
 }
 
 // Loc ...
-func (g *Neo6mGPS) Loc() (*geo.Point, error) {
+func (g *HT1818GPS) Loc() (*geo.Point, error) {
 	if err := g.port.Flush(); err != nil {
 		return nil, err
 	}
 	a := 0
-	for a < 512 {
-		n, err := g.port.Read(buf[a:])
+	for a < 1024 {
+		n, err := g.port.Read(ht1818Buf[a:])
 		if err != nil {
 			return nil, err
 		}
 		a += n
 	}
-	r := bufio.NewReader(bytes.NewReader(buf[:a]))
+	r := bufio.NewReader(bytes.NewReader(ht1818Buf[:a]))
 	loc := ""
 	for {
 		line, err := r.ReadString('\n')
@@ -79,7 +72,7 @@ func (g *Neo6mGPS) Loc() (*geo.Point, error) {
 			break
 		}
 		line = strings.Trim(line, " \t\n")
-		if strings.Contains(line, GPRMC) || strings.Contains(line, GNRMC) {
+		if strings.Contains(line, GNRMC) {
 			loc = line
 			break
 		}
@@ -134,11 +127,11 @@ func (g *Neo6mGPS) Loc() (*geo.Point, error) {
 }
 
 // Close ...
-func (g *Neo6mGPS) Close() {
+func (g *HT1818GPS) Close() {
 	g.port.Close()
 }
 
-func (g *Neo6mGPS) open(dev string, baud int) error {
+func (g *HT1818GPS) open(dev string, baud int) error {
 	c := &serial.Config{
 		Name: dev,
 		Baud: baud,

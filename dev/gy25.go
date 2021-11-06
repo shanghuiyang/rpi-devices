@@ -17,7 +17,7 @@ Config Raspberry Pi:
 	should see somethings output
 
 Connect to Raspberry Pi:
- - VCC: any 5v pin
+ - VCC: any 3.3v or 5v pin
  - GND: any gnd pin
  - RXT: must connect to GPIO-14/TXD
  - TXD: must connect to GPIO-15/RXD

@@ -42,7 +42,7 @@ type service struct {
 
 func newService(cfg *Config) (*service, error) {
 	var gps dev.GPS
-	gps, err := dev.NewNeo6mGPS(cfg.GPS.Dev, cfg.GPS.Baud)
+	gps, err := dev.NewHT1818GPS(cfg.GPS.Dev, cfg.GPS.Baud)
 	if cfg.GPS.Simulator.Enable {
 		points, e := loadPoints(cfg.GPS.Simulator.Source)
 		if e != nil {

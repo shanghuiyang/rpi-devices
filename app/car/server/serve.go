@@ -42,6 +42,9 @@ func routeAPIs(r *mux.Router, s *service) {
 	// car operation
 	r.HandleFunc("/car/{op:[a-z]+}", s.opHandler).Methods("POST")
 
+	// car turn an angle
+	r.HandleFunc("/car/turn/{angle}", s.turnHandler).Methods("POST")
+
 	// self-driving
 	r.HandleFunc("/selfdriving/on", s.selfDrivingOnHandler).Methods("POST")
 	r.HandleFunc("/selfdriving/off", s.selfDrivingOffHandler).Methods("POST")

@@ -143,6 +143,26 @@ func (s *service) opHandler(w http.ResponseWriter, r *http.Request) {
 	s.chOp <- op
 }
 
+func (s *service) turnHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[%v]turn", logHandlerTag)
+	vars := mux.Vars(r)
+	a, ok := vars["angle"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid angle: %v", vars["angle"])
+		return
+	}
+	angle, err := strconv.ParseFloat(a, 64)
+	if err != nil {
+		log.Printf("[%v]invalid angle: %v", logHandlerTag, a)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid angle: %v", a)
+		return
+	}
+	log.Printf("[%v]turn angle: %v", logHandlerTag, angle)
+	s.car.Turn(angle)
+}
+
 func (s *service) setVolumeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%v]set volume", logHandlerTag)
 	vars := mux.Vars(r)
@@ -311,15 +331,16 @@ func (s *service) selfNavOnHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "invalid lat: %v", vars["lon"])
 		return
 	}
+	log.Printf("[%v]destination: %v, %v", logHandlerTag, lat, lon)
 
-	if lat < -90 || lat > 90 { // volume should be 0~100%
+	if lat < -90 || lat > 90 {
 		log.Printf("[%v]invalid lat: %v", logHandlerTag, lat)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "invalid lat: %v", lat)
 		return
 	}
 
-	if lon < -180 || lon > 180 { // volume should be 0~100%
+	if lon < -180 || lon > 180 {
 		log.Printf("[%v]invalid lon: %v", logHandlerTag, lon)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "invalid lon: %v", lon)
