@@ -4,23 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"image"
 	"image/jpeg"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"time"
 
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
-	streamerURL             = ":8088/monitor"
-	onenetToken             = "your_onenet_token"
-	onenetAPI               = "http://api.heclouds.com/devices/853487795/datapoints"
-	onenetGetFileAPIPattern = "your_onenet_get_file_api_pattern_%v"
+	streamerURL = ":8088/monitor"
+	onenetToken = "your_onenet_token"
+	onenetAPI   = "http://api.heclouds.com/devices/853487795/datapoints"
 )
 
 var cloud = iot.NewOnenet(&iot.Config{
@@ -29,28 +24,26 @@ var cloud = iot.NewOnenet(&iot.Config{
 })
 
 func main() {
-
 	streamer, err := util.NewStreamer(streamerURL)
 	if err != nil {
 		log.Fatalf("failed to create streamer, error: %v", err)
 	}
 
 	for {
-		imgidx, err := getImageIndex()
+		idx, err := getImageIndex()
 		if err != nil {
 			log.Printf("failed to get image index, error: %v", err)
 			continue
 		}
-		log.Printf("%v", imgidx)
+		log.Printf("%v", idx)
 
-		api := fmt.Sprintf(onenetGetFileAPIPattern, imgidx)
-		imgdata, err := getFile(api)
+		data, err := cloud.GetFile(idx)
 		if err != nil {
 			log.Printf("failed to get image data, error: %v", err)
 			continue
 		}
 
-		img, _, err := image.Decode(bytes.NewReader(imgdata))
+		img, _, err := image.Decode(bytes.NewReader(data))
 		if err != nil {
 			log.Printf("decode image error: %v", err)
 			continue
@@ -86,37 +79,15 @@ func getImageIndex() (string, error) {
 	if !ok {
 		return "", errors.New("can't convert value to map[string]interface{}")
 	}
-	imgidx, ok := images["index"]
+	idx, ok := images["index"]
 	if !ok {
 		return "", err
 	}
 
-	imgidxStr, ok := imgidx.(string)
+	s, ok := idx.(string)
 	if !ok {
 		return "", errors.New("can't convert interface to string")
 	}
 
-	return imgidxStr, nil
-}
-
-func getFile(api string) ([]byte, error) {
-	req, err := http.NewRequest("GET", api, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{
-		Timeout: 3 * time.Second,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return s, nil
 }

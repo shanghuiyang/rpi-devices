@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+const (
+	onenetGetFileAPI = "http://api.heclouds.com/bindata/"
+)
+
 // Onenet is the implement of Cloud
 type Onenet struct {
 	token string
@@ -105,7 +109,7 @@ func (o *Onenet) Get(params map[string]interface{}) ([]byte, error) {
 	req.Header.Set("api-key", o.token)
 
 	client := &http.Client{
-		Timeout: 15 * time.Second,
+		Timeout: 5 * time.Second,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -125,4 +129,28 @@ func (o *Onenet) Get(params map[string]interface{}) ([]byte, error) {
 		return nil, fmt.Errorf("error no: %v, message: %v", result.Errno, result.Error)
 	}
 	return json.Marshal(result.Data)
+}
+
+func (o *Onenet) GetFile(index string) ([]byte, error) {
+	api := onenetGetFileAPI + index
+	req, err := http.NewRequest("GET", api, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	req.Header.Set("api-key", o.token)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

@@ -11,7 +11,7 @@ import (
 
 const (
 	onenetToken = "your_onenet_token"
-	onenetAPI   = "your_onenet_api"
+	onenetAPI   = "http://api.heclouds.com/bindata?device_id=853487795&datastream_id=images"
 )
 
 func main() {
@@ -30,7 +30,6 @@ func main() {
 			continue
 		}
 		req.Header.Set("api-key", onenetToken)
-		req.Header.Set("Content-Type", "application/json")
 		client := &http.Client{
 			Timeout: 5 * time.Second,
 		}
