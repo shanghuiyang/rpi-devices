@@ -111,7 +111,12 @@ func (r *rlight) toggledByCloud() {
 				log.Printf("empty data")
 				continue
 			}
-			turnon := util.AlmostEqual(data.Datastreams[0].Datapoints[0].Value.(float64), 1.0)
+			v, ok := data.Datastreams[0].Datapoints[0].Value.(float64)
+			if !ok {
+				log.Printf("can't convert value to float64")
+				continue
+			}
+			turnon := util.AlmostEqual(v, 1.0)
 			if turnon {
 				r.cloudLed.On()
 			} else {
