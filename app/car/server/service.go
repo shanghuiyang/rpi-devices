@@ -215,6 +215,7 @@ func (s *service) Shutdown() error {
 func (s *service) operate() {
 	for op := range s.chOp {
 		log.Printf("[car]op: %v", op)
+		s.car.Speed(s.cfg.Speed)
 		switch op {
 		case forward:
 			s.car.Forward()
