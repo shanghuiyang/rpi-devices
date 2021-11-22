@@ -108,18 +108,19 @@ func (h *homeAsst) getData() {
 		}()
 
 		go func() {
-			pm25, err := h.getPM25()
-			if err != nil {
-				log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
-				time.Sleep(5 * time.Second)
-				return
-			}
+			// pm25, err := h.getPM25()
+			// if err != nil {
+			// 	log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
+			// 	time.Sleep(5 * time.Second)
+			// 	return
+			// }
+			pm25 := 0
 			log.Printf("[homeasst]pm2.5: %v", pm25)
 
 			d := &data{
 				name:        "pm2.5",
 				value:       pm25,
-				displayText: fmt.Sprintf("Air:%v", pm25),
+				displayText: fmt.Sprintf("Air:%3d", pm25),
 				displayX:    8,
 				displayY:    0,
 			}
@@ -154,6 +155,7 @@ func (h *homeAsst) display() {
 		select {
 		case d := <-h.chDisplay:
 			cache[d.name] = d
+			continue // continue to update the data in cache
 		default:
 			// do nothing, just use the latest temp
 		}

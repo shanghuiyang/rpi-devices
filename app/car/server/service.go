@@ -203,8 +203,7 @@ func (s *service) start() error {
 	return nil
 }
 
-// Stop ...
-func (s *service) Shutdown() error {
+func (s *service) shutdown() error {
 	s.ledBlinked = false
 	close(s.chOp)
 	s.car.Stop()

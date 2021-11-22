@@ -4,11 +4,20 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 )
 
 func main() {
+	ip, err := getOutboundIP()
+	if err != nil {
+		log.Printf("[uploadsvr]failed to ip address, error: %v", err)
+	}
+	if ip != nil {
+		log.Printf("http://%v:8083/upload", ip)
+	}
+
 	http.HandleFunc("/upload", upload)
 	if err := http.ListenAndServe(":8083", nil); err != nil {
 		log.Printf("[uploadsvr]failed to ListenAndServe, error: %v", err)
@@ -31,7 +40,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	f, err := os.OpenFile("/home/pi/"+handler.Filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	f, err := os.OpenFile(handler.Filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		page := fmt.Sprintf(tpl, "upload "+handler.Filename+" failed")
 		w.Write([]byte(page))
@@ -49,7 +58,18 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	page := fmt.Sprintf(tpl, "uploaded "+handler.Filename+" successfully")
 	w.Write([]byte(page))
 
-	log.Printf("[uploadsvr]upload %s in success", handler.Filename)
+	log.Printf("[uploadsvr]received %s in success", handler.Filename)
+}
+
+func getOutboundIP() (net.IP, error) {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP, nil
 }
 
 var tpl = `

@@ -22,7 +22,7 @@ func Start(cfg *Config) {
 
 	log.Printf("[%v]service started", logTag)
 	util.WaitQuit(func() {
-		s.Shutdown()
+		s.shutdown()
 	})
 
 	r := mux.NewRouter()

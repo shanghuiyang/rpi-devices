@@ -53,15 +53,15 @@ type PMS7003 struct {
 }
 
 // NewPMS7003 ...
-func NewPMS7003(dev string, baud int) *PMS7003 {
+func NewPMS7003(dev string, baud int) (*PMS7003, error) {
 	p := &PMS7003{
 		history: util.NewHistory(10),
 		retry:   10,
 	}
 	if err := p.open(dev, baud); err != nil {
-		return nil
+		return nil, err
 	}
-	return p
+	return p, nil
 }
 
 // Get returns pm2.5 and pm10 in ug/m3

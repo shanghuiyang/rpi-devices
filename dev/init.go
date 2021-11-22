@@ -7,7 +7,6 @@ init rpio on not raspberry-os will result to panic.
 this happens when you run unit tests on ohter os like mac(development) or unbutu amd(travis-ci),
 I use conditional compilation as workaround before I figure out a perfect solution.
 */
-
 package dev
 
 import (

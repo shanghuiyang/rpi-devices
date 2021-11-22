@@ -13,7 +13,7 @@ import (
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
-// SG90 implements Servo interface
+// SG90 implements Motor interface
 type SG90 struct {
 	pin rpio.Pin
 	rpi util.RpiModel

@@ -45,8 +45,8 @@ func main() {
 		return
 	}
 
-	p := dev.NewPMS7003(devName, baud)
-	if p == nil {
+	p, err := dev.NewPMS7003(devName, baud)
+	if err != nil {
 		log.Printf("[sensors]failed to new PMS7003")
 		return
 	}
