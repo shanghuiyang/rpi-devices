@@ -22,22 +22,25 @@ func main() {
 			log.Printf("failed to take phote from camera, error: %v", err)
 			continue
 		}
-
-		buf := bytes.NewReader(img)
-		req, err := http.NewRequest("POST", onenetAPI, buf)
-		if err != nil {
-			log.Printf("failed to new http request, error: %v", err)
-			continue
-		}
-		req.Header.Set("api-key", onenetToken)
-		client := &http.Client{
-			Timeout: 5 * time.Second,
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("failed to send http request, error: %v", err)
-			continue
-		}
-		resp.Body.Close()
+		go pushImage(img)
 	}
+}
+
+func pushImage(img []byte) {
+	buf := bytes.NewReader(img)
+	req, err := http.NewRequest("POST", onenetAPI, buf)
+	if err != nil {
+		log.Printf("failed to new http request, error: %v", err)
+		return
+	}
+	req.Header.Set("api-key", onenetToken)
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("failed to send http request, error: %v", err)
+		return
+	}
+	resp.Body.Close()
 }
