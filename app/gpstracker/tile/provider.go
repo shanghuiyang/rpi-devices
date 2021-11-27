@@ -1,7 +1,7 @@
 package tile
 
 import (
-	sm "github.com/shanghuiyang/go-staticmaps"
+	sm "github.com/flopp/go-staticmaps"
 )
 
 const (

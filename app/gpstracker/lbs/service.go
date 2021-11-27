@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"time"
 
+	sm "github.com/flopp/go-staticmaps"
 	"github.com/golang/geo/s2"
-	sm "github.com/shanghuiyang/go-staticmaps"
 	"github.com/shanghuiyang/rpi-devices/app/gpstracker/tile"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"

@@ -6,8 +6,8 @@ import (
 
 	"image/jpeg"
 
+	sm "github.com/flopp/go-staticmaps"
 	"github.com/golang/geo/s2"
-	sm "github.com/shanghuiyang/go-staticmaps"
 	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
