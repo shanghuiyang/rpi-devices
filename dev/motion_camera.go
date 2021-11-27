@@ -30,10 +30,12 @@ func NewMotionCamera() *MotionCamera {
 // you can change the directory in the config of motion.
 // the config file is in /etc/motion/motion.conf
 // and you need to change the 'snapshot_filename' to 'lastsnap.jpg'
+// you also need to make sure webcontrol_port=8088 for this function working.
 // after changing, this will be look like:
 // -----------------------------------------
 // target_dir /var/lib/motion
 // snapshot_filename lastsnap.jpg
+// webcontrol_port 8088
 // -----------------------------------------
 func (c *MotionCamera) Photo() ([]byte, error) {
 	cmd := exec.Command("curl", "-s", "-o", "/dev/null", "http://localhost:8088/0/action/snapshot")
