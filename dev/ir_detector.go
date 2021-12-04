@@ -20,14 +20,14 @@ type IRDetector struct {
 
 // NewIRDetector ...
 func NewIRDetector(pin uint8) *IRDetector {
-	i := &IRDetector{
+	ir := &IRDetector{
 		pin: rpio.Pin(pin),
 	}
-	i.pin.Input()
-	return i
+	ir.pin.Input()
+	return ir
 }
 
 // Detected ...
-func (i *IRDetector) Detected() bool {
-	return i.pin.Read() == rpio.Low
+func (ir *IRDetector) Detected() bool {
+	return ir.pin.Read() == rpio.Low
 }

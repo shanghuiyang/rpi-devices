@@ -1,5 +1,5 @@
 /*
-OLED is a display module used to display text/image via ssd1306 driver.
+OledDisplay is an oled display module used to display text/image driving by ssd1306 driver.
 
 Config Raspberry Pi:
 1. $ sudo apt-get install -y python-smbus
@@ -45,16 +45,16 @@ const (
 	fontFile = "casio-fx-9860gii.ttf"
 )
 
-// OLED ...
-type OLED struct {
-	oled   *monochromeoled.OLED
+// OledDisplay ...
+type OledDisplay struct {
+	*monochromeoled.OLED
 	width  int
 	height int
 	font   *truetype.Font
 }
 
-// NewOLED ...
-func NewOLED(width, heigth int) (*OLED, error) {
+// NewOledDisplay ...
+func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
 	oled, err := monochromeoled.Open(&i2c.Devfs{Dev: "/dev/i2c-1"}, 0x3c, width, heigth)
 	if err != nil {
 		return nil, err
@@ -67,8 +67,8 @@ func NewOLED(width, heigth int) (*OLED, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &OLED{
-		oled:   oled,
+	return &OledDisplay{
+		OLED:   oled,
 		width:  width,
 		height: heigth,
 		font:   font,
@@ -76,49 +76,49 @@ func NewOLED(width, heigth int) (*OLED, error) {
 }
 
 // Display ...
-func (o *OLED) Display(text string, fontSize float64, x, y int) error {
-	image, err := o.drawText(text, fontSize, x, y)
+func (oled *OledDisplay) Display(text string, fontSize float64, x, y int) error {
+	image, err := oled.drawText(text, fontSize, x, y)
 	if err != nil {
 		return err
 	}
-	if err := o.oled.SetImage(0, 0, image); err != nil {
+	if err := oled.OLED.SetImage(0, 0, image); err != nil {
 		return err
 	}
-	if err := o.oled.Draw(); err != nil {
+	if err := oled.OLED.Draw(); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Clear ...
-func (o *OLED) Clear() error {
-	if err := o.oled.Clear(); err != nil {
+func (oled *OledDisplay) Clear() error {
+	if err := oled.OLED.Clear(); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Close ...
-func (o *OLED) Close() {
-	o.oled.Clear()
-	o.oled.Close()
+func (oled *OledDisplay) Close() {
+	oled.OLED.Clear()
+	oled.OLED.Close()
 }
 
 // Off ...
-func (o *OLED) Off() {
-	o.oled.Clear()
-	o.oled.Off()
+func (oled *OledDisplay) Off() {
+	oled.OLED.Clear()
+	oled.OLED.Off()
 }
 
-func (o *OLED) drawText(text string, size float64, x, y int) (image.Image, error) {
-	dst := image.NewRGBA(image.Rect(0, 0, o.width, o.height))
+func (oled *OledDisplay) drawText(text string, size float64, x, y int) (image.Image, error) {
+	dst := image.NewRGBA(image.Rect(0, 0, oled.width, oled.height))
 	draw.Draw(dst, dst.Bounds(), image.Transparent, image.Point{}, draw.Src)
 
 	c := freetype.NewContext()
 	c.SetDst(dst)
 	c.SetClip(dst.Bounds())
 	c.SetSrc(image.White)
-	c.SetFont(o.font)
+	c.SetFont(oled.font)
 	c.SetFontSize(size)
 
 	if _, err := c.DrawString(text, freetype.Pt(x, y)); err != nil {

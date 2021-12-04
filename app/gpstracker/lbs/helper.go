@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
-func loadPoints(csv string) ([]*geo.Point, error) {
+func loadPoints(csv string) ([][]float64, error) {
 	file, err := os.Open(csv)
 	if err != nil {
 		return nil, err
 	}
 
-	points := []*geo.Point{}
+	latlons := [][]float64{}
 	reader := bufio.NewReader(file)
 	for {
 		line, err := reader.ReadString('\n')
@@ -27,13 +25,9 @@ func loadPoints(csv string) ([]*geo.Point, error) {
 		if _, err := fmt.Sscanf(line, "%19s,%f,%f\n", &timestamp, &lat, &lon); err != nil {
 			return nil, err
 		}
-		pt := &geo.Point{
-			Lat: lat,
-			Lon: lon,
-		}
-		points = append(points, pt)
+		latlons = append(latlons, []float64{lat, lon})
 	}
 	file.Close()
 
-	return points, nil
+	return latlons, nil
 }

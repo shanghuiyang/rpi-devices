@@ -1,9 +1,5 @@
 package dev
 
-import (
-	"github.com/shanghuiyang/rpi-devices/util/geo"
-)
-
 // Accelerometer ...
 type Accelerometer interface {
 	Angles() (yaw, pitch, roll float64, err error)
@@ -67,7 +63,7 @@ type Encoder interface {
 
 // GPS ...
 type GPS interface {
-	Loc() (*geo.Point, error)
+	Loc() (lat, lon float64, err error)
 	Close()
 }
 

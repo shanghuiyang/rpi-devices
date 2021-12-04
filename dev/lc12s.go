@@ -63,11 +63,11 @@ func NewLC12S(dev string, baud int, csPin uint8) (*LC12S, error) {
 func (l *LC12S) Send(data []byte) error {
 	n, err := l.port.Write(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("write port error: %w", err)
 	}
 
 	if n != len(data) {
-		return fmt.Errorf("[lc12s]wrote % btyes data, but expect % bytes", n, len(data))
+		return fmt.Errorf("not all data was sent")
 	}
 
 	return nil
@@ -76,7 +76,7 @@ func (l *LC12S) Send(data []byte) error {
 // Receive ...
 func (l *LC12S) Receive() ([]byte, error) {
 	if err := l.port.Flush(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("flush port error: %w", err)
 	}
 
 	var buf [bufsz]byte
@@ -88,7 +88,7 @@ func (l *LC12S) Receive() ([]byte, error) {
 		return nil, err
 	}
 	if n > bufsz {
-		return nil, fmt.Errorf("[lc12s]received % bytes data, expect less than %v bytes", n, bufsz)
+		return nil, fmt.Errorf("buf overflow")
 	}
 	return buf[:n], nil
 }

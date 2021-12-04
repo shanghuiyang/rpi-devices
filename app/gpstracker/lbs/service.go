@@ -18,6 +18,7 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
 	"github.com/shanghuiyang/rpi-devices/util"
+	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 const (
@@ -44,12 +45,12 @@ func newService(cfg *Config) (*service, error) {
 	var gps dev.GPS
 	gps, err := dev.NewHT1818GPS(cfg.GPS.Dev, cfg.GPS.Baud)
 	if cfg.GPS.Simulator.Enable {
-		points, e := loadPoints(cfg.GPS.Simulator.Source)
+		latlons, e := loadPoints(cfg.GPS.Simulator.Source)
 		if e != nil {
 			log.Printf("[gpstracker]failed to load points from %v, error: %v", cfg.GPS.Simulator.Source, e)
 			return nil, e
 		}
-		gps, err = dev.NewGPSSimulator(points)
+		gps, err = dev.NewGPSSimulator(latlons)
 	}
 
 	if err != nil {
@@ -113,10 +114,14 @@ func (s *service) detectLocation() {
 	lastPt := s.cfg.GPS.DefaultLoc
 	for {
 		// time.Sleep(500 * time.Millisecond)
-		pt, err := s.gps.Loc()
+		lat, lon, err := s.gps.Loc()
 		if err != nil {
 			log.Printf("failed to get gps locations: %v", err)
-			pt = lastPt
+			lat, lon = lastPt.Lat, lastPt.Lon
+		}
+		pt := &geo.Point{
+			Lat: lat,
+			Lon: lon,
 		}
 		lastPt = pt
 

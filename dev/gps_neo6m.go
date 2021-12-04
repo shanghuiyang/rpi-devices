@@ -29,7 +29,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 	"github.com/tarm/serial"
 )
 
@@ -51,23 +50,23 @@ type Neo6mGPS struct {
 
 // NewNeo6mGPS ...
 func NewNeo6mGPS(dev string, baud int) (*Neo6mGPS, error) {
-	g := &Neo6mGPS{}
-	if err := g.open(dev, baud); err != nil {
+	gps := &Neo6mGPS{}
+	if err := gps.open(dev, baud); err != nil {
 		return nil, err
 	}
-	return g, nil
+	return gps, nil
 }
 
 // Loc ...
-func (g *Neo6mGPS) Loc() (*geo.Point, error) {
-	if err := g.port.Flush(); err != nil {
-		return nil, err
+func (gps *Neo6mGPS) Loc() (lat, lon float64, err error) {
+	if err := gps.port.Flush(); err != nil {
+		return 0, 0, fmt.Errorf("flush error: %w", err)
 	}
 	a := 0
 	for a < 512 {
-		n, err := g.port.Read(buf[a:])
+		n, err := gps.port.Read(buf[a:])
 		if err != nil {
-			return nil, err
+			return 0, 0, fmt.Errorf("read port error: %w", err)
 		}
 		a += n
 	}
@@ -86,59 +85,58 @@ func (g *Neo6mGPS) Loc() (*geo.Point, error) {
 	}
 
 	if loc == "" {
-		return nil, fmt.Errorf("failed to read location from gps device")
+		return 0, 0, fmt.Errorf("%v and %v not found", GPRMC, GNRMC)
 	}
 	items := strings.Split(loc, ",")
 	if len(items) < 7 {
-		return nil, fmt.Errorf("bad data from gps device")
+		return 0, 0, fmt.Errorf("invalid data format")
 	}
 
 	var available string
 	if _, err := fmt.Sscanf(items[2], "%s", &available); err != nil {
-		return nil, fmt.Errorf("failed to parse available, %v", err)
+		return 0, 0, fmt.Errorf("failed to parse [available], %w", err)
 	}
 	if available != "A" {
-		return nil, fmt.Errorf("invalid data")
+		return 0, 0, fmt.Errorf("invalid data")
 	}
 
-	var pt geo.Point
-	if _, err := fmt.Sscanf(items[3], "%f", &pt.Lat); err != nil {
-		return nil, fmt.Errorf("failed to parse lat, %v", err)
+	if _, err := fmt.Sscanf(items[3], "%f", &lat); err != nil {
+		return 0, 0, fmt.Errorf("failed to parse [lat], %w", err)
 	}
 	northOrSouth := ""
 	if _, err := fmt.Sscanf(items[4], "%s", &northOrSouth); err != nil {
-		return nil, fmt.Errorf("failed to parse north or south, %v", err)
+		return 0, 0, fmt.Errorf("failed to parse [north/south], %w", err)
 	}
-	if _, err := fmt.Sscanf(items[5], "%f", &pt.Lon); err != nil {
-		return nil, fmt.Errorf("failed to parse lon, %v", err)
+	if _, err := fmt.Sscanf(items[5], "%f", &lon); err != nil {
+		return 0, 0, fmt.Errorf("failed to parse [lon], %w", err)
 	}
 	eastOrWest := ""
 	if _, err := fmt.Sscanf(items[6], "%s", &eastOrWest); err != nil {
-		return nil, fmt.Errorf("failed to parse east or west, %v", err)
+		return 0, 0, fmt.Errorf("failed to parse [east/west], %w", err)
 	}
 	if northOrSouth == "S" {
-		pt.Lat = pt.Lat * (-1)
+		lat = lat * (-1)
 	}
 	if eastOrWest == "W" {
-		pt.Lon = pt.Lon * (-1)
+		lon = lon * (-1)
 	}
-	dd := int(pt.Lat / 100)
-	mm := pt.Lat - float64(dd*100)
-	pt.Lat = float64(dd) + mm/60
+	dd := int(lat / 100)
+	mm := lat - float64(dd*100)
+	lat = float64(dd) + mm/60
 
-	dd = int(pt.Lon / 100)
-	mm = pt.Lon - float64(dd*100)
-	pt.Lon = float64(dd) + mm/60
+	dd = int(lon / 100)
+	mm = lon - float64(dd*100)
+	lon = float64(dd) + mm/60
 
-	return &pt, nil
+	return lat, lon, nil
 }
 
 // Close ...
-func (g *Neo6mGPS) Close() {
-	g.port.Close()
+func (gps *Neo6mGPS) Close() {
+	gps.port.Close()
 }
 
-func (g *Neo6mGPS) open(dev string, baud int) error {
+func (gps *Neo6mGPS) open(dev string, baud int) error {
 	c := &serial.Config{
 		Name: dev,
 		Baud: baud,
@@ -147,6 +145,6 @@ func (g *Neo6mGPS) open(dev string, baud int) error {
 	if err != nil {
 		return err
 	}
-	g.port = p
+	gps.port = p
 	return nil
 }

@@ -1,23 +1,20 @@
-package util
+package dev
 
 import (
 	"errors"
 )
 
-// ErrEmpty ...
-var ErrEmpty = errors.New("empty")
+var errEmpty = errors.New("empty")
 
-// History ...
-type History struct {
+type history struct {
 	contains []interface{}
 	size     int
 	index    int
 	full     bool
 }
 
-// NewHistory ...
-func NewHistory(size int) *History {
-	h := &History{
+func newHistory(size int) *history {
+	h := &history{
 		contains: make([]interface{}, size),
 		size:     size,
 		index:    0,
@@ -29,8 +26,7 @@ func NewHistory(size int) *History {
 	return h
 }
 
-// Add ...
-func (h *History) Add(v interface{}) {
+func (h *history) Add(v interface{}) {
 	h.contains[h.index] = v
 	h.index++
 	if h.index == h.size {
@@ -39,10 +35,9 @@ func (h *History) Add(v interface{}) {
 	}
 }
 
-// Avg ...
-func (h *History) Avg() (float64, error) {
+func (h *history) Avg() (float64, error) {
 	if h.index == 0 && !h.full {
-		return 0, ErrEmpty
+		return 0, errEmpty
 	}
 	var sum float64
 	for _, v := range h.contains {

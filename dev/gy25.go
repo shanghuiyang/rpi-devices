@@ -26,7 +26,7 @@ Connect to Raspberry Pi:
 package dev
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/tarm/serial"
@@ -63,20 +63,20 @@ type GY25 struct {
 
 // NewGY25 ...
 func NewGY25(dev string, baud int) *GY25 {
-	g := &GY25{}
-	if err := g.open(dev, baud); err != nil {
+	gy := &GY25{}
+	if err := gy.open(dev, baud); err != nil {
 		return nil
 	}
-	return g
+	return gy
 }
 
 // SetMode ...
-func (g *GY25) SetMode(mode GY25Mode) error {
-	if err := g.port.Flush(); err != nil {
+func (gy *GY25) SetMode(mode GY25Mode) error {
+	if err := gy.port.Flush(); err != nil {
 		return err
 	}
 
-	n, err := g.port.Write(mode)
+	n, err := gy.port.Write(mode)
 	if n != 2 || err != nil {
 		return err
 	}
@@ -84,14 +84,14 @@ func (g *GY25) SetMode(mode GY25Mode) error {
 }
 
 // Angles ...
-func (g *GY25) Angles() (float64, float64, float64, error) {
-	if err := g.port.Flush(); err != nil {
+func (gy *GY25) Angles() (yaw, pitch, roll float64, err error) {
+	if err := gy.port.Flush(); err != nil {
 		return 0, 0, 0, err
 	}
 
 	a := 0
 	for a < 16 {
-		n, err := g.port.Read(g.buf[a:])
+		n, err := gy.port.Read(gy.buf[a:])
 		if err != nil {
 			return 0, 0, 0, err
 		}
@@ -99,32 +99,32 @@ func (g *GY25) Angles() (float64, float64, float64, error) {
 	}
 
 	var data []byte
-	for i, b := range g.buf {
+	for i, b := range gy.buf {
 		if b == datahead && i+datalen < bufsize {
-			data = g.buf[i : i+datalen]
+			data = gy.buf[i : i+datalen]
 			break
 		}
 	}
 	if len(data) != datalen {
-		return 0, 0, 0, fmt.Errorf("incorrect data len: %v, expected %v", len(data), datalen)
+		return 0, 0, 0, errors.New("unexpected data length")
 	}
 
 	if data[0] != datahead && data[7] != datatail {
-		return 0, 0, 0, fmt.Errorf("invalid data, validation failed")
+		return 0, 0, 0, errors.New("invalid data")
 	}
 
-	yaw := (int16(data[1]) << 8) | int16(data[2])
-	pitch := (int16(data[3]) << 8) | int16(data[4])
-	roll := (int16(data[5]) << 8) | int16(data[6])
-	return float64(yaw) / 100, float64(pitch) / 100, float64(roll) / 100, nil
+	y := (int16(data[1]) << 8) | int16(data[2])
+	p := (int16(data[3]) << 8) | int16(data[4])
+	r := (int16(data[5]) << 8) | int16(data[6])
+	return float64(y) / 100, float64(p) / 100, float64(r) / 100, nil
 }
 
 // Close ...
-func (g *GY25) Close() {
-	g.port.Close()
+func (gy *GY25) Close() {
+	gy.port.Close()
 }
 
-func (g *GY25) open(dev string, baud int) error {
+func (gy *GY25) open(dev string, baud int) error {
 	c := &serial.Config{
 		Name:        dev,
 		Baud:        baud,
@@ -134,6 +134,6 @@ func (g *GY25) open(dev string, baud int) error {
 	if err != nil {
 		return err
 	}
-	g.port = port
+	gy.port = port
 	return nil
 }

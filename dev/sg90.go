@@ -9,26 +9,25 @@ Connect to Raspberry Pi:
 package dev
 
 import (
-	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
 // SG90 implements Motor interface
 type SG90 struct {
 	pin rpio.Pin
-	rpi util.RpiModel
+	rpi rpiModel
 }
 
 // NewSG90 ...
 func NewSG90(pin uint8) *SG90 {
-	s := &SG90{
+	sg := &SG90{
 		pin: rpio.Pin(pin),
-		rpi: util.GetRpiModel(),
+		rpi: getRpiModel(),
 	}
-	s.pin.Pwm()
-	s.pin.Freq(50)
-	s.pin.DutyCycle(0, 100)
-	return s
+	sg.pin.Pwm()
+	sg.pin.Freq(50)
+	sg.pin.DutyCycle(0, 100)
+	return sg
 }
 
 // Roll ...
@@ -45,18 +44,18 @@ func NewSG90(pin uint8) *SG90 {
 //          *
 //         eye
 //
-func (s *SG90) Roll(angle float64) {
+func (sg *SG90) Roll(angle float64) {
 	if angle < -90 || angle > 90 {
 		return
 	}
 	duty := uint32(10.0 - angle/15.0)
-	if s.rpi == util.Rpi4 {
+	if sg.rpi == rpi4 {
 		// Rpi4 uses a BCM 2711, which is different from the early rpi like rpi3, rpi2, rpiA and rpi0
 		duty = uint32(26.5 - 39*float32(angle)/180)
 	}
-	s.pin.DutyCycle(uint32(duty), 100)
+	sg.pin.DutyCycle(uint32(duty), 100)
 }
 
-func (s *SG90) SetSpeed(speed int) {
-	// Todo
+func (sg *SG90) SetSpeed(speed int) {
+	// do notiong just implement Motor interface.
 }

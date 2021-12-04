@@ -25,21 +25,21 @@ type RX480E4 struct {
 // NewRX480E4 ...
 func NewRX480E4(d0, d1, d2, d3 uint8) *RX480E4 {
 	channels := [4]rpio.Pin{rpio.Pin(d0), rpio.Pin(d1), rpio.Pin(d2), rpio.Pin(d3)}
-	r := &RX480E4{
+	rx := &RX480E4{
 		channels: channels,
 	}
-	for _, ch := range r.channels {
+	for _, ch := range rx.channels {
 		ch.Input()
 		ch.PullDown()
 		ch.Detect(rpio.RiseEdge)
 	}
-	return r
+	return rx
 }
 
 // PressA ...
-func (r *RX480E4) Received(ch int) bool {
+func (rx *RX480E4) Received(ch int) bool {
 	if ch < 0 || ch > 3 {
 		return false
 	}
-	return r.channels[ch].EdgeDetected()
+	return rx.channels[ch].EdgeDetected()
 }

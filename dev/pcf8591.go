@@ -65,13 +65,13 @@ func NewPCF8591() (*PCF8591, error) {
 }
 
 // ReadAIN0 ...
-func (m *PCF8591) ReadAIN0() []byte {
-	if err := m.dev.Write([]byte{ctrAIN0}); err != nil {
+func (pcf *PCF8591) ReadAIN0() []byte {
+	if err := pcf.dev.Write([]byte{ctrAIN0}); err != nil {
 		log.Printf("write AIN0 error: %v", err)
 		return []byte{}
 	}
 	data := make([]byte, 1)
-	if err := m.dev.Read(data); err != nil {
+	if err := pcf.dev.Read(data); err != nil {
 		log.Printf("read AIN0 error: %v", err)
 		return []byte{}
 	}
@@ -80,13 +80,13 @@ func (m *PCF8591) ReadAIN0() []byte {
 }
 
 // ReadAIN1 ...
-func (m *PCF8591) ReadAIN1() []byte {
-	if err := m.dev.Write([]byte{ctrAIN1}); err != nil {
+func (pcf *PCF8591) ReadAIN1() []byte {
+	if err := pcf.dev.Write([]byte{ctrAIN1}); err != nil {
 		log.Printf("write AIN1 error: %v", err)
 		return []byte{}
 	}
 	data := make([]byte, 1)
-	if err := m.dev.Read(data); err != nil {
+	if err := pcf.dev.Read(data); err != nil {
 		log.Printf("read AIN1 error: %v", err)
 		return []byte{}
 	}
@@ -95,13 +95,13 @@ func (m *PCF8591) ReadAIN1() []byte {
 }
 
 // ReadAIN2 ...
-func (m *PCF8591) ReadAIN2() []byte {
-	if err := m.dev.Write([]byte{ctrAIN2}); err != nil {
+func (pcf *PCF8591) ReadAIN2() []byte {
+	if err := pcf.dev.Write([]byte{ctrAIN2}); err != nil {
 		log.Printf("write AIN2 error: %v", err)
 		return []byte{}
 	}
 	data := make([]byte, 1)
-	if err := m.dev.Read(data); err != nil {
+	if err := pcf.dev.Read(data); err != nil {
 		log.Printf("read AIN2 error: %v", err)
 		return []byte{}
 	}
@@ -110,13 +110,13 @@ func (m *PCF8591) ReadAIN2() []byte {
 }
 
 // ReadAIN3 ...
-func (m *PCF8591) ReadAIN3() []byte {
-	if err := m.dev.Write([]byte{ctrAIN3}); err != nil {
+func (pcf *PCF8591) ReadAIN3() []byte {
+	if err := pcf.dev.Write([]byte{ctrAIN3}); err != nil {
 		log.Printf("write AIN3 error: %v", err)
 		return []byte{}
 	}
 	data := make([]byte, 1)
-	if err := m.dev.Read(data); err != nil {
+	if err := pcf.dev.Read(data); err != nil {
 		log.Printf("read AIN3 error: %v", err)
 		return []byte{}
 	}
@@ -124,6 +124,6 @@ func (m *PCF8591) ReadAIN3() []byte {
 }
 
 // Close ...
-func (m *PCF8591) Close() {
-	m.dev.Close()
+func (pcf *PCF8591) Close() {
+	pcf.dev.Close()
 }

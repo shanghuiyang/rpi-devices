@@ -1,5 +1,5 @@
 /*
-LedDisplay is a display module used to display text/image via led digital module which bases on the 74HC595 dirver.
+DigitalLedDisplay is a digital led display module used to primarily display digits driving by 74HC595 dirver.
 Please note that I only test it on a 4-bit led digital module.
 And Only following chars were supported. Any char which didn't be spported will be displayed as '-'.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,7 +22,6 @@ package dev
 import (
 	"time"
 
-	"github.com/shanghuiyang/rpi-devices/util"
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
@@ -85,8 +84,8 @@ var ledchars = map[byte]uint8{
 	' ': 0xFF,
 }
 
-// LedDisplay implements Display interface
-type LedDisplay struct {
+// DigitalLedDisplay implements Display interface
+type DigitalLedDisplay struct {
 	dioPin  rpio.Pin
 	rclkPin rpio.Pin
 	sclkPin rpio.Pin
@@ -100,9 +99,9 @@ type LedDisplay struct {
 	opened bool
 }
 
-// NewLedDisplay ...
-func NewLedDisplay(dioPin, rclkPin, sclkPin uint8) *LedDisplay {
-	d := &LedDisplay{
+// NewDigitalLedDisplay ...
+func NewDigitalLedDisplay(dioPin, rclkPin, sclkPin uint8) *DigitalLedDisplay {
+	d := &DigitalLedDisplay{
 		dioPin:  rpio.Pin(dioPin),
 		rclkPin: rpio.Pin(rclkPin),
 		sclkPin: rpio.Pin(sclkPin),
@@ -125,26 +124,26 @@ func NewLedDisplay(dioPin, rclkPin, sclkPin uint8) *LedDisplay {
 
 // flushShcp Flush the Shcp pin
 // call after each individual data write
-func (d *LedDisplay) flushShcp() {
+func (d *DigitalLedDisplay) flushShcp() {
 	d.sclkPin.Write(d.state ^ 0x01)
 	d.sclkPin.Write(d.state)
 }
 
 // flushStcp Flush the Stcp pin
 // call after data writes are done
-func (d *LedDisplay) flushStcp() {
+func (d *DigitalLedDisplay) flushStcp() {
 	d.rclkPin.Write(d.state ^ 0x01)
 	d.rclkPin.Write(d.state)
 }
 
 // setBit sets an individual bit
-func (d *LedDisplay) setBit(bit rpio.State) {
+func (d *DigitalLedDisplay) setBit(bit rpio.State) {
 	d.dioPin.Write(bit)
 	d.flushShcp()
 }
 
 // sendData sends the bytes to the shiftregister
-func (d *LedDisplay) sendData(data uint8) {
+func (d *DigitalLedDisplay) sendData(data uint8) {
 	d.data = data
 	for i := uint(0); i < 8; i++ {
 		d.setBit(rpio.State((d.data >> i) & 0x01))
@@ -152,12 +151,12 @@ func (d *LedDisplay) sendData(data uint8) {
 	d.flushStcp()
 }
 
-func (d *LedDisplay) display() {
+func (d *DigitalLedDisplay) display() {
 	text := "----"
 	for {
 		select {
 		case txt := <-d.chText:
-			text = util.Reverse(txt)
+			text = reverse(txt)
 		default:
 			// do nothing, just use the latest text for displaying
 		}
@@ -186,12 +185,12 @@ func (d *LedDisplay) display() {
 }
 
 // Display ...
-func (d *LedDisplay) Display(text string) {
+func (d *DigitalLedDisplay) Display(text string) {
 	d.chText <- text
 }
 
 // Open ...
-func (d *LedDisplay) Open() {
+func (d *DigitalLedDisplay) Open() {
 	if d.opened {
 		return
 	}
@@ -200,7 +199,7 @@ func (d *LedDisplay) Open() {
 }
 
 // Close ...
-func (d *LedDisplay) Close() {
+func (d *DigitalLedDisplay) Close() {
 	if !d.opened {
 		return
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	oled, err := dev.NewOLED(128, 32)
+	oled, err := dev.NewOledDisplay(128, 32)
 	if err != nil {
 		log.Printf("failed to create an oled, error: %v", err)
 		return

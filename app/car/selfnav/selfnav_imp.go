@@ -63,11 +63,15 @@ func (s *SelfNavImp) Start(dest *geo.Point) {
 
 	var org *geo.Point
 	for s.inNaving {
-		pt, err := s.gps.Loc()
+		lat, lon, err := s.gps.Loc()
 		if err != nil {
 			log.Printf("[%v]gps sensor is not ready", logTag)
 			util.DelayMs(1000)
 			continue
+		}
+		pt := &geo.Point{
+			Lat: lat,
+			Lon: lon,
 		}
 		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), pt.Lat, pt.Lon)
 		if !s.mapBBox.IsInside(pt) {
@@ -127,14 +131,17 @@ func (s *SelfNavImp) Stop() {
 func (s *SelfNavImp) navTo(dest *geo.Point) error {
 	retry := 8
 	for s.inNaving {
-		loc, err := s.gps.Loc()
+		lat, lon, err := s.gps.Loc()
 		if err != nil {
 			s.car.Stop()
 			log.Printf("[%v]gps sensor is not ready", logTag)
 			util.DelayMs(1000)
 			continue
 		}
-
+		loc := &geo.Point{
+			Lat: lat,
+			Lon: lon,
+		}
 		if !s.mapBBox.IsInside(loc) {
 			s.car.Stop()
 			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, loc, s.mapBBox)

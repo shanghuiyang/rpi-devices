@@ -22,11 +22,11 @@ func main() {
 
 	for {
 		time.Sleep(1 * time.Second)
-		pt, err := gps.Loc()
+		lat, lon, err := gps.Loc()
 		if err != nil {
 			log.Printf("failed, error: %v", err)
 			continue
 		}
-		log.Printf("%v", pt)
+		log.Printf("%v, %v", lat, lon)
 	}
 }

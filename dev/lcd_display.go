@@ -31,7 +31,6 @@ Connect to Raspberry Pi:
 
 */
 import (
-	"github.com/shanghuiyang/rpi-devices/util"
 	"golang.org/x/exp/io/i2c"
 )
 
@@ -61,22 +60,22 @@ func NewLcdDisplay(width, height int) (*LcdDisplay, error) {
 		dev:    dev,
 	}
 	lcd.sendCommand(0x33) // initialise
-	util.DelayMs(1)
+	delayMs(1)
 
 	lcd.sendCommand(0x32) // initialise
-	util.DelayMs(1)
+	delayMs(1)
 
 	lcd.sendCommand(0x06) // cursor move direction
-	util.DelayMs(1)
+	delayMs(1)
 
 	lcd.sendCommand(0x0C) // display on, cursor off, blink off
-	util.DelayMs(1)
+	delayMs(1)
 
 	lcd.sendCommand(0x28) // data length, number of lines, font size
-	util.DelayMs(1)
+	delayMs(1)
 
 	lcd.sendCommand(0x01) // Clear display
-	util.DelayMs(1)
+	delayMs(1)
 
 	return lcd, nil
 }
@@ -185,17 +184,17 @@ func (lcd *LcdDisplay) sendData(b byte) error {
 }
 
 func (lcd *LcdDisplay) triggeEnable(b byte) error {
-	util.DelayMs(1)
+	delayMs(1)
 	buf := b | lcdEnable
 	if err := lcd.dev.Write([]byte{buf}); err != nil {
 		return err
 	}
 
-	util.DelayMs(1)
+	delayMs(1)
 	buf = b & ^lcdEnable
 	if err := lcd.dev.Write([]byte{buf}); err != nil {
 		return err
 	}
-	util.DelayMs(1)
+	delayMs(1)
 	return nil
 }

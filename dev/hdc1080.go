@@ -62,14 +62,14 @@ func NewHDC1080() (*HDC1080, error) {
 }
 
 // TempHumidity ...
-func (m *HDC1080) TempHumidity() (temp, humi float64, err error) {
-	if m.dev.Write(hdc1080Cmd); err != nil {
+func (hdc *HDC1080) TempHumidity() (temp, humi float64, err error) {
+	if hdc.dev.Write(hdc1080Cmd); err != nil {
 		return 0, 0, err
 	}
 
 	for i := 0; i < maxRetry; i++ {
 		data := make([]byte, 4)
-		if err := m.dev.Read(data); err != nil {
+		if err := hdc.dev.Read(data); err != nil {
 			time.Sleep(1 * time.Millisecond)
 			continue
 		}
@@ -83,6 +83,6 @@ func (m *HDC1080) TempHumidity() (temp, humi float64, err error) {
 }
 
 // Close ...
-func (m *HDC1080) Close() {
-	m.dev.Close()
+func (hdc *HDC1080) Close() {
+	hdc.dev.Close()
 }

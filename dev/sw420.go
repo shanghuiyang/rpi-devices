@@ -20,15 +20,15 @@ type SW420 struct {
 
 // NewSW420 ...
 func NewSW420(pin uint8) *SW420 {
-	s := &SW420{
+	sw := &SW420{
 		pin: rpio.Pin(pin),
 	}
-	s.pin.Input()
-	return s
+	sw.pin.Input()
+	return sw
 }
 
 // Detected returns true if the sensor detects shaking,
 // or return false
-func (s *SW420) Detected() bool {
-	return s.pin.Read() == rpio.High
+func (sw *SW420) Detected() bool {
+	return sw.pin.Read() == rpio.High
 }

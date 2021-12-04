@@ -13,7 +13,6 @@ import (
 	"github.com/golang/geo/s2"
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/util"
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 const (
@@ -31,20 +30,14 @@ const (
 	zoom              = 18
 )
 
-var gpsPoints = []*geo.Point{
-	{
-		Lat: 39.956767,
-		Lon: 116.447697,
-	},
-	{
-		Lat: 39.956777,
-		Lon: 116.447698,
-	},
+var latlons = [][]float64{
+	{39.956767, 116.447697},
+	{39.956777, 116.447698},
 }
 
 func main() {
 	gps, err := dev.NewNeo6mGPS(devName, baud)
-	// gps, err := dev.NewGPSSimulator(gpsPoints)
+	// gps, err := dev.NewGPSSimulator(latlons)
 	if err != nil {
 		log.Printf("failed to create gps, error: %v", err)
 		return
@@ -76,16 +69,16 @@ func main() {
 
 	for {
 		time.Sleep(1 * time.Second)
-		pt, err := gps.Loc()
+		lat, lon, err := gps.Loc()
 		if err != nil {
 			log.Printf("failed to get location, error: %v", err)
 			continue
 		}
-		logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), pt.Lat, pt.Lon)
-		log.Printf("%v", pt)
+		logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), lat, lon)
+		log.Printf("%v, %v", lat, lon)
 
 		marker := sm.NewMarker(
-			s2.LatLngFromDegrees(pt.Lat, pt.Lon),
+			s2.LatLngFromDegrees(lat, lon),
 			color.RGBA{0xff, 0, 0, 0xff},
 			8.0,
 		)

@@ -40,40 +40,35 @@ type HCSR04 struct {
 
 // NewHCSR04 ...
 func NewHCSR04(trig int8, echo int8) *HCSR04 {
-	h := &HCSR04{
+	hc := &HCSR04{
 		trig: rpio.Pin(trig),
 		echo: rpio.Pin(echo),
 	}
-	h.trig.Output()
-	h.trig.Low()
-	h.echo.Input()
-	return h
+	hc.trig.Output()
+	hc.trig.Low()
+	hc.echo.Input()
+	return hc
 }
 
 // Value returns distance in cm to objects
-func (h *HCSR04) Dist() (float64, error) {
-	h.trig.Low()
-	h.delay(100)
-	h.trig.High()
-	h.delay(15)
+func (hc *HCSR04) Dist() (float64, error) {
+	hc.trig.Low()
+	delayUs(100)
+	hc.trig.High()
+	delayUs(15)
 
-	for n := 0; n < timeout && h.echo.Read() != rpio.High; n++ {
-		h.delay(1)
+	for n := 0; n < timeout && hc.echo.Read() != rpio.High; n++ {
+		delayUs(1)
 	}
 	start := time.Now()
 
-	for n := 0; n < timeout && h.echo.Read() != rpio.Low; n++ {
-		h.delay(1)
+	for n := 0; n < timeout && hc.echo.Read() != rpio.Low; n++ {
+		delayUs(1)
 	}
 	return time.Since(start).Seconds() * voiceSpeed / 2.0, nil
 }
 
 // Close ...
-func (h *HCSR04) Close() {
-	// do noting
-}
-
-// delay is to delay us microsecond
-func (h *HCSR04) delay(us int) {
-	time.Sleep(time.Duration(us) * time.Microsecond)
+func (hc *HCSR04) Close() {
+	// do noting just implement DistanceMeter interface.
 }

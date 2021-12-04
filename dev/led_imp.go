@@ -20,49 +20,49 @@ type LedImp struct {
 
 // NewLedImp ...
 func NewLedImp(pin uint8) *LedImp {
-	l := &LedImp{
+	led := &LedImp{
 		pin: rpio.Pin(pin),
 	}
-	l.pin.Output()
-	return l
+	led.pin.Output()
+	return led
 }
 
 // On ...
-func (l *LedImp) On() {
-	l.pin.High()
+func (led *LedImp) On() {
+	led.pin.High()
 }
 
 // Off ...
-func (l *LedImp) Off() {
-	l.pin.Low()
+func (led *LedImp) Off() {
+	led.pin.Low()
 }
 
 // Blink is let led blink n time, interval Millisecond each time
-func (l *LedImp) Blink(n int, interval int) {
+func (led *LedImp) Blink(n int, interval int) {
 	d := time.Duration(interval) * time.Millisecond
 	for i := 0; i < n; i++ {
-		l.On()
+		led.On()
 		time.Sleep(d)
-		l.Off()
+		led.Off()
 		time.Sleep(d)
 	}
 }
 
 // Fade ...
-func (l *LedImp) Fade(n uint8) {
-	l.pin.Pwm()
-	l.pin.Freq(64000)
-	l.pin.DutyCycle(0, 32)
+func (led *LedImp) Fade(n uint8) {
+	led.pin.Pwm()
+	led.pin.Freq(64000)
+	led.pin.DutyCycle(0, 32)
 	for i := uint8(0); i < n; i++ {
 		for j := uint32(0); j < 32; j++ { // increasing brightness
-			l.pin.DutyCycle(j, 32)
+			led.pin.DutyCycle(j, 32)
 			time.Sleep(time.Second / 32)
 		}
 		for j := uint32(32); j > 0; j-- { // decreasing brightness
-			l.pin.DutyCycle(j, 32)
+			led.pin.DutyCycle(j, 32)
 			time.Sleep(time.Second / 32)
 		}
 	}
-	l.pin.Output()
-	l.pin.Low()
+	led.pin.Output()
+	led.pin.Low()
 }

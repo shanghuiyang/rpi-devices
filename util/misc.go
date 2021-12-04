@@ -15,9 +15,6 @@ import (
 // Mode ...
 type Mode string
 
-// RpiModel ...
-type RpiModel string
-
 const (
 	// Epsilon ...
 	Epsilon = 1e-9
@@ -26,23 +23,6 @@ const (
 	DevMode = "dev"
 	// PrdMode ...
 	PrdMode = "prd"
-)
-
-const (
-	// RpiUnknown ...
-	RpiUnknown RpiModel = "Raspberry Pi X Model"
-	// Rpi0 ...
-	Rpi0 RpiModel = "Raspberry Pi Zero Model"
-	// RpiA ...
-	RpiA RpiModel = "Raspberry Pi A Model"
-	// RpiB ...
-	RpiB RpiModel = "Raspberry Pi B Model"
-	// Rpi2 ...
-	Rpi2 RpiModel = "Raspberry Pi 2 Model"
-	// Rpi3 ...
-	Rpi3 RpiModel = "Raspberry Pi 3 Model"
-	// Rpi4 ...
-	Rpi4 RpiModel = "Raspberry Pi 4 Model"
 )
 
 // Point is GPS point
@@ -69,35 +49,6 @@ func GetIP() string {
 	return items[0]
 }
 
-// GetRpiModel ...
-func GetRpiModel() RpiModel {
-	cmd := exec.Command("cat", "/proc/device-tree/model")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return ""
-	}
-	s := string(out)
-	if strings.Contains(s, string(Rpi0)) {
-		return Rpi0
-	}
-	if strings.Contains(s, string(RpiA)) {
-		return RpiA
-	}
-	if strings.Contains(s, string(RpiB)) {
-		return RpiB
-	}
-	if strings.Contains(s, string(Rpi2)) {
-		return Rpi2
-	}
-	if strings.Contains(s, string(Rpi3)) {
-		return Rpi3
-	}
-	if strings.Contains(s, string(Rpi4)) {
-		return Rpi4
-	}
-	return RpiUnknown
-}
-
 // Reverse reverses the string
 func Reverse(s string) string {
 	runes := []rune(s)
@@ -120,8 +71,8 @@ func WaitQuit(beforeQuitFunc func()) {
 }
 
 // DelayMs ...
-func DelayMs(ms int) {
-	time.Sleep(time.Duration(ms) * time.Millisecond)
+func DelayMs(d time.Duration) {
+	time.Sleep(d * time.Millisecond)
 }
 
 // IncludedAngle caculates the included angle betweet fromAngle to toAngle

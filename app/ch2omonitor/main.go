@@ -42,7 +42,7 @@ func main() {
 	ze08 := dev.NewZE08CH2O()
 	led := dev.NewLedImp(pinLed)
 	bzr := dev.NewBuzzerImp(pinBzr, true)
-	dsp := dev.NewLedDisplay(dioPin, rclkPin, sclkPin)
+	dsp := dev.NewDigitalLedDisplay(dioPin, rclkPin, sclkPin)
 
 	cfg := &iot.Config{
 		Token: wsnToken,

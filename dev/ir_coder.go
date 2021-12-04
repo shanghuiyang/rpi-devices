@@ -27,7 +27,6 @@ package dev
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/tarm/serial"
@@ -49,17 +48,16 @@ func NewIRCoder(dev string, baud int) *IRCoder {
 
 func (ir *IRCoder) Send(data []byte) error {
 	if err := ir.port.Flush(); err != nil {
-		log.Printf("failed to flush serial, error: %v", err)
-		return err
+		return fmt.Errorf("port flush error: %w", err)
 	}
 
 	n, err := ir.port.Write(data)
-	if n != 5 || err != nil {
-		return err
+	if err != nil {
+		return fmt.Errorf("port write error: %w", err)
 	}
 
-	if n != 5 {
-		return fmt.Errorf("send %v bytes data, expected 5 bytes", n)
+	if n != len(data) {
+		return fmt.Errorf("not all data was sent")
 	}
 
 	return nil

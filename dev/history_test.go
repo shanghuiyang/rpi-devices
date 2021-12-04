@@ -1,4 +1,4 @@
-package util
+package dev
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewHistory(t *testing.T) {
-	h := NewHistory(1)
+	h := newHistory(1)
 	assert.NotNil(t, h)
 }
 
@@ -71,7 +71,7 @@ func TestHistoryAdd(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		h := NewHistory(10)
+		h := newHistory(10)
 		assert.NotPanics(t, func() {
 			h.Add(test.element)
 		})
@@ -124,7 +124,7 @@ func TestHistoryAvg(t *testing.T) {
 	}
 
 	for _, test := range testCase {
-		h := NewHistory(2)
+		h := newHistory(2)
 		assert.NotNil(t, h)
 
 		for _, v := range test.elements {

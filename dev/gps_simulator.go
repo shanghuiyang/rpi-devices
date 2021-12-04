@@ -6,38 +6,37 @@ package dev
 
 import (
 	"errors"
-
-	"github.com/shanghuiyang/rpi-devices/util/geo"
 )
 
 // GPSSimulator implements GPS interface
 type GPSSimulator struct {
-	index  int
-	points []*geo.Point
+	index   int
+	latlons [][]float64
 }
 
 // NewGPSSimulator ...
-func NewGPSSimulator(points []*geo.Point) (*GPSSimulator, error) {
+func NewGPSSimulator(latlons [][]float64) (*GPSSimulator, error) {
 	return &GPSSimulator{
-		index:  0,
-		points: points,
+		index:   0,
+		latlons: latlons,
 	}, nil
 }
 
 // Loc ...
-func (m *GPSSimulator) Loc() (*geo.Point, error) {
-	n := len(m.points)
+func (gps *GPSSimulator) Loc() (lat, lon float64, err error) {
+	n := len(gps.latlons)
 	if n == 0 {
-		return nil, errors.New("without data")
+		return 0, 0, errors.New("without data")
 	}
-	if m.index >= len(m.points) {
-		m.index = 0
+	if gps.index >= len(gps.latlons) {
+		gps.index = 0
 	}
-	pt := m.points[m.index]
-	m.index++
-	return pt, nil
+	lat = gps.latlons[gps.index][0]
+	lon = gps.latlons[gps.index][1]
+	gps.index++
+	return lat, lon, nil
 }
 
 // Close ...
-func (m *GPSSimulator) Close() {
+func (gps *GPSSimulator) Close() {
 }
