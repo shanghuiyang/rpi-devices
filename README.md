@@ -35,30 +35,30 @@ func main() {
 |ADS1015|![](img/ads1015.jpg)|Analog-to-digital converter|N/A|[joystick](/app/joystick)|
 |Button|![](img/button.jpg)|Button module|[example](/example/button/main.go)|[vedio-monitor](/app/vmonitor)|
 |Buzzer|![](img/buzzer.jpg)|Buzzer module|N/A|[car](/app/car), [door-dog](/app/doordog)|
+|BYJ2848|![](img/step-motor.jpg)|Step motor|[example](/example/byj2848/main.go)|N/A|
 |Collision Switch|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collision_switch/main.go)|[car](/app/car)|
 |DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/main.go)|[home-asst](/app/homeasst)|
+|Digital Led Display|![](img/digital-led-display.jpg)|led digital module|[example](/example/digital_led_display/main.go)|[auto-air](/app/autoair)|
 |DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/main.go)|[auto-fan](/app/autofan)|
 |Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/main.go)|N/A|
 |GPS|![](img/gps.jpg)|Location sensor|[example](/example/gps/main.go)|[gps-tracker](/app/gpstracker)|
 |GY-25|![](img/gy25.jpg)|Angle sensor|[example](/example/gy25/main.go)|[car](/app/car)|
 |HC-SR04|![](img/hc-sr04.jpg)|Ultrasonic distance meter|[example](/example/hcsr04/main.go)|[auto-light](/app/autolight), [doordog](/app/doordog)|
 |Humidity Detector|![](img/humidity-detector.jpg)|Soil humidity detector|[example](/example/humidity-detector/main.go)|N/A|
-|Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/ir_detector/main.go)|N/A|
 |Infrared Encoder/Decoder|![](img/ir-encoder-decoder.jpg)|Infrared encoder/decoder|[example](/example/ir_coder/main.go)|N/A|
+|Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/ir_detector/main.go)|N/A|
 |Joystick|![](img/joystick.jpg)|XY Dual Axis Joystick|[example](/example/joystick/main.go)|[car](/app/car)|
 |L298N|![](img/l298n.jpg)|motor driver|N/A|[car](/app/car)|
 |LC12S|![](img/lc12s.jpg)|2.4g wireless module|[example](/example/lc12s/main.go)|[car](/app/car)|
-|LCD 1602A Display|![](img/lcd1602a.jpg)|lcd display module|[example](/example/lcddisplay/main.go)|[home-asst](/app/homeasst)
+|LCD 1602A Display|![](img/lcd1602a.jpg)|lcd display module|[example](/example/lcd_display/main.go)|[home-asst](/app/homeasst)
 |Led|![](img/led.jpg)|Led light|[example](/example/led/main.go)|[car](/app/car), [vedio-monitor](/app/vmonitor)|
-|Led Display|![](img/digital-led-display.jpg)|led digital module|[example](/example/leddisplay/main.go)|[auto-air](/app/autoair)|
 |MPU6050|![](img/mpu6050.jpg)|6-axis motion sensor|[example](/example/mpu6050/main.go)|N/A|
-|Oled|![](img/oled.jpg)|Oled display module|[example](/example/oled/main.go)|[home-asst](/app/homeasst)|
+|Oled|![](img/oled.jpg)|Oled display module|[example](/example/oled_display/main.go)|[home-asst](/app/homeasst)|
 |PCF8591|![](img/pcf8591.jpg)|Analog-to-digital converter|N/A|N/A|
 |PMS7003|![](img/pms7003.jpg)|Air quality sensor|[example](/example/air/main.go)|[auto-air](/app/autoair)|
 |Relay|![](img/relay.jpg)|Relay module|[example](/example/relay/main.go)|[auto-fan](/app/autofan)|
 |RX480E-4|![](img/rx480e4.jpg)|433MHz Wireless RF Receiver|[example](/example/rx480e4/main.go)|[remote-light](/app/rlight)|
 |SG90|![](img/sg90.jpg)|Servo motor|[example](/example/sg90/main.go)|[auto-air](/app/autoair), [car](/app/car), [vedio-monitor](/app/vmonitor)|
-|Step Motor|![](img/step-motor.jpg)|Step motor|[example](/example/stepmotor/main.go)|N/A|
 |SW-420|![](img/sw-420.jpg)|Shaking sensor|[example](/example/sw420/main.go)|[auto-air-out](/app/autoairout)|
 |US-100|![](img/us-100.jpg)|ultrasonic distance meter|[example](/example/us100/main.go)|[car](/app/car)|
 |Voice|![](img/voice.jpg)|Voice sensor|N/A|N/A|
