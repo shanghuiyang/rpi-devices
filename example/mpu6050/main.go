@@ -15,7 +15,7 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(m.Close)
+	util.WaitQuit(func() { m.Close() })
 	for {
 		gx, gy, gz := m.GetAcc()
 		log.Printf("gx=%v, gy=%v, gz=%v", gx, gy, gz)

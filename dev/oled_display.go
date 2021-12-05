@@ -101,9 +101,9 @@ func (oled *OledDisplay) Clear() error {
 }
 
 // Close ...
-func (oled *OledDisplay) Close() {
-	oled.oled.Clear()
-	oled.oled.Close()
+func (oled *OledDisplay) Close() error {
+	_ = oled.oled.Clear()
+	return oled.oled.Close()
 }
 
 // Off ...

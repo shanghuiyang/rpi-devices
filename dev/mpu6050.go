@@ -79,6 +79,6 @@ func (m *MPU6050) GetRot() (x int32, y int32, z int32) {
 }
 
 // Close ...
-func (m *MPU6050) Close() {
-	m.dev.Close()
+func (m *MPU6050) Close() error {
+	return m.dev.Close()
 }

@@ -83,6 +83,6 @@ func (hdc *HDC1080) TempHumidity() (temp, humi float64, err error) {
 }
 
 // Close ...
-func (hdc *HDC1080) Close() {
-	hdc.dev.Close()
+func (hdc *HDC1080) Close() error {
+	return hdc.dev.Close()
 }

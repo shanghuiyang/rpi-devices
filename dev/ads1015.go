@@ -41,6 +41,11 @@ import (
 )
 
 const (
+	ads1015Dev  = "/dev/i2c-1"
+	ads1015Addr = 0x48
+)
+
+const (
 	// ConversionRegiserPointer ...
 	ConversionRegiserPointer byte = 0x00
 	// ConfigRegiserPointer ...
@@ -132,11 +137,6 @@ const (
 	MultiplexerConfigurationAIN3 uint16 = 0x7000
 )
 
-const (
-	ads1015Dev  = "/dev/i2c-1"
-	ads1015Addr = 0x48
-)
-
 var (
 	channelMuxConfig = map[int]uint16{
 		0: MultiplexerConfigurationAIN0,
@@ -198,6 +198,6 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 }
 
 // Close ...
-func (m *ADS1015) Close() {
-	m.dev.Close()
+func (m *ADS1015) Close() error {
+	return m.dev.Close()
 }

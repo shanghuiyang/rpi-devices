@@ -14,7 +14,7 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(hdc.Close)
+	util.WaitQuit(func() { hdc.Close() })
 	for {
 		util.DelayMs(1000)
 		t, h, err := hdc.TempHumidity()

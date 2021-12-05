@@ -113,6 +113,6 @@ func (pcf *PCF8591) ReadAIN3() ([]byte, error) {
 }
 
 // Close ...
-func (pcf *PCF8591) Close() {
-	pcf.dev.Close()
+func (pcf *PCF8591) Close() error {
+	return pcf.dev.Close()
 }

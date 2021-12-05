@@ -15,7 +15,7 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(oled.Close)
+	util.WaitQuit(func() { oled.Close() })
 	for {
 		t := time.Now().Format("15:04:05")
 		if err := oled.Display(t, 19, 0, 25); err != nil {
