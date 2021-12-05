@@ -109,18 +109,18 @@ func newService(cfg *Config) (*service, error) {
 		log.Panicf("[%v]failed to new sg90", logTag)
 	}
 
-	us100 := dev.NewUS100(&dev.US100Config{
+	us100, err := dev.NewUS100(&dev.US100Config{
 		Mode: dev.UartMode,
 		Dev:  cfg.US100.Dev,
 		Baud: cfg.US100.Baud,
 	})
-	if us100 == nil {
-		log.Panicf("[%v]failed to new us100", logTag)
+	if err != nil {
+		log.Panicf("[%v]new us100 error: %v", logTag, err)
 	}
 
-	gy25 := dev.NewGY25(cfg.GY25.Dev, cfg.GY25.Baud)
-	if gy25 == nil {
-		log.Panicf("[%v]failed to new gy-25", logTag)
+	gy25, err := dev.NewGY25(cfg.GY25.Dev, cfg.GY25.Baud)
+	if err != nil {
+		log.Panicf("[%v]new gy-25 error: %v", logTag, err)
 	}
 
 	cam := dev.NewMotionCamera()

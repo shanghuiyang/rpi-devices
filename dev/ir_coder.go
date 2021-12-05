@@ -38,12 +38,12 @@ type IRCoder struct {
 }
 
 // NewIRCoder ...
-func NewIRCoder(dev string, baud int) *IRCoder {
+func NewIRCoder(dev string, baud int) (*IRCoder, error) {
 	ir := &IRCoder{}
 	if err := ir.open(dev, baud); err != nil {
-		return nil
+		return nil, err
 	}
-	return ir
+	return ir, nil
 }
 
 func (ir *IRCoder) Send(data []byte) error {

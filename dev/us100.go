@@ -72,7 +72,7 @@ type US100 struct {
 }
 
 // NewUS100 ...
-func NewUS100(cfg *US100Config) *US100 {
+func NewUS100(cfg *US100Config) (*US100, error) {
 	us := &US100{
 		mode: cfg.Mode,
 	}
@@ -83,7 +83,7 @@ func NewUS100(cfg *US100Config) *US100 {
 		us.trig.Output()
 		us.trig.Low()
 		us.echo.Input()
-		return us
+		return us, nil
 	}
 
 	// UART mode
@@ -96,9 +96,9 @@ func NewUS100(cfg *US100Config) *US100 {
 		baud = defaultUS100Baud
 	}
 	if err := us.open(dev, baud); err != nil {
-		return nil
+		return nil, err
 	}
-	return us
+	return us, nil
 }
 
 // Value returns the distance in cm to objects

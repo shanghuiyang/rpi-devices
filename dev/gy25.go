@@ -62,12 +62,12 @@ type GY25 struct {
 }
 
 // NewGY25 ...
-func NewGY25(dev string, baud int) *GY25 {
+func NewGY25(dev string, baud int) (*GY25, error) {
 	gy := &GY25{}
 	if err := gy.open(dev, baud); err != nil {
-		return nil
+		return nil, err
 	}
-	return gy
+	return gy, nil
 }
 
 // SetMode ...

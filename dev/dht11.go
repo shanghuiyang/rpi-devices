@@ -45,7 +45,7 @@ func NewDHT11() *DHT11 {
 }
 
 // TempHumidity ...
-func (d *DHT11) TempHumidity() (float64, float64, error) {
+func (d *DHT11) TempHumidity() (temp, humi float64, err error) {
 	chTemp := make(chan float64)
 	chHumi := make(chan float64)
 

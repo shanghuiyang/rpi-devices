@@ -47,15 +47,15 @@ type ZE08CH2O struct {
 }
 
 // NewZE08CH2O ...
-func NewZE08CH2O() *ZE08CH2O {
+func NewZE08CH2O() (*ZE08CH2O, error) {
 	ze := &ZE08CH2O{
 		history:  newHistory(10),
 		maxRetry: 10,
 	}
 	if err := ze.open(); err != nil {
-		return nil
+		return nil, err
 	}
-	return ze
+	return ze, nil
 }
 
 // Get returns ch2o in mg/m3

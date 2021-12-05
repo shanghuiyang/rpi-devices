@@ -18,7 +18,10 @@ var (
 )
 
 func main() {
-	ir := dev.NewIRCoder(devName, baud)
+	ir, err := dev.NewIRCoder(devName, baud)
+	if err != nil {
+		log.Fatalf("new ircoder error: %v", err)
+	}
 	defer ir.Close()
 
 	for i := 0; i < 5; i++ {

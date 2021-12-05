@@ -122,7 +122,7 @@ type Thermometer interface {
 
 // Thermohygrometer ...
 type Thermohygrometer interface {
-	TempHumidity() (temperature, humidity float64, err error)
+	TempHumidity() (temp, humi float64, err error)
 }
 
 // Wireless ...

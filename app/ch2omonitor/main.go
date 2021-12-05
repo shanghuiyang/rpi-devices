@@ -39,7 +39,10 @@ const (
 )
 
 func main() {
-	ze08 := dev.NewZE08CH2O()
+	ze, err := dev.NewZE08CH2O()
+	if err != nil {
+		log.Fatalf("new ze08ch2o error: %v", err)
+	}
 	led := dev.NewLedImp(pinLed)
 	bzr := dev.NewBuzzerImp(pinBzr, true)
 	dsp := dev.NewDigitalLedDisplay(dioPin, rclkPin, sclkPin)
@@ -50,7 +53,7 @@ func main() {
 	}
 	wsn := iot.NewWsn(cfg)
 
-	m := newCH2OMonitor(ze08, led, bzr, dsp, wsn)
+	m := newCH2OMonitor(ze, led, bzr, dsp, wsn)
 	util.WaitQuit(func() {
 		m.stop()
 	})

@@ -53,7 +53,7 @@ func NewHT1818GPS(dev string, baud int) (*HT1818GPS, error) {
 // Loc ...
 func (gps *HT1818GPS) Loc() (lat, lon float64, err error) {
 	if err := gps.port.Flush(); err != nil {
-		return 0, 0, fmt.Errorf("flush error: %w", err)
+		return 0, 0, fmt.Errorf("flush port error: %w", err)
 	}
 	a := 0
 	for a < 1024 {
@@ -87,25 +87,25 @@ func (gps *HT1818GPS) Loc() (lat, lon float64, err error) {
 
 	var available string
 	if _, err := fmt.Sscanf(items[2], "%s", &available); err != nil {
-		return 0, 0, fmt.Errorf("failed to parse [available], %w", err)
+		return 0, 0, fmt.Errorf("parse [available] error, %w", err)
 	}
 	if available != "A" {
 		return 0, 0, fmt.Errorf("invalid data")
 	}
 
 	if _, err := fmt.Sscanf(items[3], "%f", &lat); err != nil {
-		return 0, 0, fmt.Errorf("failed to parse [lat], %w", err)
+		return 0, 0, fmt.Errorf("parse [lat] error: %w", err)
 	}
 	northOrSouth := ""
 	if _, err := fmt.Sscanf(items[4], "%s", &northOrSouth); err != nil {
-		return 0, 0, fmt.Errorf("failed to parse [north/south], %w", err)
+		return 0, 0, fmt.Errorf("parse [north/south] error: %w", err)
 	}
 	if _, err := fmt.Sscanf(items[5], "%f", &lon); err != nil {
-		return 0, 0, fmt.Errorf("failed to parse [lon], %w", err)
+		return 0, 0, fmt.Errorf("parse [lon] error: %w", err)
 	}
 	eastOrWest := ""
 	if _, err := fmt.Sscanf(items[6], "%s", &eastOrWest); err != nil {
-		return 0, 0, fmt.Errorf("failed to parse [east/west], %w", err)
+		return 0, 0, fmt.Errorf("parse [east/west] error: %w", err)
 	}
 	if northOrSouth == "S" {
 		lat = lat * (-1)

@@ -23,11 +23,14 @@ func main() {
 
 	// ttl mode
 	if mode == 1 {
-		u := dev.NewUS100(&dev.US100Config{
+		u, err := dev.NewUS100(&dev.US100Config{
 			Mode: dev.TTLMode,
 			Trig: 21,
 			Echo: 26,
 		})
+		if err != nil {
+			log.Fatalf("new us100 error: %v", err)
+		}
 		for {
 			dist, err := u.Dist()
 			if err != nil {
@@ -40,11 +43,14 @@ func main() {
 	}
 
 	// uart mode
-	u := dev.NewUS100(&dev.US100Config{
+	u, err := dev.NewUS100(&dev.US100Config{
 		Mode: dev.UartMode,
 		Dev:  "/dev/ttyAMA0",
 		Baud: 9600,
 	})
+	if err != nil {
+		log.Fatalf("new us100 error: %v", err)
+	}
 	defer u.Close()
 
 	for {

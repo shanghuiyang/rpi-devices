@@ -14,7 +14,10 @@ const (
 )
 
 func main() {
-	g := dev.NewGY25(devName, baud)
+	g, err := dev.NewGY25(devName, baud)
+	if err != nil {
+		log.Fatalf("new gy25 error: %v", err)
+	}
 	defer g.Close()
 
 	if err := g.SetMode(dev.GY25AutoMode); err != nil {
