@@ -33,22 +33,31 @@ import (
 )
 
 const (
-	maxDeltaCH2O = 0.06
+	maxDeltaCH2O        = 0.06
+	ze08ch2oHistorySize = 10
 )
 
 // ZE08CH2O implements CH2OMeter interface
 type ZE08CH2O struct {
 	port     *serial.Port
 	buf      [32]byte
-	history  *history
 	maxRetry int
+
+	history []float64
+	next    int
 }
 
 // NewZE08CH2O ...
 func NewZE08CH2O() (*ZE08CH2O, error) {
+	history := make([]float64, ze08ch2oHistorySize)
+	for i := range history {
+		history[i] = -1
+	}
+
 	ze := &ZE08CH2O{
-		history:  newHistory(10),
 		maxRetry: 10,
+		history:  history,
+		next:     0,
 	}
 	if err := ze.open(); err != nil {
 		return nil, err
@@ -88,7 +97,7 @@ func (ze *ZE08CH2O) Value() (float64, error) {
 		ppm := (uint16(ze.buf[4]) << 8) | uint16(ze.buf[5])
 		ch2o := float64(ppm) * 0.001228 // convert ppm to mg/m3
 
-		if !ze.checkDelta(ch2o) {
+		if !ze.validate(ch2o) {
 			continue
 		}
 		return ch2o, nil
@@ -115,19 +124,29 @@ func (ze *ZE08CH2O) open() error {
 	return nil
 }
 
-func (ze *ZE08CH2O) checkDelta(ch2o float64) bool {
-	avg, err := ze.history.Avg()
-	if err != nil {
-		if err == errEmpty {
-			ze.history.Add(ch2o)
-			return true
+func (ze *ZE08CH2O) validate(ch2o float64) bool {
+	if len(ze.history) == 0 {
+		ze.history[0] = ch2o
+		ze.next++
+		return true
+	}
+	var sum float64
+	n := 0
+	for _, v := range ze.history {
+		if v < 0 {
+			break
 		}
-		return false
+		sum += float64(v)
+		n++
 	}
-
-	passed := math.Abs(avg-ch2o) < maxDeltaCH2O
-	if passed {
-		ze.history.Add(ch2o)
+	avg := sum / float64(n)
+	if math.Abs(avg-float64(ch2o)) < maxDeltaCH2O {
+		ze.history[ze.next] = ch2o
+		ze.next++
+		if ze.next >= ze08ch2oHistorySize {
+			ze.next = 0
+		}
+		return true
 	}
-	return passed
+	return false
 }

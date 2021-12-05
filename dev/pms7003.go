@@ -35,7 +35,8 @@ import (
 )
 
 const (
-	maxDeltaPM25 = 150
+	maxDeltaPM25       = 150
+	pms7003HistorySize = 10
 )
 
 var (
@@ -45,10 +46,12 @@ var (
 
 // PMS7003 ...
 type PMS7003 struct {
-	port    *serial.Port
-	history *history
-	buf     [128]byte
-	retry   int
+	port  *serial.Port
+	buf   [128]byte
+	retry int
+
+	history []int
+	next    int
 }
 
 // NewPMS7003 ...
@@ -62,10 +65,15 @@ func NewPMS7003(dev string, baud int) (*PMS7003, error) {
 	if err != nil {
 		return nil, err
 	}
+	history := make([]int, pms7003HistorySize)
+	for i := range history {
+		history[i] = -1
+	}
 	return &PMS7003{
 		port:    port,
-		history: newHistory(10),
 		retry:   10,
+		history: history,
+		next:    0,
 	}, nil
 }
 
@@ -100,7 +108,7 @@ func (pms *PMS7003) Get() (uint16, uint16, error) {
 
 		pm25 := (uint16(pms.buf[6]) << 8) | uint16(pms.buf[7])
 		pm10 := (uint16(pms.buf[8]) << 8) | uint16(pms.buf[9])
-		if !pms.checkDelta(pm25) {
+		if !pms.validate(pm25) {
 			continue
 		}
 		return pm25, pm10, nil
@@ -129,19 +137,29 @@ func (pms *PMS7003) Close() error {
 	return pms.port.Close()
 }
 
-func (pms *PMS7003) checkDelta(pm25 uint16) bool {
-	avg, err := pms.history.Avg()
-	if err != nil {
-		if err == errEmpty {
-			pms.history.Add(pm25)
-			return true
+func (pms *PMS7003) validate(pm25 uint16) bool {
+	if len(pms.history) == 0 {
+		pms.history[0] = int(pm25)
+		pms.next++
+		return true
+	}
+	var sum float64
+	n := 0
+	for _, v := range pms.history {
+		if v < 0 {
+			break
 		}
-		return false
+		sum += float64(v)
+		n++
 	}
-
-	passed := math.Abs(avg-float64(pm25)) < maxDeltaPM25
-	if passed {
-		pms.history.Add(pm25)
+	avg := sum / float64(n)
+	if math.Abs(avg-float64(pm25)) < maxDeltaPM25 {
+		pms.history[pms.next] = int(pm25)
+		pms.next++
+		if pms.next >= pms7003HistorySize {
+			pms.next = 0
+		}
+		return true
 	}
-	return passed
+	return false
 }
