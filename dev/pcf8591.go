@@ -40,12 +40,12 @@ import (
 )
 
 const (
-	pcf8591DevFile = "/dev/i2c-1"
-	addrPCF8591    = 0x48
-	ctrAIN0        = 0x40
-	ctrAIN1        = 0x41
-	ctrAIN2        = 0x42
-	ctrAIN3        = 0x43
+	pcf8591Dev  = "/dev/i2c-1"
+	pcf8591Addr = 0x48
+	ctrAIN0     = 0x40
+	ctrAIN1     = 0x41
+	ctrAIN2     = 0x42
+	ctrAIN3     = 0x43
 )
 
 // PCF8591 ...
@@ -55,7 +55,7 @@ type PCF8591 struct {
 
 // NewPCF8591 ...
 func NewPCF8591() (*PCF8591, error) {
-	dev, err := i2c.Open(&i2c.Devfs{Dev: pcf8591DevFile}, addrPCF8591)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: pcf8591Dev}, pcf8591Addr)
 	if err != nil {
 		return nil, err
 	}

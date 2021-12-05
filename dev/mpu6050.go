@@ -35,8 +35,8 @@ import (
 )
 
 const (
-	devFile      = "/dev/i2c-1"
-	address      = 0x68
+	mpu6050Dev   = "/dev/i2c-1"
+	mpu6050Addr  = 0x68
 	accRegister  = 0x3B
 	gyroRegister = 0x43
 )
@@ -48,7 +48,7 @@ type MPU6050 struct {
 
 // NewMPU6050 ...
 func NewMPU6050() (*MPU6050, error) {
-	dev, err := i2c.Open(&i2c.Devfs{Dev: devFile}, address)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: mpu6050Dev}, mpu6050Addr)
 	if err != nil {
 		return nil, err
 	}

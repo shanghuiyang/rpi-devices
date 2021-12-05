@@ -133,8 +133,8 @@ const (
 )
 
 const (
-	ads1015DevFile = "/dev/i2c-1"
-	addrADS1015    = 0x48
+	ads1015Dev  = "/dev/i2c-1"
+	ads1015Addr = 0x48
 )
 
 var (
@@ -156,7 +156,7 @@ type ADS1015 struct {
 
 // NewADS1015 implement AnalogDigitalConverter interface
 func NewADS1015() (*ADS1015, error) {
-	dev, err := i2c.Open(&i2c.Devfs{Dev: ads1015DevFile}, addrADS1015)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: ads1015Dev}, ads1015Addr)
 	if err != nil {
 		return nil, err
 	}

@@ -42,12 +42,14 @@ import (
 )
 
 const (
+	oledDev  = "/dev/i2c-1"
+	oledAddr = 0x3c
 	fontFile = "casio-fx-9860gii.ttf"
 )
 
 // OledDisplay ...
 type OledDisplay struct {
-	*monochromeoled.OLED
+	oled   *monochromeoled.OLED
 	width  int
 	height int
 	font   *truetype.Font
@@ -55,7 +57,7 @@ type OledDisplay struct {
 
 // NewOledDisplay ...
 func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
-	oled, err := monochromeoled.Open(&i2c.Devfs{Dev: "/dev/i2c-1"}, 0x3c, width, heigth)
+	oled, err := monochromeoled.Open(&i2c.Devfs{Dev: oledDev}, oledAddr, width, heigth)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
 		return nil, err
 	}
 	return &OledDisplay{
-		OLED:   oled,
+		oled:   oled,
 		width:  width,
 		height: heigth,
 		font:   font,
@@ -81,10 +83,10 @@ func (oled *OledDisplay) Display(text string, fontSize float64, x, y int) error 
 	if err != nil {
 		return err
 	}
-	if err := oled.OLED.SetImage(0, 0, image); err != nil {
+	if err := oled.oled.SetImage(0, 0, image); err != nil {
 		return err
 	}
-	if err := oled.OLED.Draw(); err != nil {
+	if err := oled.oled.Draw(); err != nil {
 		return err
 	}
 	return nil
@@ -92,7 +94,7 @@ func (oled *OledDisplay) Display(text string, fontSize float64, x, y int) error 
 
 // Clear ...
 func (oled *OledDisplay) Clear() error {
-	if err := oled.OLED.Clear(); err != nil {
+	if err := oled.oled.Clear(); err != nil {
 		return err
 	}
 	return nil
@@ -100,14 +102,14 @@ func (oled *OledDisplay) Clear() error {
 
 // Close ...
 func (oled *OledDisplay) Close() {
-	oled.OLED.Clear()
-	oled.OLED.Close()
+	oled.oled.Clear()
+	oled.oled.Close()
 }
 
 // Off ...
 func (oled *OledDisplay) Off() {
-	oled.OLED.Clear()
-	oled.OLED.Off()
+	oled.oled.Clear()
+	oled.oled.Off()
 }
 
 func (oled *OledDisplay) drawText(text string, size float64, x, y int) (image.Image, error) {
