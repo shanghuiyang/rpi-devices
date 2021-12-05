@@ -44,7 +44,7 @@ func main() {
 |GPS|![](img/gps.jpg)|Location sensor|[example](/example/gps/main.go)|[gps-tracker](/app/gpstracker)|
 |GY-25|![](img/gy25.jpg)|Angle sensor|[example](/example/gy25/main.go)|[car](/app/car)|
 |HC-SR04|![](img/hc-sr04.jpg)|Ultrasonic distance meter|[example](/example/hcsr04/main.go)|[auto-light](/app/autolight), [doordog](/app/doordog)|
-|Humidity Detector|![](img/humidity-detector.jpg)|Soil humidity detector|[example](/example/humidity-detector/main.go)|N/A|
+|Humidity Detector|![](img/humidity-detector.jpg)|Soil humidity detector|[example](/example/humidity_detector/main.go)|N/A|
 |Infrared Encoder/Decoder|![](img/ir-encoder-decoder.jpg)|Infrared encoder/decoder|[example](/example/ir_coder/main.go)|N/A|
 |Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/ir_detector/main.go)|N/A|
 |Joystick|![](img/joystick.jpg)|XY Dual Axis Joystick|[example](/example/joystick/main.go)|[car](/app/car)|
@@ -62,7 +62,7 @@ func main() {
 |SW-420|![](img/sw-420.jpg)|Shaking sensor|[example](/example/sw420/main.go)|[auto-air-out](/app/autoairout)|
 |US-100|![](img/us-100.jpg)|ultrasonic distance meter|[example](/example/us100/main.go)|[car](/app/car)|
 |Voice|![](img/voice.jpg)|Voice sensor|N/A|N/A|
-|ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ch2o/main.go)|[ch2o-monitor](/app/ch2omonitor)|
+|ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ze08ch2o/main.go)|[ch2o-monitor](/app/ch2omonitor)|
 
 ## Apps
 Using the driver programs, I built several applications. The most complex app is the [smart car](/app/car), more than 10 sensers were used to build the car. I highlight few funny apps here, please go to [app](/app) for all apps I developed. You can learn how to use the drivers from my apps.
