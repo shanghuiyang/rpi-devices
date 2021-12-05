@@ -43,11 +43,15 @@ type HT1818GPS struct {
 
 // NewHT1818GPS ...
 func NewHT1818GPS(dev string, baud int) (*HT1818GPS, error) {
-	gps := &HT1818GPS{}
-	if err := gps.open(dev, baud); err != nil {
+	cfg := &serial.Config{
+		Name: dev,
+		Baud: baud,
+	}
+	port, err := serial.OpenPort(cfg)
+	if err != nil {
 		return nil, err
 	}
-	return gps, nil
+	return &HT1818GPS{port}, nil
 }
 
 // Loc ...
@@ -125,19 +129,6 @@ func (gps *HT1818GPS) Loc() (lat, lon float64, err error) {
 }
 
 // Close ...
-func (gps *HT1818GPS) Close() {
-	gps.port.Close()
-}
-
-func (gps *HT1818GPS) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name: dev,
-		Baud: baud,
-	}
-	p, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	gps.port = p
-	return nil
+func (gps *HT1818GPS) Close() error {
+	return gps.port.Close()
 }

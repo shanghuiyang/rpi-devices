@@ -38,5 +38,6 @@ func (gps *GPSSimulator) Loc() (lat, lon float64, err error) {
 }
 
 // Close ...
-func (gps *GPSSimulator) Close() {
+func (gps *GPSSimulator) Close() error {
+	return nil
 }

@@ -53,14 +53,20 @@ type PMS7003 struct {
 
 // NewPMS7003 ...
 func NewPMS7003(dev string, baud int) (*PMS7003, error) {
-	pms := &PMS7003{
-		history: newHistory(10),
-		retry:   10,
+	cfg := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 5 * time.Second,
 	}
-	if err := pms.open(dev, baud); err != nil {
+	port, err := serial.OpenPort(cfg)
+	if err != nil {
 		return nil, err
 	}
-	return pms, nil
+	return &PMS7003{
+		port:    port,
+		history: newHistory(10),
+		retry:   10,
+	}, nil
 }
 
 // Get returns pm2.5 and pm10 in ug/m3
@@ -119,22 +125,8 @@ func (pms *PMS7003) MockGet() (uint16, uint16, error) {
 }
 
 // Close ...
-func (pms *PMS7003) Close() {
-	pms.port.Close()
-}
-
-func (pms *PMS7003) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name:        dev,
-		Baud:        baud,
-		ReadTimeout: 5 * time.Second,
-	}
-	port, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	pms.port = port
-	return nil
+func (pms *PMS7003) Close() error {
+	return pms.port.Close()
 }
 
 func (pms *PMS7003) checkDelta(pm25 uint16) bool {

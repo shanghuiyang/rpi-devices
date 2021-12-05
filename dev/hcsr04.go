@@ -69,6 +69,6 @@ func (hc *HCSR04) Dist() (float64, error) {
 }
 
 // Close ...
-func (hc *HCSR04) Close() {
-	// do noting just implement DistanceMeter interface.
+func (hc *HCSR04) Close() error {
+	return nil
 }

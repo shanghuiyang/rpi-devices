@@ -63,11 +63,16 @@ type GY25 struct {
 
 // NewGY25 ...
 func NewGY25(dev string, baud int) (*GY25, error) {
-	gy := &GY25{}
-	if err := gy.open(dev, baud); err != nil {
+	cfg := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 3 * time.Second,
+	}
+	port, err := serial.OpenPort(cfg)
+	if err != nil {
 		return nil, err
 	}
-	return gy, nil
+	return &GY25{port: port}, nil
 }
 
 // SetMode ...
@@ -120,20 +125,6 @@ func (gy *GY25) Angles() (yaw, pitch, roll float64, err error) {
 }
 
 // Close ...
-func (gy *GY25) Close() {
-	gy.port.Close()
-}
-
-func (gy *GY25) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name:        dev,
-		Baud:        baud,
-		ReadTimeout: 3 * time.Second,
-	}
-	port, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	gy.port = port
-	return nil
+func (gy *GY25) Close() error {
+	return gy.port.Close()
 }

@@ -50,11 +50,15 @@ type Neo6mGPS struct {
 
 // NewNeo6mGPS ...
 func NewNeo6mGPS(dev string, baud int) (*Neo6mGPS, error) {
-	gps := &Neo6mGPS{}
-	if err := gps.open(dev, baud); err != nil {
+	cfg := &serial.Config{
+		Name: dev,
+		Baud: baud,
+	}
+	port, err := serial.OpenPort(cfg)
+	if err != nil {
 		return nil, err
 	}
-	return gps, nil
+	return &Neo6mGPS{port}, nil
 }
 
 // Loc ...
@@ -132,19 +136,6 @@ func (gps *Neo6mGPS) Loc() (lat, lon float64, err error) {
 }
 
 // Close ...
-func (gps *Neo6mGPS) Close() {
-	gps.port.Close()
-}
-
-func (gps *Neo6mGPS) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name: dev,
-		Baud: baud,
-	}
-	p, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	gps.port = p
-	return nil
+func (gps *Neo6mGPS) Close() error {
+	return gps.port.Close()
 }

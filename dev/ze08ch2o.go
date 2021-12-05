@@ -101,8 +101,8 @@ func (ze *ZE08CH2O) Value() (float64, error) {
 }
 
 // Close ...
-func (ze *ZE08CH2O) Close() {
-	ze.port.Close()
+func (ze *ZE08CH2O) Close() error {
+	return ze.port.Close()
 }
 
 func (ze *ZE08CH2O) open() error {

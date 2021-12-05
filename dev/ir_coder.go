@@ -39,11 +39,16 @@ type IRCoder struct {
 
 // NewIRCoder ...
 func NewIRCoder(dev string, baud int) (*IRCoder, error) {
-	ir := &IRCoder{}
-	if err := ir.open(dev, baud); err != nil {
+	c := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 3 * time.Second,
+	}
+	port, err := serial.OpenPort(c)
+	if err != nil {
 		return nil, err
 	}
-	return ir, nil
+	return &IRCoder{port}, nil
 }
 
 func (ir *IRCoder) Send(data []byte) error {
@@ -66,18 +71,4 @@ func (ir *IRCoder) Send(data []byte) error {
 // Close ...
 func (ir *IRCoder) Close() error {
 	return ir.port.Close()
-}
-
-func (ir *IRCoder) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name:        dev,
-		Baud:        baud,
-		ReadTimeout: 3 * time.Second,
-	}
-	port, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	ir.port = port
-	return nil
 }

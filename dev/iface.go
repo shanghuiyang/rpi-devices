@@ -3,7 +3,7 @@ package dev
 // Accelerometer ...
 type Accelerometer interface {
 	Angles() (yaw, pitch, roll float64, err error)
-	Close()
+	Close() error
 }
 
 // AnalogDigitalConverter ...
@@ -32,7 +32,7 @@ type Camera interface {
 // CH2OMeter ...
 type CH2OMeter interface {
 	Value() (float64, error)
-	Close()
+	Close() error
 }
 
 // Detector ...
@@ -50,7 +50,7 @@ type Display interface {
 // DistanceMeter ...
 type DistanceMeter interface {
 	Dist() (float64, error)
-	Close()
+	Close() error
 }
 
 // Encoder ...
@@ -64,7 +64,7 @@ type Encoder interface {
 // GPS ...
 type GPS interface {
 	Loc() (lat, lon float64, err error)
-	Close()
+	Close() error
 }
 
 // Hygrometer ...
@@ -131,5 +131,5 @@ type Wireless interface {
 	Receive() ([]byte, error)
 	Sleep()
 	Wakeup()
-	Close()
+	Close() error
 }

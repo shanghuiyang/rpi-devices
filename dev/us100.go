@@ -39,11 +39,6 @@ import (
 	"github.com/tarm/serial"
 )
 
-const (
-	defaultUS100Name = "/dev/ttyAMA0"
-	defaultUS100Baud = 9600
-)
-
 var (
 	trigData = []byte{0x55}
 )
@@ -73,13 +68,13 @@ type US100 struct {
 
 // NewUS100 ...
 func NewUS100(cfg *US100Config) (*US100, error) {
-	us := &US100{
-		mode: cfg.Mode,
-	}
-
-	if us.mode == TTLMode {
-		us.trig = rpio.Pin(cfg.Trig)
-		us.echo = rpio.Pin(cfg.Echo)
+	// TTL mode
+	if cfg.Mode == TTLMode {
+		us := &US100{
+			mode: TTLMode,
+			trig: rpio.Pin(cfg.Trig),
+			echo: rpio.Pin(cfg.Echo),
+		}
 		us.trig.Output()
 		us.trig.Low()
 		us.echo.Input()
@@ -87,18 +82,19 @@ func NewUS100(cfg *US100Config) (*US100, error) {
 	}
 
 	// UART mode
-	dev := cfg.Dev
-	baud := cfg.Baud
-	if cfg.Dev == "" {
-		dev = defaultUS100Name
+	scfg := &serial.Config{
+		Name:        cfg.Dev,
+		Baud:        cfg.Baud,
+		ReadTimeout: 1 * time.Second,
 	}
-	if cfg.Baud == 0 {
-		baud = defaultUS100Baud
-	}
-	if err := us.open(dev, baud); err != nil {
+	port, err := serial.OpenPort(scfg)
+	if err != nil {
 		return nil, err
 	}
-	return us, nil
+	return &US100{
+		mode: UartMode,
+		port: port,
+	}, nil
 }
 
 // Value returns the distance in cm to objects
@@ -164,22 +160,9 @@ func (us *US100) distByTTL() (float64, error) {
 }
 
 // Close ...
-func (us *US100) Close() {
+func (us *US100) Close() error {
 	if us.mode == UartMode {
-		us.port.Close()
+		return us.port.Close()
 	}
-}
-
-func (us *US100) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name:        dev,
-		Baud:        baud,
-		ReadTimeout: 1 * time.Second,
-	}
-	port, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	us.port = port
 	return nil
 }

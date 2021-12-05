@@ -48,11 +48,18 @@ type LC12S struct {
 
 // NewLC12S ...
 func NewLC12S(dev string, baud int, csPin uint8) (*LC12S, error) {
+	cfg := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
+		ReadTimeout: 3 * time.Second,
+	}
+	port, err := serial.OpenPort(cfg)
+	if err != nil {
+		return nil, err
+	}
 	l := &LC12S{
 		csPin: rpio.Pin(csPin),
-	}
-	if err := l.open(dev, baud); err != nil {
-		return nil, err
+		port:  port,
 	}
 	l.csPin.Output()
 	l.Sleep()
@@ -104,20 +111,6 @@ func (l *LC12S) Wakeup() {
 }
 
 // Close ...
-func (l *LC12S) Close() {
-	l.port.Close()
-}
-
-func (l *LC12S) open(dev string, baud int) error {
-	c := &serial.Config{
-		Name:        dev,
-		Baud:        baud,
-		ReadTimeout: 3 * time.Second,
-	}
-	port, err := serial.OpenPort(c)
-	if err != nil {
-		return err
-	}
-	l.port = port
-	return nil
+func (l *LC12S) Close() error {
+	return l.port.Close()
 }
