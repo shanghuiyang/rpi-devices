@@ -32,7 +32,6 @@ package dev
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -107,8 +106,7 @@ func (us *US100) Dist() (float64, error) {
 
 func (us *US100) distByUart() (float64, error) {
 	if err := us.port.Flush(); err != nil {
-		log.Printf("[us100]failed to flush serial, error: %v", err)
-		return 0, err
+		return 0, fmt.Errorf("flush port error: %w", err)
 	}
 	// send trigger data
 	n, err := us.port.Write(trigData)
@@ -121,15 +119,13 @@ func (us *US100) distByUart() (float64, error) {
 	for a < 2 {
 		n, err := us.port.Read(us.buf[a:])
 		if err != nil {
-			log.Printf("[us100]failed to read serial, error: %v", err)
-			return 0, err
+			return 0, fmt.Errorf("read port error: %w", err)
 		}
 		a += n
 	}
 
 	// check data len
 	if a != 2 {
-		log.Printf("[us100]incorrect data len, len: %v, expected: 2", a)
 		return 0, fmt.Errorf("incorrect data len, len: %v, expected: 2", a)
 	}
 	// calc distance in cm

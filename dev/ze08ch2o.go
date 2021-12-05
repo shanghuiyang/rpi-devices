@@ -26,10 +26,8 @@ package dev
 
 import (
 	"fmt"
-	"log"
-	"time"
-
 	"math"
+	"time"
 
 	"github.com/tarm/serial"
 )
@@ -69,35 +67,33 @@ func (ze *ZE08CH2O) Value() (float64, error) {
 			n, err := ze.port.Read(ze.buf[a:])
 			if err != nil {
 				// try to reopen serial
-				ze.port.Close()
-				if err := ze.open(); err != nil {
-					log.Printf("[ze08ch2o]failed open serial, error: %v", err)
+				if err := ze.port.Close(); err != nil {
+					return 0, fmt.Errorf("close port error: %w", err)
 				}
-				return 0, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
+				if err := ze.open(); err != nil {
+					return 0, fmt.Errorf("open port error: %w", err)
+				}
 			}
 			a += n
 		}
 
 		if a != 9 {
-			log.Printf("[ze08ch2o]incorrect data len: %v, expected: 9", a)
 			continue
 		}
 
 		checksum := ^(ze.buf[1] + ze.buf[2] + ze.buf[3] + ze.buf[4] + ze.buf[5] + ze.buf[6] + ze.buf[7]) + 1
 		if checksum != ze.buf[8] {
-			log.Printf("[ze08ch2o]checksum failure")
 			continue
 		}
 		ppm := (uint16(ze.buf[4]) << 8) | uint16(ze.buf[5])
 		ch2o := float64(ppm) * 0.001228 // convert ppm to mg/m3
 
 		if !ze.checkDelta(ch2o) {
-			log.Printf("[ze08ch2o]check delta failed, discard current data. CH2O: %v mg/m3", ch2o)
 			continue
 		}
 		return ch2o, nil
 	}
-	return 0, fmt.Errorf("failed to get ch2o")
+	return 0, fmt.Errorf("failed to get ch2o, arrived max retry times")
 }
 
 // Close ...

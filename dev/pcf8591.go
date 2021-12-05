@@ -34,7 +34,7 @@ Connect to Raspberry Pi:
 package dev
 
 import (
-	"log"
+	"fmt"
 
 	"golang.org/x/exp/io/i2c"
 )
@@ -65,62 +65,51 @@ func NewPCF8591() (*PCF8591, error) {
 }
 
 // ReadAIN0 ...
-func (pcf *PCF8591) ReadAIN0() []byte {
+func (pcf *PCF8591) ReadAIN0() ([]byte, error) {
 	if err := pcf.dev.Write([]byte{ctrAIN0}); err != nil {
-		log.Printf("write AIN0 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c write error: %w", err)
 	}
 	data := make([]byte, 1)
 	if err := pcf.dev.Read(data); err != nil {
-		log.Printf("read AIN0 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c read error: %w", err)
 	}
-	log.Printf("ain0, len: %v, data: %v", len(data), data)
-	return data
+	return data, nil
 }
 
 // ReadAIN1 ...
-func (pcf *PCF8591) ReadAIN1() []byte {
+func (pcf *PCF8591) ReadAIN1() ([]byte, error) {
 	if err := pcf.dev.Write([]byte{ctrAIN1}); err != nil {
-		log.Printf("write AIN1 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c write error: %w", err)
 	}
 	data := make([]byte, 1)
 	if err := pcf.dev.Read(data); err != nil {
-		log.Printf("read AIN1 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c read error: %w", err)
 	}
-	log.Printf("ain1, len: %v, data: %v", len(data), data)
-	return data
+	return data, nil
 }
 
 // ReadAIN2 ...
-func (pcf *PCF8591) ReadAIN2() []byte {
+func (pcf *PCF8591) ReadAIN2() ([]byte, error) {
 	if err := pcf.dev.Write([]byte{ctrAIN2}); err != nil {
-		log.Printf("write AIN2 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c write error: %w", err)
 	}
 	data := make([]byte, 1)
 	if err := pcf.dev.Read(data); err != nil {
-		log.Printf("read AIN2 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c read error: %w", err)
 	}
-	log.Printf("ain2, len: %v, data: %v", len(data), data)
-	return data
+	return data, nil
 }
 
 // ReadAIN3 ...
-func (pcf *PCF8591) ReadAIN3() []byte {
+func (pcf *PCF8591) ReadAIN3() ([]byte, error) {
 	if err := pcf.dev.Write([]byte{ctrAIN3}); err != nil {
-		log.Printf("write AIN3 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c write error: %w", err)
 	}
 	data := make([]byte, 1)
 	if err := pcf.dev.Read(data); err != nil {
-		log.Printf("read AIN3 error: %v", err)
-		return []byte{}
+		return nil, fmt.Errorf("i2c read error: %w", err)
 	}
-	return data
+	return data, nil
 }
 
 // Close ...
