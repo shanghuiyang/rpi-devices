@@ -154,7 +154,7 @@ type ADS1015 struct {
 	config uint16
 }
 
-// NewADS1015 implement AnalogDigitalConverter interface
+// NewADS1015 implement ADC interface
 func NewADS1015() (*ADS1015, error) {
 	dev, err := i2c.Open(&i2c.Devfs{Dev: ads1015Dev}, ads1015Addr)
 	if err != nil {

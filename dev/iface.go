@@ -6,10 +6,10 @@ type Accelerometer interface {
 	Close() error
 }
 
-// AnalogDigitalConverter ...
-type AnalogDigitalConverter interface {
+// ADC is the interface of Analog DigitalC onverter
+type ADC interface {
 	Read(channel int) (float64, error)
-	Close()
+	Close() error
 }
 
 // Button ...
