@@ -8,6 +8,14 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
+const (
+	trig = 21
+	echo = 26
+
+	us100Dev = "/dev/ttyAMA0"
+	baud     = 9600
+)
+
 func main() {
 	var mode int
 	fmt.Printf("Please choose mode: 1: TTL, 2: Uart\n")
@@ -23,11 +31,7 @@ func main() {
 
 	// ttl mode
 	if mode == 1 {
-		u, err := dev.NewUS100(&dev.US100Config{
-			Mode: dev.TTLMode,
-			Trig: 21,
-			Echo: 26,
-		})
+		u, err := dev.NewUS100TTL(trig, echo)
 		if err != nil {
 			log.Fatalf("new us100 error: %v", err)
 		}
@@ -43,11 +47,7 @@ func main() {
 	}
 
 	// uart mode
-	u, err := dev.NewUS100(&dev.US100Config{
-		Mode: dev.UartMode,
-		Dev:  "/dev/ttyAMA0",
-		Baud: 9600,
-	})
+	u, err := dev.NewUS100Uart(us100Dev, baud)
 	if err != nil {
 		log.Fatalf("new us100 error: %v", err)
 	}

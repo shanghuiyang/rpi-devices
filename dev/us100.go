@@ -42,16 +42,6 @@ var (
 	trigData = []byte{0x55}
 )
 
-// US100Config ...
-type US100Config struct {
-	Mode  ComMode
-	Trig  int8
-	Echo  int8
-	Dev   string
-	Baud  int
-	Retry int
-}
-
 // US100 ...
 type US100 struct {
 	mode ComMode
@@ -65,28 +55,27 @@ type US100 struct {
 	port *serial.Port
 }
 
-// NewUS100 ...
-func NewUS100(cfg *US100Config) (*US100, error) {
-	// TTL mode
-	if cfg.Mode == TTLMode {
-		us := &US100{
-			mode: TTLMode,
-			trig: rpio.Pin(cfg.Trig),
-			echo: rpio.Pin(cfg.Echo),
-		}
-		us.trig.Output()
-		us.trig.Low()
-		us.echo.Input()
-		return us, nil
+// NewUS100TTL creates US100 using TTL mode
+func NewUS100TTL(trig, echo uint8) (*US100, error) {
+	us := &US100{
+		mode: TTLMode,
+		trig: rpio.Pin(trig),
+		echo: rpio.Pin(echo),
 	}
+	us.trig.Output()
+	us.trig.Low()
+	us.echo.Input()
+	return us, nil
+}
 
-	// UART mode
-	scfg := &serial.Config{
-		Name:        cfg.Dev,
-		Baud:        cfg.Baud,
+// NewUS100Uart creates US100 using Uart mode
+func NewUS100Uart(dev string, baud int) (*US100, error) {
+	cfg := &serial.Config{
+		Name:        dev,
+		Baud:        baud,
 		ReadTimeout: 1 * time.Second,
 	}
-	port, err := serial.OpenPort(scfg)
+	port, err := serial.OpenPort(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -99,12 +88,12 @@ func NewUS100(cfg *US100Config) (*US100, error) {
 // Value returns the distance in cm to objects
 func (us *US100) Dist() (float64, error) {
 	if us.mode == UartMode {
-		return us.distByUart()
+		return us.distFromUart()
 	}
-	return us.distByTTL()
+	return us.distFromTTL()
 }
 
-func (us *US100) distByUart() (float64, error) {
+func (us *US100) distFromUart() (float64, error) {
 	if err := us.port.Flush(); err != nil {
 		return 0, fmt.Errorf("flush port error: %w", err)
 	}
@@ -132,7 +121,7 @@ func (us *US100) distByUart() (float64, error) {
 	return float64((uint16(us.buf[0])<<8)|uint16(us.buf[1])) / 10.0, nil
 }
 
-func (us *US100) distByTTL() (float64, error) {
+func (us *US100) distFromTTL() (float64, error) {
 	us.trig.Low()
 	delayUs(1)
 	us.trig.High()
