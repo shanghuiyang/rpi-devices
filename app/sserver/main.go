@@ -14,22 +14,23 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
-const (
-	devName = "/dev/ttyAMA0"
-	baud    = 9600
-)
+// const (
+// 	devName = "/dev/ttyAMA0"
+// 	baud    = 9600
+// )
 
 type (
 	option func(s *sserver)
 )
 
 type sserver struct {
-	thermometer dev.Thermometer
-	pms7003     *dev.PMS7003
+	thermohygrometer dev.Thermohygrometer
+	pms7003          *dev.PMS7003
 }
 
-type tempResponse struct {
-	Temp     float32 `json:"temp"`
+type temphumiResponse struct {
+	Temp     float64 `json:"temp"`
+	Humi     float64 `json:"humi"`
 	ErrorMsg string  `json:"error_msg"`
 }
 
@@ -39,21 +40,21 @@ type pm25Response struct {
 }
 
 func main() {
-	d := dev.NewDS18B20()
-	if d == nil {
-		log.Printf("[sensors]failed to new DS18B20")
+	hdc, err := dev.NewHDC1080()
+	if err != nil {
+		log.Printf("[sensors]failed to new HDC1080")
 		return
 	}
 
-	p, err := dev.NewPMS7003(devName, baud)
-	if err != nil {
-		log.Printf("[sensors]failed to new PMS7003")
-		return
-	}
+	// p, err := dev.NewPMS7003(devName, baud)
+	// if err != nil {
+	// 	log.Printf("[sensors]failed to new PMS7003")
+	// 	return
+	// }
 
 	s := newServer(
-		withDS18B20(d),
-		withPMS7003(p),
+		withThermohygrometer(hdc),
+		// withPMS7003(p),
 	)
 	if s == nil {
 		log.Fatal("[sensors]failed to new sserver")
@@ -67,9 +68,9 @@ func main() {
 	os.Exit(0)
 }
 
-func withDS18B20(t dev.Thermometer) option {
+func withThermohygrometer(t dev.Thermohygrometer) option {
 	return func(s *sserver) {
-		s.thermometer = t
+		s.thermohygrometer = t
 	}
 }
 
@@ -89,7 +90,7 @@ func newServer(opts ...option) *sserver {
 
 func (s *sserver) start() error {
 	log.Printf("[sensors]start service")
-	http.HandleFunc("/temp", s.tempHandler)
+	http.HandleFunc("/temphumi", s.temphumiHandler)
 	http.HandleFunc("/pm25", s.pm25Handler)
 	if err := http.ListenAndServe(":8000", nil); err != nil {
 		return err
@@ -111,27 +112,28 @@ func (s *sserver) response(w http.ResponseWriter, resp interface{}, statusCode i
 	return nil
 }
 
-func (s *sserver) tempHandler(w http.ResponseWriter, r *http.Request) {
+func (s *sserver) temphumiHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[sensors]%v %v", r.Method, r.URL.Path)
-	if s.thermometer == nil {
-		resp := &tempResponse{
-			ErrorMsg: "invaild ds18b20 sensor",
+	if s.thermohygrometer == nil {
+		resp := &temphumiResponse{
+			ErrorMsg: "invaild thermohygrometer sensor",
 		}
 		s.response(w, resp, http.StatusInternalServerError)
 		return
 	}
 
-	t, err := s.thermometer.Temperature()
+	t, h, err := s.thermohygrometer.TempHumidity()
 	if err != nil {
-		resp := &tempResponse{
-			ErrorMsg: fmt.Sprintf("failed to get temp, error: %v", err),
+		resp := &temphumiResponse{
+			ErrorMsg: fmt.Sprintf("failed to get temp and humi, error: %v", err),
 		}
 		s.response(w, resp, http.StatusInternalServerError)
 		return
 	}
 
-	resp := &tempResponse{
+	resp := &temphumiResponse{
 		Temp: t,
+		Humi: h,
 	}
 	s.response(w, resp, http.StatusOK)
 }

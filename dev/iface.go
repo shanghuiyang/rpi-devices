@@ -117,7 +117,7 @@ type Relay interface {
 
 // Thermometer ...
 type Thermometer interface {
-	Temperature() (float32, error)
+	Temperature() (float64, error)
 }
 
 // Thermohygrometer ...

@@ -49,7 +49,7 @@ func NewDS18B20() *DS18B20 {
 // ca 01 55 00 7f ff 0c 10 bf : crc=bf YES
 // ca 01 55 00 7f ff 0c 10 bf t=28625
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~~~~
-func (d *DS18B20) Temperature() (float32, error) {
+func (d *DS18B20) Temperature() (float64, error) {
 	data, err := ioutil.ReadFile(tempFile)
 	if err != nil {
 		return 0, err
@@ -64,5 +64,5 @@ func (d *DS18B20) Temperature() (float32, error) {
 	if err != nil {
 		return 0, fmt.Errorf("bad data")
 	}
-	return float32(t / 1000), nil
+	return float64(t / 1000), nil
 }

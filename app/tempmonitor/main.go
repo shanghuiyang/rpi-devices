@@ -80,7 +80,7 @@ func (m *tempMonitor) start() {
 	}
 }
 
-func (m *tempMonitor) notitfy(temperatue float32) {
+func (m *tempMonitor) notitfy(temperatue float64) {
 	_, err := exec.LookPath("mutt")
 	if err != nil {
 		log.Printf("[tempmonitor]need to install mutt for email notification")

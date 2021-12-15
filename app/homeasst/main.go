@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"time"
 
@@ -31,8 +32,9 @@ type data struct {
 	displayY    int
 }
 
-type tempResponse struct {
-	Temp     float32 `json:"temp"`
+type temphumiResponse struct {
+	Temp     float64 `json:"temp"`
+	Humi     float64 `json:"humi"`
 	ErrorMsg string  `json:"error_msg"`
 }
 
@@ -89,45 +91,54 @@ func (h *homeAsst) start() {
 func (h *homeAsst) getData() {
 	for {
 		go func() {
-			t, err := h.getTemp()
+			temp, humi, err := h.getTempHumi()
 			if err != nil {
-				log.Printf("[homeasst]failed to get temperature, error: %v", err)
+				log.Printf("[homeasst]failed to get temp and humi, error: %v", err)
 				time.Sleep(5 * time.Second)
 				return
 			}
-			log.Printf("[homeasst]temp: %v", t)
+			log.Printf("[homeasst]temp: %v, humi: %v", temp, humi)
 			d := &data{
 				name:        "temp",
-				value:       t,
-				displayText: fmt.Sprintf("%.1f%sC", t, celsiusStr),
+				value:       math.Round(temp*100) / 100,
+				displayText: fmt.Sprintf("%5.1f%sC", temp, celsiusStr),
 				displayX:    0,
 				displayY:    0,
 			}
 			h.chDisplay <- d
 			h.chCloud <- d
-		}()
 
-		go func() {
-			// pm25, err := h.getPM25()
-			// if err != nil {
-			// 	log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
-			// 	time.Sleep(5 * time.Second)
-			// 	return
-			// }
-			pm25 := 0
-			log.Printf("[homeasst]pm2.5: %v", pm25)
-
-			d := &data{
-				name:        "pm2.5",
-				value:       pm25,
-				displayText: fmt.Sprintf("Air:%3d", pm25),
-				displayX:    8,
+			d = &data{
+				name:        "humi",
+				value:       math.Round(humi*100) / 100,
+				displayText: fmt.Sprintf("%5.1f%%", humi),
+				displayX:    10,
 				displayY:    0,
 			}
 			h.chDisplay <- d
 			h.chCloud <- d
-			// h.chAlert <- v
 		}()
+
+		// go func() {
+		// 	pm25, err := h.getPM25()
+		// 	if err != nil {
+		// 		log.Printf("[homeasst]failed to get pm2.5, error: %v", err)
+		// 		time.Sleep(5 * time.Second)
+		// 		return
+		// 	}
+		// 	log.Printf("[homeasst]pm2.5: %v", pm25)
+
+		// 	d := &data{
+		// 		name:        "pm2.5",
+		// 		value:       pm25,
+		// 		displayText: fmt.Sprintf("Air:%3d", pm25),
+		// 		displayX:    8,
+		// 		displayY:    0,
+		// 	}
+		// 	h.chDisplay <- d
+		// 	h.chCloud <- d
+		// 	// h.chAlert <- v
+		// }()
 
 		time.Sleep(60 * time.Second)
 	}
@@ -216,34 +227,34 @@ func (h *homeAsst) stop() {
 	h.dsp.Close()
 }
 
-func (h *homeAsst) getTemp() (float32, error) {
-	resp, err := http.Get("http://localhost:8000/temp")
+func (h *homeAsst) getTempHumi() (temp, humi float64, err error) {
+	resp, err := http.Get("http://localhost:8000/temphumi")
 	if err != nil {
-		return 0, fmt.Errorf("failed to get temp from sensers server, status: %v, err: %v", resp.Status, err)
+		return 0, 0, fmt.Errorf("failed to get temp from sensers server, err: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return 0, fmt.Errorf("failed to read resp body, err: %v", err)
+		return 0, 0, fmt.Errorf("failed to read resp body, err: %v", err)
 	}
 
-	var tempResp tempResponse
-	if err := json.Unmarshal(body, &tempResp); err != nil {
-		return 0, fmt.Errorf("failed to unmarshal resp, err: %v", err)
+	var result temphumiResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return 0, 0, fmt.Errorf("failed to unmarshal resp, err: %v", err)
 	}
 
-	if tempResp.ErrorMsg != "" {
-		return 0, fmt.Errorf("failed to get temp from sensers server, status: %v, err msg: %v", resp.Status, tempResp.ErrorMsg)
+	if result.ErrorMsg != "" {
+		return 0, 0, fmt.Errorf("failed to get temp from sensers server, status: %v, err msg: %v", resp.Status, result.ErrorMsg)
 	}
 
-	return tempResp.Temp, nil
+	return result.Temp, result.Humi, nil
 }
 
 func (h *homeAsst) getPM25() (uint16, error) {
 	resp, err := http.Get("http://localhost:8000/pm25")
 	if err != nil {
-		return 0, fmt.Errorf("failed to get pm2.5 from sensers server, status: %v, err: %v", resp.Status, err)
+		return 0, fmt.Errorf("failed to get pm2.5 from sensers server, err: %v", err)
 	}
 	defer resp.Body.Close()
 
