@@ -3,8 +3,12 @@
 # Install:
 # pip install Adafruit_GPIO
 # pip install numpy
-# pip pip install Pillow
+# pip install Pillow
 # pip install flask
+
+# Enable SPI. from your pi:
+# $sudo raspi-config
+# -> [5 interface options] -> [P4 SPI] -> [yes] -> [ok]
 
 # Conect the Display Module to Raspberry Pi:
 # - GND: any gnd pin
