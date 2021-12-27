@@ -144,7 +144,7 @@ func (tft *TFTDisplay) Display(img image.Image) error {
 		for x := 0; x < img.Bounds().Dx(); x++ {
 			c := img.At(x, y)
 			r, g, b, a := c.RGBA()
-			c565 := rgbaTo565(color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)})
+			c565 := tft.rgbaTo565(color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: uint8(a)})
 			data = append(data, byte(c565>>8))
 			data = append(data, byte(c565&0xFF))
 		}
@@ -179,7 +179,7 @@ func (tft *TFTDisplay) data(data ...byte) {
 	rpio.SpiTransmit(data...)
 }
 
-func rgbaTo565(c color.RGBA) uint16 {
+func (tft *TFTDisplay) rgbaTo565(c color.RGBA) uint16 {
 	r, g, b, _ := c.RGBA()
 	return uint16((r & 0xF800) + ((g & 0xFC00) >> 5) + ((b & 0xF800) >> 11))
 }
