@@ -18,7 +18,7 @@ func main() {
 	motor := dev.NewBYJ2848(in1, in2, in3, in4)
 	motor.SetSpeed(100)
 	for {
-		fmt.Printf(">>op: ")
+		fmt.Printf(">>angle: ")
 		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
 			fmt.Printf("invalid angle, error: %v", err)
 			continue
