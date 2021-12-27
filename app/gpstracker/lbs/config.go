@@ -10,11 +10,12 @@ import (
 
 // Config ...
 type Config struct {
-	ZoomInButtonPin  uint8       `json:"zoomInButtonPin"`
-	ZoomOutButtonPin uint8       `json:"zoomOutButtonPin"`
-	GPS              *GPSConfig  `json:"gps"`
-	IOT              *IOTConfig  `json:"iot"`
-	Tile             *TileConfig `json:"tile"`
+	ZoomInButtonPin  uint8          `json:"zoomInButtonPin"`
+	ZoomOutButtonPin uint8          `json:"zoomOutButtonPin"`
+	GPS              *GPSConfig     `json:"gps"`
+	Display          *DisplayConfig `json:"display"`
+	IOT              *IOTConfig     `json:"iot"`
+	Tile             *TileConfig    `json:"tile"`
 }
 
 type GPSConfig struct {
@@ -27,6 +28,14 @@ type GPSConfig struct {
 type GPSSimulatorConfig struct {
 	Enable bool   `json:"enable"`
 	Source string `json:"source"`
+}
+
+type DisplayConfig struct {
+	Res    uint8 `json:"res"`
+	Dc     uint8 `json:"dc"`
+	Blk    uint8 `json:"blk"`
+	Width  int   `json:"width"`
+	Height int   `json:"height"`
 }
 
 type IOTConfig struct {

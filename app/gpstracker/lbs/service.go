@@ -1,15 +1,12 @@
 package lbs
 
 import (
-	"bytes"
 	"fmt"
 	"image"
 	"log"
 	"os"
 
 	"image/color"
-	"image/png"
-	"net/http"
 	"time"
 
 	sm "github.com/flopp/go-staticmaps"
@@ -30,6 +27,7 @@ var timer *time.Timer
 type service struct {
 	cfg             *Config
 	gps             dev.GPS
+	display         *dev.TFTDisplay
 	cloud           iot.Cloud
 	logger          util.Logger
 	zoomInBtn       dev.Button
@@ -61,10 +59,16 @@ func newService(cfg *Config) (*service, error) {
 	logfile := time.Now().Format(timeFormat) + ".csv"
 	logger, err := util.NewGPSLogger(logfile)
 	if err != nil {
-		log.Printf("[gpstracker]failed to new gpslogger")
+		log.Printf("[gpstracker]failed to new gpslogger, error: %v", err)
 		return nil, err
 	}
 	// logger := util.NewNoopLogger()
+
+	display, err := dev.NewTFTDisplay(cfg.Display.Res, cfg.Display.Dc, cfg.Display.Blk, cfg.Display.Width, cfg.Display.Height)
+	if err != nil {
+		log.Printf("[gpstracker]failed to new display, error: %v", err)
+		return nil, err
+	}
 
 	var cloud iot.Cloud = iot.NewNoop()
 	if cfg.IOT.Enable {
@@ -85,6 +89,7 @@ func newService(cfg *Config) (*service, error) {
 	return &service{
 		cfg:             cfg,
 		gps:             gps,
+		display:         display,
 		cloud:           cloud,
 		logger:          logger,
 		zoomInBtn:       zoomInBtn,
@@ -154,28 +159,34 @@ func (s *service) detectLocation() {
 	}
 }
 
+// func (s *service) dispalyMap() {
+// 	for img := range s.chImage {
+// 		buf := &bytes.Buffer{}
+// 		if err := png.Encode(buf, img); err != nil {
+// 			log.Printf("failed to encode image, error: %v", err)
+// 			continue
+// 		}
+// 		req, err := http.NewRequest("POST", "http://localhost:8080/display", buf)
+// 		if err != nil {
+// 			log.Printf("failed to new http request, error: %v", err)
+// 			continue
+// 		}
+// 		req.Header.Set("Content-Type", "application/json")
+// 		client := &http.Client{
+// 			Timeout: 1 * time.Second,
+// 		}
+// 		resp, err := client.Do(req)
+// 		if err != nil {
+// 			log.Printf("failed to send http request, error: %v", err)
+// 			continue
+// 		}
+// 		resp.Body.Close()
+// 	}
+// }
+
 func (s *service) dispalyMap() {
 	for img := range s.chImage {
-		buf := &bytes.Buffer{}
-		if err := png.Encode(buf, img); err != nil {
-			log.Printf("failed to encode image, error: %v", err)
-			continue
-		}
-		req, err := http.NewRequest("POST", "http://localhost:8080/display", buf)
-		if err != nil {
-			log.Printf("failed to new http request, error: %v", err)
-			continue
-		}
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{
-			Timeout: 1 * time.Second,
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("failed to send http request, error: %v", err)
-			continue
-		}
-		resp.Body.Close()
+		go s.display.Display(img)
 	}
 }
 
@@ -258,5 +269,6 @@ func (s *service) SetStatusBarText(text string) {
 
 func (s *service) Close() {
 	s.gps.Close()
+	s.display.Close()
 	s.logger.Close()
 }

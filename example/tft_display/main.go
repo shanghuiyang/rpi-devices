@@ -13,6 +13,9 @@ const (
 	res = 22
 	dc  = 17
 	blk = 27
+
+	width  = 240
+	height = 240
 )
 
 func main() {
@@ -28,7 +31,7 @@ func main() {
 		return
 	}
 
-	tft, err := dev.NewTFTDisplay(res, dc, blk)
+	tft, err := dev.NewTFTDisplay(res, dc, blk, width, height)
 	if err != nil {
 		log.Printf("failed to create an tft display, error: %v", err)
 		return

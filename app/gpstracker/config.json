@@ -13,6 +13,13 @@
             "source": "gps.csv"
         }
     },
+    "display": {
+        "res": 22,
+        "dc": 17,
+        "blk": 27,
+        "width": 240,
+        "height": 240
+    },
     "iot": {
         "enable": false,
         "onenet": {
