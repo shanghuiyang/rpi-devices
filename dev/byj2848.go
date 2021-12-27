@@ -40,7 +40,8 @@ var (
 
 // BYJ2848 implements Motor interface
 type BYJ2848 struct {
-	pins [4]rpio.Pin
+	pins  [4]rpio.Pin
+	speed time.Duration
 }
 
 // NewBYJ2848 ...
@@ -52,6 +53,7 @@ func NewBYJ2848(in1, in2, in3, in4 uint8) *BYJ2848 {
 			rpio.Pin(in3),
 			rpio.Pin(in4),
 		},
+		speed: 100,
 	}
 	for i := 0; i < 4; i++ {
 		byj.pins[i].Output()
@@ -60,11 +62,14 @@ func NewBYJ2848(in1, in2, in3, in4 uint8) *BYJ2848 {
 	return byj
 }
 
+// Roll ...
 func (byj *BYJ2848) Roll(angle float64) {
-	var matrix [4][4]uint8
-	if angle > 0 {
-		matrix = clockwise
-	} else {
+	if byj.speed == 0 {
+		return
+	}
+
+	matrix := clockwise
+	if angle < 0 {
 		matrix = anticlockwise
 		angle = angle * (-1)
 	}
@@ -74,16 +79,24 @@ func (byj *BYJ2848) Roll(angle float64) {
 			for k := 0; k < 4; k++ {
 				if matrix[j][k] == 1 {
 					byj.pins[k].High()
-				} else {
-					byj.pins[k].Low()
+					continue
 				}
+				byj.pins[k].Low()
 			}
-			time.Sleep(2 * time.Millisecond)
+			time.Sleep(byj.speed)
 		}
 	}
 }
 
-// SetSpeed ...
-func (byj *BYJ2848) SetSpeed() {
-	// do noting just implement Motor interface.
+// SetSpeed sets the speed at 0% ~ 100%
+func (byj *BYJ2848) SetSpeed(persent int) {
+	if persent <= 0 {
+		byj.speed = 0
+		return
+	}
+	if persent > 100 {
+		persent = 100
+	}
+	t := -486.87*float64(persent) + 50486.87
+	byj.speed = time.Duration(t) * time.Microsecond
 }
