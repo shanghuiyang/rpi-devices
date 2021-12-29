@@ -14,10 +14,21 @@ const (
 )
 
 func main() {
+	var step int
 	var angle float64
 	motor := dev.NewBYJ2848(in1, in2, in3, in4)
-	motor.SetSpeed(100)
+
 	for {
+		fmt.Printf(">>steps: ")
+		if n, err := fmt.Scanf("%d", &step); n != 1 || err != nil {
+			fmt.Printf("invalid steps, error: %v", err)
+			continue
+		}
+		if step == 0 {
+			break
+		}
+		motor.Step(step)
+
 		fmt.Printf(">>angle: ")
 		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
 			fmt.Printf("invalid angle, error: %v", err)

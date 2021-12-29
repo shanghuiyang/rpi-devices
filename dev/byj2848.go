@@ -13,13 +13,11 @@ Connect to Pi:
 package dev
 
 import (
-	"time"
-
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
 const (
-	angleEachStep = 0.087
+	stepsPerDegree = float64(1.422222) // 512/360
 )
 
 var (
@@ -30,7 +28,7 @@ var (
 		{0, 0, 0, 1},
 	}
 
-	anticlockwise = [4][4]uint8{
+	cclockwise = [4][4]uint8{
 		{0, 0, 0, 1},
 		{0, 0, 1, 0},
 		{0, 1, 0, 0},
@@ -38,10 +36,9 @@ var (
 	}
 )
 
-// BYJ2848 implements Motor interface
+// BYJ2848 implements StepperMotor interface
 type BYJ2848 struct {
-	pins  [4]rpio.Pin
-	speed time.Duration
+	pins [4]rpio.Pin
 }
 
 // NewBYJ2848 ...
@@ -53,7 +50,6 @@ func NewBYJ2848(in1, in2, in3, in4 uint8) *BYJ2848 {
 			rpio.Pin(in3),
 			rpio.Pin(in4),
 		},
-		speed: 100,
 	}
 	for i := 0; i < 4; i++ {
 		byj.pins[i].Output()
@@ -62,41 +58,36 @@ func NewBYJ2848(in1, in2, in3, in4 uint8) *BYJ2848 {
 	return byj
 }
 
-// Roll ...
-func (byj *BYJ2848) Roll(angle float64) {
-	if byj.speed == 0 {
-		return
+// Step gets the motor rolls n steps.
+// roll in clockwise direction if n > 0,
+// or roll in counter-clockwise direction if n < 0,
+// or motionless if n = 0.
+func (byj *BYJ2848) Step(n int) {
+	matrix := clockwise
+	if n < 0 {
+		matrix = cclockwise
+		n = 0 - n
 	}
 
-	matrix := clockwise
-	if angle < 0 {
-		matrix = anticlockwise
-		angle = angle * (-1)
-	}
-	n := int(angle / angleEachStep / 8.0)
 	for i := 0; i < n; i++ {
 		for j := 0; j < 4; j++ {
 			for k := 0; k < 4; k++ {
 				if matrix[j][k] == 1 {
 					byj.pins[k].High()
-					continue
+				} else {
+					byj.pins[k].Low()
 				}
-				byj.pins[k].Low()
 			}
-			time.Sleep(byj.speed)
+			delayMs(2)
 		}
 	}
 }
 
-// SetSpeed sets the speed at 0% ~ 100%
-func (byj *BYJ2848) SetSpeed(persent int) {
-	if persent <= 0 {
-		byj.speed = 0
-		return
-	}
-	if persent > 100 {
-		persent = 100
-	}
-	t := -486.87*float64(persent) + 50486.87
-	byj.speed = time.Duration(t) * time.Microsecond
+// Roll gets the motor rolls angle degree.
+// roll in clockwise direction if angle > 0,
+// or roll in counter-clockwise direction if angle < 0,
+// or motionless if angle = 0.
+func (byj *BYJ2848) Roll(angle float64) {
+	n := int(angle * stepsPerDegree)
+	byj.Step(n)
 }

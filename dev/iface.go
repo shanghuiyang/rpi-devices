@@ -88,8 +88,8 @@ type Led interface {
 
 // Motor ...
 type Motor interface {
-	// Rolls roll angle dregee clockwise if angle > 0,
-	// or roll anticlockwise if angle < 0
+	// Rolls roll angle dregee in clockwise direction if angle > 0,
+	// or roll counter-clockwise if angle < 0
 	Roll(angle float64)
 	SetSpeed(speed int)
 }
@@ -113,6 +113,18 @@ type RFReceiver interface {
 type Relay interface {
 	On(ch int)
 	Off(ch int)
+}
+
+// StepperMotor ...
+type StepperMotor interface {
+	// Step gets the stepper motor rolls n steps in clockwise direction if angle > 0,
+	// or roll in counter-clockwise direction if n < 0,
+	// or motionless if n = 0.
+	Step(n int)
+	// Roll gets the stepper motor rolls angle dregee in clockwise direction if angle > 0,
+	// or roll in counter-clockwise direction if angle < 0,
+	// or motionless if angle = 0.
+	Roll(angle float64)
 }
 
 // Thermometer ...
