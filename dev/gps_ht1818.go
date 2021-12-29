@@ -60,7 +60,7 @@ func (gps *HT1818GPS) Loc() (lat, lon float64, err error) {
 		return 0, 0, fmt.Errorf("flush port error: %w", err)
 	}
 	a := 0
-	for a < 1024 {
+	for a < 512 {
 		n, err := gps.port.Read(ht1818Buf[a:])
 		if err != nil {
 			return 0, 0, fmt.Errorf("read port error: %w", err)

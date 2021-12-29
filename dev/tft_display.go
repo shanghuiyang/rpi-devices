@@ -8,10 +8,11 @@ import (
 )
 
 type TFTDisplay struct {
-	res           rpio.Pin
-	dc            rpio.Pin
-	blk           rpio.Pin
-	width, height int
+	res    rpio.Pin
+	dc     rpio.Pin
+	blk    rpio.Pin
+	width  int
+	height int
 }
 
 func NewTFTDisplay(res, dc, blk uint8, width, height int) (*TFTDisplay, error) {

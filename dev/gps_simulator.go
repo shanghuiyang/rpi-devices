@@ -24,6 +24,7 @@ func NewGPSSimulator(latlons [][]float64) (*GPSSimulator, error) {
 
 // Loc ...
 func (gps *GPSSimulator) Loc() (lat, lon float64, err error) {
+	delayMs(1000)
 	n := len(gps.latlons)
 	if n == 0 {
 		return 0, 0, errors.New("without data")

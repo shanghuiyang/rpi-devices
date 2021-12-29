@@ -36,6 +36,7 @@ type service struct {
 	statusBarText   string
 	curTileProvider *sm.TileProvider
 	curZoom         int
+	chPoint         chan *geo.Point
 	chImage         chan image.Image
 }
 
@@ -97,7 +98,8 @@ func newService(cfg *Config) (*service, error) {
 		tileProviders:   tileProviders,
 		curZoom:         cfg.Tile.DefaultZoom,
 		curTileProvider: tileProviders[cfg.Tile.DefaultTileProvider],
-		chImage:         make(chan image.Image, 1),
+		chPoint:         make(chan *geo.Point, 512),
+		chImage:         make(chan image.Image, 512),
 	}, nil
 }
 
@@ -105,57 +107,32 @@ func (s *service) start() error {
 	go s.detectZoomInBtn()
 	go s.detectZoomOutBtn()
 	go s.dispalyMap()
-	s.detectLocation()
+	go s.detectLocation()
+	go s.renderMap()
+	s.dispalyMap()
 	return nil
 }
 
 func (s *service) detectLocation() {
-	c := sm.NewTileCache(s.cfg.Tile.CacheDir, os.ModePerm)
-	ctx := sm.NewContext()
-	ctx.SetCache(c)
-	ctx.SetOnline(s.cfg.Tile.Online)
-	ctx.SetSize(240, 240)
-
-	lastPt := s.cfg.GPS.DefaultLoc
 	for {
-		// time.Sleep(500 * time.Millisecond)
 		lat, lon, err := s.gps.Loc()
 		if err != nil {
 			log.Printf("failed to get gps locations: %v", err)
-			lat, lon = lastPt.Lat, lastPt.Lon
+			continue
 		}
 		pt := &geo.Point{
 			Lat: lat,
 			Lon: lon,
 		}
-		lastPt = pt
 
-		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), pt.Lat, pt.Lon)
-
+		s.chPoint <- pt
 		v := &iot.Value{
 			Device: "gps",
 			Value:  pt,
 		}
 		go s.cloud.Push(v)
+		s.logger.Printf("%v,%.6f,%.6f\n", time.Now().Format(timeFormat), pt.Lat, pt.Lon)
 
-		s.curTileProvider.Attribution = s.statusBarText
-		marker := sm.NewMarker(
-			s2.LatLngFromDegrees(pt.Lat, pt.Lon),
-			color.RGBA{0xff, 0, 0, 0xff},
-			12.0,
-		)
-		ctx.ClearObjects()
-		ctx.AddObject(marker)
-		ctx.SetZoom(s.curZoom)
-		ctx.SetTileProvider(s.curTileProvider)
-
-		img, err := ctx.Render()
-		if err != nil {
-			log.Printf("failed to render map: %v", err)
-			util.DelayMs(100)
-			continue
-		}
-		s.chImage <- img
 	}
 }
 
@@ -184,9 +161,69 @@ func (s *service) detectLocation() {
 // 	}
 // }
 
+func (s *service) renderMap() {
+	c := sm.NewTileCache(s.cfg.Tile.CacheDir, os.ModePerm)
+	ctx := sm.NewContext()
+	ctx.SetCache(c)
+	ctx.SetOnline(s.cfg.Tile.Online)
+	ctx.SetSize(s.cfg.Display.Width, s.cfg.Display.Height)
+
+	updated := true
+	lastZoom := s.curZoom
+	lastProvider := s.curTileProvider
+	lastPt := s.cfg.GPS.DefaultLoc
+	curPt := s.cfg.GPS.DefaultLoc
+	for {
+		select {
+		case curPt = <-s.chPoint:
+			continue
+		default:
+		}
+
+		if s.curZoom != lastZoom {
+			lastZoom = s.curZoom
+			updated = true
+		}
+		if s.curTileProvider != lastProvider {
+			lastProvider = s.curTileProvider
+			updated = true
+		}
+		if curPt.DistanceWith(lastPt) > 3 {
+			lastPt = curPt
+			updated = true
+		}
+
+		if !updated {
+			util.DelayMs(1)
+			continue
+		}
+
+		updated = false
+		s.curTileProvider.Attribution = s.statusBarText
+		marker := sm.NewMarker(
+			s2.LatLngFromDegrees(curPt.Lat, curPt.Lon),
+			color.RGBA{0xff, 0, 0, 0xff},
+			12.0,
+		)
+		ctx.ClearObjects()
+		ctx.AddObject(marker)
+		ctx.SetZoom(s.curZoom)
+		ctx.SetTileProvider(s.curTileProvider)
+
+		img, err := ctx.Render()
+		if err != nil {
+			log.Printf("failed to render map: %v", err)
+			util.DelayMs(100)
+			continue
+		}
+		s.chImage <- img
+
+	}
+}
+
 func (s *service) dispalyMap() {
 	for img := range s.chImage {
-		go s.display.Display(img)
+		s.display.Display(img)
 	}
 }
 
@@ -209,12 +246,12 @@ func (s *service) detectZoomInBtn() {
 				// toggle tile type when keep pressing the button in 3s
 				s.toggleTileProvider()
 				n = 0
-				util.DelayMs(5000)
+				util.DelayMs(2000)
 				continue
 			}
 			if n > 0 {
 				n++
-				util.DelayMs(600)
+				util.DelayMs(400)
 				continue
 			}
 
@@ -222,7 +259,7 @@ func (s *service) detectZoomInBtn() {
 			s.zoomIn()
 			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
 			log.Printf("zoom in: z = %v", s.curZoom)
-			util.DelayMs(1000)
+			util.DelayMs(500)
 			continue
 		}
 		n = 0
@@ -236,7 +273,7 @@ func (s *service) detectZoomOutBtn() {
 			s.zoomOut()
 			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
 			log.Printf("zoom out: z = %v", s.curZoom)
-			util.DelayMs(600)
+			util.DelayMs(500)
 			continue
 		}
 		util.DelayMs(100)
