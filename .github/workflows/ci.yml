@@ -20,17 +20,16 @@ jobs:
         
     - name: Install Dependencies
       run: |
-        echo ${GOPATH}
+        export GOPATH=$(go env GOPATH)
         go mod download
-        cd /home/runner/go/pkg/mod/gocv.io/x/gocv@v0.23.0
+        pushd $GOPATH/pkg/mod/gocv.io/x/gocv@v0.23.0
         make install
+        popd
           
     - name: Build
       run: |
-        cd /home/runner/go/src/github.com/shanghuiyang/rpi-devices
         go build -v ./...
 
     - name: Test
       run: |
-        cd /home/runner/go/src/github.com/shanghuiyang/rpi-devices
         go test -v ./...
