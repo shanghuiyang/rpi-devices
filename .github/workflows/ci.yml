@@ -20,6 +20,7 @@ jobs:
         
     - name: Install Dependencies
       run: |
+        echo $GOPATH
         go mod download
         cd $GOPATH/pkg/mod/gocv.io/x/gocv@v0.23.0
         make install
