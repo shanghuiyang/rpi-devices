@@ -17,5 +17,5 @@ func Test_GetTemperature(t *testing.T) {
 
 	v, err := d.Temperature()
 	assert.NoError(t, err)
-	assert.Equal(t, float32(28.625), v)
+	assert.Equal(t, float64(28.625), v)
 }
