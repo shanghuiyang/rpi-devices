@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+        
+    - name: Install Dependencies
+      run: |
+        go mod download
+        cd $GOPATH/pkg/mod/gocv.io/x/gocv@v0.23.0
+        make install
+          
+    - name: Build
+      run: |
+        cd $GOPATH/src/github.com/shanghuiyang/rpi-devices
+        go build -v ./...
+
+    - name: Test
+      run: |
+        cd $GOPATH/src/github.com/shanghuiyang/rpi-devices
+        go test -v ./...
