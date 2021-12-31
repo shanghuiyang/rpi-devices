@@ -221,7 +221,7 @@ func (s *service) detectZoomInBtn() {
 				// toggle tile type when keep pressing the button in 3s
 				s.toggleTileProvider()
 				n = 0
-				util.DelayMs(2000)
+				util.DelayMs(3000)
 				continue
 			}
 			if n > 0 {
