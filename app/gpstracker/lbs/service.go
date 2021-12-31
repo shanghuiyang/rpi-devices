@@ -136,31 +136,6 @@ func (s *service) detectLocation() {
 	}
 }
 
-// func (s *service) dispalyMap() {
-// 	for img := range s.chImage {
-// 		buf := &bytes.Buffer{}
-// 		if err := png.Encode(buf, img); err != nil {
-// 			log.Printf("failed to encode image, error: %v", err)
-// 			continue
-// 		}
-// 		req, err := http.NewRequest("POST", "http://localhost:8080/display", buf)
-// 		if err != nil {
-// 			log.Printf("failed to new http request, error: %v", err)
-// 			continue
-// 		}
-// 		req.Header.Set("Content-Type", "application/json")
-// 		client := &http.Client{
-// 			Timeout: 1 * time.Second,
-// 		}
-// 		resp, err := client.Do(req)
-// 		if err != nil {
-// 			log.Printf("failed to send http request, error: %v", err)
-// 			continue
-// 		}
-// 		resp.Body.Close()
-// 	}
-// }
-
 func (s *service) renderMap() {
 	c := sm.NewTileCache(s.cfg.Tile.CacheDir, os.ModePerm)
 	ctx := sm.NewContext()
