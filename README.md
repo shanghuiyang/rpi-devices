@@ -1,7 +1,7 @@
 ![](img/go-devices.png)
 
 # rpi-devices 
-[![Build status](https://github.com/shanghuiyang/rpi-devices/workflows/ci/badge.svg)](https://github.com/shanghuiyang/rpi-devices/actions)
+[![ci](https://github.com/shanghuiyang/rpi-devices/actions/workflows/ci.yml/badge.svg)](https://github.com/shanghuiyang/rpi-devices/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/shanghuiyang/rpi-devices/blob/master/LICENSE)
 
 rpi-devices implements drivers for various kinds of sensors or devices based on raspberry pi in pure golang.
