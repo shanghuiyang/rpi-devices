@@ -1,5 +1,5 @@
 /*
-ADS1015 is a 12-bit analog-digital converter. It is a implement of AnalogDigitalConverter interface.
+ADS1015 is a 12-bit analog-digital converter. It is a implement of ADC interface.
 More details about ADS1015, please ref to:
 https://www.adafruit.com/product/1083
 https://cdn-learn.adafruit.com/downloads/pdf/adafruit-4-channel-adc-breakouts.pdf
@@ -148,13 +148,13 @@ var (
 	defaultConfig = ComparatorQueueDisable | LatchingComparatorLatching | ComparatorPolarityActiveLow | ComparatorModeTraditional | DataRate3300_0 | DeviceOperationModeContinous | ProgramableGainAmplifier6144
 )
 
-// ADS1015 ...
+// ADS1015 is a 12-bit analog-digital converter. It implements ADC interface
 type ADS1015 struct {
 	dev    *i2c.Device
 	config uint16
 }
 
-// NewADS1015 implement ADC interface
+// NewADS1015 create a driver for ADS1015 module
 func NewADS1015() (*ADS1015, error) {
 	dev, err := i2c.Open(&i2c.Devfs{Dev: ads1015Dev}, ads1015Addr)
 	if err != nil {

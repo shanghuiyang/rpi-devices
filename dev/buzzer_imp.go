@@ -21,15 +21,15 @@ import (
 
 // BuzzerImp implements Buzzer interface
 type BuzzerImp struct {
-	pin                rpio.Pin
-	triggeredByHighTTL bool
+	pin        rpio.Pin
+	trigByHigh bool
 }
 
 // NewBuzzerImp ...
-func NewBuzzerImp(pin uint8, triggeredByHighTTL bool) *BuzzerImp {
+func NewBuzzerImp(pin uint8, trigByHigh bool) *BuzzerImp {
 	b := &BuzzerImp{
-		pin:                rpio.Pin(pin),
-		triggeredByHighTTL: triggeredByHighTTL,
+		pin:        rpio.Pin(pin),
+		trigByHigh: trigByHigh,
 	}
 	b.pin.Output()
 	return b
@@ -37,7 +37,7 @@ func NewBuzzerImp(pin uint8, triggeredByHighTTL bool) *BuzzerImp {
 
 // On ...
 func (b *BuzzerImp) On() {
-	if b.triggeredByHighTTL {
+	if b.trigByHigh {
 		b.pin.High()
 		return
 	}
@@ -46,7 +46,7 @@ func (b *BuzzerImp) On() {
 
 // Off ...
 func (b *BuzzerImp) Off() {
-	if b.triggeredByHighTTL {
+	if b.trigByHigh {
 		b.pin.Low()
 		return
 	}
