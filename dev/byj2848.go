@@ -1,5 +1,5 @@
 /*
-BYJ2848 is a step-motor with 4-phase and 5-wire.
+BYJ2848 is a driver for stepper motor using ULN2003 drive board with 4-phase and 5-wire.
 
 Connect to Pi:
  - vcc: any 5v pin
