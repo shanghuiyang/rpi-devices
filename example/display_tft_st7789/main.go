@@ -36,7 +36,6 @@ func main() {
 		log.Printf("failed to create an st display, error: %v", err)
 		return
 	}
-	defer display.Close()
 
 	if err := display.Image(img); err != nil {
 		log.Fatal(err)
