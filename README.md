@@ -40,10 +40,10 @@ func main() {
 |BYJ2848|![](img/step-motor.jpg)|Step motor|[example](/example/byj2848/main.go)|N/A|
 |Collision Switch|![](img/collision-switch.jpg)|A switch for deteching collision|[example](/example/collision_switch/main.go)|[car](/app/car)|
 |DHT11|![](img/dht11.jpg)|Temperature & Humidity sensor|[example](/example/dht11/main.go)|[home-asst](/app/homeasst)|
-|Display Digital Led TM1637 |![](img/digital-led-display.jpg)|digital led module|[example](/example/display_led_tm1637/main.go)|[auto-air](/app/autoair)|
-|Display LCD|![](img/lcd1602a.jpg)|lcd display module|[example](/example/display_lcd/main.go)|[home-asst](/app/homeasst)
+|Display Digital Led TM1637 |![](img/digital-led-display.jpg)|Digital led module|[example](/example/display_led_tm1637/main.go)|[auto-air](/app/autoair)|
+|Display LCD|![](img/lcd1602a.jpg)|LCD display module|[example](/example/display_lcd/main.go)|[home-asst](/app/homeasst)
 |Display SSD1360|![](img/oled.jpg)|Oled display module|[example](/example/display_oled_ssd1306/main.go)|[home-asst](/app/homeasst)|
-|Display ST7899|![](img/tft_st7899.jpg)|tft lcd display module|[example](/example/display_oled_ssd1306/main.go)|[gps-tracker](/app/gpstracker)|
+|Display ST7899|![](img/tft_st7899.jpg)|TFT LCD display module|[example](/example/display_oled_ssd1306/main.go)|[gps-tracker](/app/gpstracker)|
 |DS18B20|![](img/temp.jpg)|Temperature sensor|[example](/example/temperature/main.go)|[auto-fan](/app/autofan)|
 |Encoder|![](img/encoder.jpg)|Encoder sensor|[example](/example/encoder/main.go)|N/A|
 |GPS NEO-6M|![](img/gps-neo6m.jpg)|Location sensor|[example](/example/gps/main.go)|[car](/app/car)|
@@ -55,7 +55,7 @@ func main() {
 |Infrared Encoder/Decoder|![](img/ir-encoder-decoder.jpg)|Infrared encoder/decoder|[example](/example/ir_coder/main.go)|N/A|
 |Infrared|![](img/infared.jpg)|Infrared sensor|[example](/example/ir_detector/main.go)|N/A|
 |Joystick|![](img/joystick.jpg)|XY Dual Axis Joystick|[example](/example/joystick/main.go)|[car](/app/car)|
-|L298N|![](img/l298n.jpg)|motor driver|N/A|[car](/app/car)|
+|L298N|![](img/l298n.jpg)|Motor driver|N/A|[car](/app/car)|
 |LC12S|![](img/lc12s.jpg)|2.4g wireless module|[example](/example/lc12s/main.go)|[car](/app/car)|
 |Led|![](img/led.jpg)|Led light|[example](/example/led/main.go)|[car](/app/car), [vedio-monitor](/app/vmonitor)|
 |MPU6050|![](img/mpu6050.jpg)|6-axis motion sensor|[example](/example/mpu6050/main.go)|N/A|
@@ -65,10 +65,10 @@ func main() {
 |RX480E-4|![](img/rx480e4.jpg)|433MHz Wireless RF Receiver|[example](/example/rx480e4/main.go)|[remote-light](/app/rlight)|
 |SG90|![](img/sg90.jpg)|Servo motor|[example](/example/sg90/main.go)|[auto-air](/app/autoair), [car](/app/car), [vedio-monitor](/app/vmonitor)|
 |SW-420|![](img/sw-420.jpg)|Shaking sensor|[example](/example/sw420/main.go)|[auto-air-out](/app/autoairout)|
-|US-100|![](img/us-100.jpg)|ultrasonic distance meter|[example](/example/us100/main.go)|[car](/app/car)|
+|US-100|![](img/us-100.jpg)|Ultrasonic distance meter|[example](/example/us100/main.go)|[car](/app/car)|
 |Voice Detector|![](img/voice.jpg)|Voice detector|N/A|N/A|
 |ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ze08ch2o/main.go)|[ch2o-monitor](/app/ch2omonitor)|
-|ZP16|![](img/zp16.jpg)|gas detector|[example](/example/zp16/main.go)|[home-asst](/app/homeasst)|
+|ZP16|![](img/zp16.jpg)|Gas detector|[example](/example/zp16/main.go)|[home-asst](/app/homeasst)|
 
 ## Apps
 Using the driver programs, I built several applications. The most complex app is the [smart car](/app/car), more than 10 sensers were used to build the car. I highlight few funny apps here, please go to [app](/app) for all apps I developed. You can learn how to use the drivers from my apps.
