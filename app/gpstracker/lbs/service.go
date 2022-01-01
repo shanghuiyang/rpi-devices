@@ -36,6 +36,7 @@ type service struct {
 	statusBarText   string
 	curTileProvider *sm.TileProvider
 	curZoom         int
+	lastOpAt        time.Time
 	chPoint         chan *geo.Point
 	chImage         chan image.Image
 }
@@ -98,6 +99,7 @@ func newService(cfg *Config) (*service, error) {
 		tileProviders:   tileProviders,
 		curZoom:         cfg.Tile.DefaultZoom,
 		curTileProvider: tileProviders[cfg.Tile.DefaultTileProvider],
+		lastOpAt:        time.Now(),
 		chPoint:         make(chan *geo.Point, 512),
 		chImage:         make(chan image.Image, 512),
 	}, nil
@@ -109,7 +111,8 @@ func (s *service) start() error {
 	go s.dispalyMap()
 	go s.detectLocation()
 	go s.renderMap()
-	s.dispalyMap()
+	go s.dispalyMap()
+	s.detectSleep()
 	return nil
 }
 
@@ -202,6 +205,23 @@ func (s *service) dispalyMap() {
 	}
 }
 
+func (s *service) detectSleep() {
+	for {
+		if s.sleep() {
+			// go to sleep
+			s.display.Off()
+		}
+		util.DelayMs(3000)
+	}
+}
+
+func (s *service) sleep() bool {
+	if s.cfg.Display.SleepAfterMin <= 0 {
+		return false
+	}
+	return time.Since(s.lastOpAt) > time.Duration(s.cfg.Display.SleepAfterMin)*time.Minute
+}
+
 func (s *service) toggleTileProvider() {
 	provider := s.tileProviders[tile.OsmTile]
 	if s.curTileProvider == provider {
@@ -209,7 +229,7 @@ func (s *service) toggleTileProvider() {
 
 	}
 	s.curTileProvider = provider
-	s.SetStatusBarText(fmt.Sprintf("Tile: %v", s.curTileProvider.Name))
+	s.setStatusBarText(fmt.Sprintf("Tile: %v", s.curTileProvider.Name))
 	log.Printf("changed tile provider to: %v", provider.Name)
 }
 
@@ -217,6 +237,14 @@ func (s *service) detectZoomInBtn() {
 	n := 0
 	for {
 		if s.zoomInBtn.Pressed() {
+			if s.sleep() {
+				// wakeup
+				s.display.On()
+				s.lastOpAt = time.Now()
+				util.DelayMs(500)
+				continue
+			}
+
 			if n > 2 {
 				// toggle tile type when keep pressing the button in 3s
 				s.toggleTileProvider()
@@ -232,7 +260,7 @@ func (s *service) detectZoomInBtn() {
 
 			n++
 			s.zoomIn()
-			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
+			s.setStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
 			log.Printf("zoom in: z = %v", s.curZoom)
 			util.DelayMs(500)
 			continue
@@ -245,8 +273,16 @@ func (s *service) detectZoomInBtn() {
 func (s *service) detectZoomOutBtn() {
 	for {
 		if s.zoomOutBtn.Pressed() {
+			if s.sleep() {
+				// wakeup
+				s.display.On()
+				s.lastOpAt = time.Now()
+				util.DelayMs(500)
+				continue
+			}
+
 			s.zoomOut()
-			s.SetStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
+			s.setStatusBarText(fmt.Sprintf("Zoom: %v", s.curZoom))
 			log.Printf("zoom out: z = %v", s.curZoom)
 			util.DelayMs(500)
 			continue
@@ -269,7 +305,7 @@ func (s *service) zoomOut() {
 	s.curZoom--
 }
 
-func (s *service) SetStatusBarText(text string) {
+func (s *service) setStatusBarText(text string) {
 	if timer != nil {
 		timer.Stop()
 	}
@@ -279,7 +315,7 @@ func (s *service) SetStatusBarText(text string) {
 	timer = time.AfterFunc(5*time.Second, func() { s.statusBarText = "" })
 }
 
-func (s *service) Close() {
+func (s *service) close() {
 	s.gps.Close()
 	s.display.Close()
 	s.logger.Close()

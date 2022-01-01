@@ -31,11 +31,12 @@ type GPSSimulatorConfig struct {
 }
 
 type DisplayConfig struct {
-	Res    uint8 `json:"res"`
-	Dc     uint8 `json:"dc"`
-	Blk    uint8 `json:"blk"`
-	Width  int   `json:"width"`
-	Height int   `json:"height"`
+	Res           uint8 `json:"res"`
+	Dc            uint8 `json:"dc"`
+	Blk           uint8 `json:"blk"`
+	Width         int   `json:"width"`
+	Height        int   `json:"height"`
+	SleepAfterMin int   `json:"sleepAfterMin"`
 }
 
 type IOTConfig struct {
