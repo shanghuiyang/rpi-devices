@@ -27,7 +27,7 @@ var timer *time.Timer
 type service struct {
 	cfg             *Config
 	gps             dev.GPS
-	display         *dev.TFTDisplay
+	display         *dev.ST7789
 	cloud           iot.Cloud
 	logger          util.Logger
 	zoomInBtn       dev.Button
@@ -65,7 +65,7 @@ func newService(cfg *Config) (*service, error) {
 	}
 	// logger := util.NewNoopLogger()
 
-	display, err := dev.NewTFTDisplay(cfg.Display.Res, cfg.Display.Dc, cfg.Display.Blk, cfg.Display.Width, cfg.Display.Height)
+	display, err := dev.NewST7789(cfg.Display.Res, cfg.Display.Dc, cfg.Display.Blk, cfg.Display.Width, cfg.Display.Height)
 	if err != nil {
 		log.Printf("[gpstracker]failed to new display, error: %v", err)
 		return nil, err

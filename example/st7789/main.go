@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"image/png"
+	"image/jpeg"
 	"io/ioutil"
 	"log"
 
@@ -19,26 +19,26 @@ const (
 )
 
 func main() {
-	data, err := ioutil.ReadFile("map.png")
+	data, err := ioutil.ReadFile("cat.jpg")
 	if err != nil {
 		log.Printf("open map.png error: %v", err)
 		return
 	}
 	buf := bytes.NewBuffer(data)
-	img, err := png.Decode(buf)
+	img, err := jpeg.Decode(buf)
 	if err != nil {
 		log.Printf("decode image error: %v", err)
 		return
 	}
 
-	tft, err := dev.NewTFTDisplay(res, dc, blk, width, height)
+	st, err := dev.NewST7789(res, dc, blk, width, height)
 	if err != nil {
-		log.Printf("failed to create an tft display, error: %v", err)
+		log.Printf("failed to create an st display, error: %v", err)
 		return
 	}
-	defer tft.Close()
+	defer st.Close()
 
-	if err := tft.Display(img); err != nil {
+	if err := st.Display(img); err != nil {
 		log.Fatal(err)
 	}
 }
