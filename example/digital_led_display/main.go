@@ -18,7 +18,7 @@ const (
 
 func main() {
 	d := dev.NewDigitalLedDisplay(dioPin, rclkPin, sclkPin)
-	d.Open()
+	d.On()
 	for {
 		fmt.Printf(">>input: ")
 		reader := bufio.NewReader(os.Stdin)
@@ -32,7 +32,7 @@ func main() {
 			log.Printf("quit")
 			break
 		}
-		d.Display(input)
+		d.DisplayText(input, 0, 0)
 
 	}
 	d.Close()

@@ -27,7 +27,7 @@ var timer *time.Timer
 type service struct {
 	cfg             *Config
 	gps             dev.GPS
-	display         *dev.ST7789
+	display         dev.Display
 	cloud           iot.Cloud
 	logger          util.Logger
 	zoomInBtn       dev.Button
@@ -198,7 +198,7 @@ func (s *service) renderMap() {
 
 func (s *service) dispalyMap() {
 	for img := range s.chImage {
-		s.display.Display(img)
+		s.display.DisplayImage(img)
 	}
 }
 

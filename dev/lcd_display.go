@@ -31,6 +31,9 @@ Connect to Raspberry Pi:
 
 */
 import (
+	"errors"
+	"image"
+
 	"golang.org/x/exp/io/i2c"
 )
 
@@ -43,10 +46,10 @@ const (
 )
 
 type LcdDisplay struct {
-	width       int
-	height      int
-	backlightOn bool
-	dev         *i2c.Device
+	width  int
+	height int
+	blkOn  bool
+	dev    *i2c.Device
 }
 
 func NewLcdDisplay(width, height int) (*LcdDisplay, error) {
@@ -80,7 +83,14 @@ func NewLcdDisplay(width, height int) (*LcdDisplay, error) {
 	return lcd, nil
 }
 
-func (lcd *LcdDisplay) Display(x, y int, text string) error {
+// DisplayImage displays an image on the screen.
+// NOTE: it isn't be implemented yet.
+func (lcd *LcdDisplay) DisplayImage(img image.Image) error {
+	return errors.New("not implement")
+}
+
+// DisplayText display text on the screen
+func (lcd *LcdDisplay) DisplayText(text string, x, y int) error {
 	if x < 0 {
 		x = 0
 	}
@@ -108,13 +118,13 @@ func (lcd *LcdDisplay) Display(x, y int, text string) error {
 	return nil
 }
 
-func (lcd *LcdDisplay) BackLightOn() error {
-	lcd.backlightOn = true
+func (lcd *LcdDisplay) On() error {
+	lcd.blkOn = true
 	return lcd.dev.Write([]byte{lcdBacklightOn})
 }
 
-func (lcd *LcdDisplay) BackLightOff() error {
-	lcd.backlightOn = false
+func (lcd *LcdDisplay) Off() error {
+	lcd.blkOn = false
 	return lcd.dev.Write([]byte{lcdBacklightOff})
 }
 
@@ -126,7 +136,7 @@ func (lcd *LcdDisplay) Close() error {
 	if err := lcd.Clear(); err != nil {
 		return err
 	}
-	if err := lcd.BackLightOff(); err != nil {
+	if err := lcd.Off(); err != nil {
 		return err
 	}
 	if err := lcd.dev.Close(); err != nil {
@@ -137,7 +147,7 @@ func (lcd *LcdDisplay) Close() error {
 
 func (lcd *LcdDisplay) sendCommand(b byte) error {
 	backlight := lcdBacklightOff
-	if lcd.backlightOn {
+	if lcd.blkOn {
 		backlight = lcdBacklightOn
 	}
 	high := (b & 0xF0) | backlight
@@ -161,7 +171,7 @@ func (lcd *LcdDisplay) sendCommand(b byte) error {
 
 func (lcd *LcdDisplay) sendData(b byte) error {
 	backlight := lcdBacklightOff
-	if lcd.backlightOn {
+	if lcd.blkOn {
 		backlight = lcdBacklightOn
 	}
 	high := 0x1 | (b & 0xF0) | backlight

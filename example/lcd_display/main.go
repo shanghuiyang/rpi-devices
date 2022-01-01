@@ -19,7 +19,7 @@ func main() {
 	}
 	defer lcd.Close()
 
-	if err := lcd.BackLightOn(); err != nil {
+	if err := lcd.On(); err != nil {
 		log.Printf("failed to turn backlight on, error: %v", err)
 		return
 	}
@@ -32,14 +32,14 @@ func main() {
 	//   +----------------+
 	//
 	text := fmt.Sprintf("27.3%sC", celsiusStr) // 27.3'C
-	if err := lcd.Display(5, 0, text); err != nil {
+	if err := lcd.DisplayText(text, 5, 0); err != nil {
 		log.Printf("failed to display time, error: %v", err)
 		return
 	}
 
 	for i := 0; i < 10; i++ {
 		t := time.Now().Format("15:04:05")
-		if err := lcd.Display(4, 1, t); err != nil {
+		if err := lcd.DisplayText(t, 4, 1); err != nil {
 			log.Printf("failed to display time, error: %v", err)
 			break
 		}

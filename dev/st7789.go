@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"errors"
 	"image"
 	"image/color"
 	"image/draw"
@@ -43,8 +44,8 @@ func NewST7789(res, dc, blk uint8, width, height int) (*ST7789, error) {
 	return st, nil
 }
 
-// Display displays the img image on the module
-func (st *ST7789) Display(img image.Image) error {
+// Display displays an image on the screen
+func (st *ST7789) DisplayImage(img image.Image) error {
 	st.setwindow()
 	r := image.Rect(0, 0, st.width, st.height)
 	dst := image.NewRGBA(r)
@@ -62,27 +63,39 @@ func (st *ST7789) Display(img image.Image) error {
 	return nil
 }
 
-// Clear clears the image
-func (st *ST7789) Clear() {
-	r := image.Rect(0, 0, st.width, st.height)
-	img := image.NewRGBA(r)
-	draw.Draw(img, r, image.Transparent, r.Min, draw.Src)
-	st.Display(img)
+// Display displays the text on the screen.
+// NOTE: It isn't implemented. It is here just for implementing the Display interface.
+// Please draw your text to an image first, and then use DisplayImage()
+func (st *ST7789) DisplayText(text string, x, y int) error {
+	return errors.New("not implement")
 }
 
 // On turns the blacklight on
-func (st *ST7789) On() {
+func (st *ST7789) On() error {
 	st.blk.High()
+	return nil
 }
 
 // On turns the blacklight off
-func (st *ST7789) Off() {
+func (st *ST7789) Off() error {
 	st.blk.Low()
+	return nil
+}
+
+// Clear clears the image
+func (st *ST7789) Clear() error {
+	// create a transparent image and display it
+	r := image.Rect(0, 0, st.width, st.height)
+	img := image.NewRGBA(r)
+	draw.Draw(img, r, image.Transparent, r.Min, draw.Src)
+	return st.DisplayImage(img)
 }
 
 // Close closes the module
-func (st *ST7789) Close() {
+func (st *ST7789) Close() error {
+	_ = st.Clear()
 	rpio.SpiEnd(rpio.Spi0)
+	return nil
 }
 
 func (st *ST7789) reset() {

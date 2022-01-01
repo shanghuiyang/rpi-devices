@@ -31,12 +31,9 @@ Connect to Raspberry Pi:
 package dev
 
 import (
+	"errors"
 	"image"
-	"image/draw"
-	"io/ioutil"
 
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
 	"github.com/mdp/monochromeoled"
 	"golang.org/x/exp/io/i2c"
 )
@@ -52,7 +49,6 @@ type OledDisplay struct {
 	oled   *monochromeoled.OLED
 	width  int
 	height int
-	font   *truetype.Font
 }
 
 // NewOledDisplay ...
@@ -61,29 +57,16 @@ func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
 	if err != nil {
 		return nil, err
 	}
-	a, err := ioutil.ReadFile(fontFile)
-	if err != nil {
-		return nil, err
-	}
-	font, err := truetype.Parse(a)
-	if err != nil {
-		return nil, err
-	}
 	return &OledDisplay{
 		oled:   oled,
 		width:  width,
 		height: heigth,
-		font:   font,
 	}, nil
 }
 
-// Display ...
-func (oled *OledDisplay) Display(text string, fontSize float64, x, y int) error {
-	image, err := oled.drawText(text, fontSize, x, y)
-	if err != nil {
-		return err
-	}
-	if err := oled.oled.SetImage(0, 0, image); err != nil {
+// DisplayImage displays an image on the screen
+func (oled *OledDisplay) DisplayImage(img image.Image) error {
+	if err := oled.oled.SetImage(0, 0, img); err != nil {
 		return err
 	}
 	if err := oled.oled.Draw(); err != nil {
@@ -92,40 +75,30 @@ func (oled *OledDisplay) Display(text string, fontSize float64, x, y int) error 
 	return nil
 }
 
+// Display displays the text on the screen.
+// NOTE: It isn't implemented. It is here just for implementing the Display interface.
+// Please draw your text to an image first, and then use DisplayImage()
+func (oled *OledDisplay) DisplayText(text string, x, y int) error {
+	return errors.New("not implement")
+}
+
+// On ...
+func (oled *OledDisplay) On() error {
+	return oled.oled.On()
+}
+
+// Off ...
+func (oled *OledDisplay) Off() error {
+	return oled.oled.Off()
+}
+
 // Clear ...
 func (oled *OledDisplay) Clear() error {
-	if err := oled.oled.Clear(); err != nil {
-		return err
-	}
-	return nil
+	return oled.oled.Clear()
 }
 
 // Close ...
 func (oled *OledDisplay) Close() error {
 	_ = oled.oled.Clear()
 	return oled.oled.Close()
-}
-
-// Off ...
-func (oled *OledDisplay) Off() {
-	oled.oled.Clear()
-	oled.oled.Off()
-}
-
-func (oled *OledDisplay) drawText(text string, size float64, x, y int) (image.Image, error) {
-	dst := image.NewRGBA(image.Rect(0, 0, oled.width, oled.height))
-	draw.Draw(dst, dst.Bounds(), image.Transparent, image.Point{}, draw.Src)
-
-	c := freetype.NewContext()
-	c.SetDst(dst)
-	c.SetClip(dst.Bounds())
-	c.SetSrc(image.White)
-	c.SetFont(oled.font)
-	c.SetFontSize(size)
-
-	if _, err := c.DrawString(text, freetype.Pt(x, y)); err != nil {
-		return nil, err
-	}
-
-	return dst, nil
 }

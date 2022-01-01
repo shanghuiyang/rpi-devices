@@ -20,6 +20,8 @@ Connect to Raspberry Pi:
 package dev
 
 import (
+	"errors"
+	"image"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -100,6 +102,7 @@ type DigitalLedDisplay struct {
 }
 
 // NewDigitalLedDisplay ...
+// Please NOTE that I only test it on a 4-bit led digital module.
 func NewDigitalLedDisplay(dioPin, rclkPin, sclkPin uint8) *DigitalLedDisplay {
 	d := &DigitalLedDisplay{
 		dioPin:  rpio.Pin(dioPin),
@@ -120,6 +123,53 @@ func NewDigitalLedDisplay(dioPin, rclkPin, sclkPin uint8) *DigitalLedDisplay {
 	d.sclkPin.Low()
 
 	return d
+}
+
+// DisplayImage displays an image on the screen.
+// NOTE: Digital led display module can't be used to display an image.
+// It is here just for implementing the Display interface.
+func (d *DigitalLedDisplay) DisplayImage(img image.Image) error {
+	return errors.New("digital led display module can't be used to display an image")
+}
+
+// DisplayText display text on the screen.
+// NOTE: (x, y) never be used. They are here just for implementing the Display interface.
+func (d *DigitalLedDisplay) DisplayText(text string, x, y int) error {
+	d.chText <- text
+	return nil
+}
+
+// On ...
+func (d *DigitalLedDisplay) On() error {
+	if d.opened {
+		return nil
+	}
+	go d.display()
+	d.opened = true
+	return nil
+}
+
+// Off ...
+func (d *DigitalLedDisplay) Off() error {
+	if !d.opened {
+		return nil
+	}
+	d.chText <- closedSignal
+	<-d.chDone
+	d.sendData(0xFF)
+	d.sendData(0xF0)
+	d.opened = false
+	return nil
+}
+
+// Clear ...
+func (d *DigitalLedDisplay) Clear() error {
+	return d.DisplayText("", 0, 0)
+}
+
+// Close ...
+func (d *DigitalLedDisplay) Close() error {
+	return d.Off()
 }
 
 // flushShcp Flush the Shcp pin
@@ -182,30 +232,4 @@ func (d *DigitalLedDisplay) display() {
 		}
 	}
 	d.chDone <- true
-}
-
-// Display ...
-func (d *DigitalLedDisplay) Display(text string) {
-	d.chText <- text
-}
-
-// Open ...
-func (d *DigitalLedDisplay) Open() {
-	if d.opened {
-		return
-	}
-	go d.display()
-	d.opened = true
-}
-
-// Close ...
-func (d *DigitalLedDisplay) Close() {
-	if !d.opened {
-		return
-	}
-	d.chText <- closedSignal
-	<-d.chDone
-	d.sendData(0xFF)
-	d.sendData(0xF0)
-	d.opened = false
 }

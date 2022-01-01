@@ -1,5 +1,7 @@
 package dev
 
+import "image"
+
 // Accelerometer ...
 type Accelerometer interface {
 	Angles() (yaw, pitch, roll float64, err error)
@@ -42,9 +44,12 @@ type Detector interface {
 
 // Display ...
 type Display interface {
-	Display(text string)
-	Open()
-	Close()
+	DisplayImage(img image.Image) error
+	DisplayText(text string, x, y int) error
+	On() error
+	Off() error
+	Clear() error
+	Close() error
 }
 
 // DistanceMeter ...

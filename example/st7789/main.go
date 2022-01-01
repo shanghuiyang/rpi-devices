@@ -38,7 +38,7 @@ func main() {
 	}
 	defer st.Close()
 
-	if err := st.Display(img); err != nil {
+	if err := st.DisplayImage(img); err != nil {
 		log.Fatal(err)
 	}
 }

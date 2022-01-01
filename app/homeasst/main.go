@@ -44,7 +44,7 @@ type pm25Response struct {
 }
 
 type homeAsst struct {
-	dsp       *dev.LcdDisplay
+	dsp       dev.Display
 	cloud     iot.Cloud
 	chDisplay chan *data // for disploying on oled
 	chCloud   chan *data // for pushing to iot cloud
@@ -71,7 +71,7 @@ func main() {
 	asst.start()
 }
 
-func newHomeAsst(dsp *dev.LcdDisplay, cloud iot.Cloud) *homeAsst {
+func newHomeAsst(dsp dev.Display, cloud iot.Cloud) *homeAsst {
 	return &homeAsst{
 		dsp:       dsp,
 		cloud:     cloud,
@@ -145,7 +145,7 @@ func (h *homeAsst) getData() {
 }
 
 func (h *homeAsst) display() {
-	h.dsp.BackLightOn()
+	h.dsp.On()
 	backlight := true
 
 	go func() {
@@ -175,16 +175,16 @@ func (h *homeAsst) display() {
 		if hour >= 20 || hour < 8 {
 			// turn off backlight at 20:00-08:00
 			if backlight {
-				h.dsp.BackLightOff()
+				h.dsp.Off()
 				backlight = false
 			}
 		} else if !backlight {
-			h.dsp.BackLightOn()
+			h.dsp.On()
 			backlight = true
 		}
 
 		for _, d := range cache {
-			h.dsp.Display(d.displayX, d.displayY, d.displayText)
+			h.dsp.DisplayText(d.displayText, d.displayX, d.displayY)
 		}
 		time.Sleep(1 * time.Second)
 	}

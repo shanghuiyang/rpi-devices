@@ -155,7 +155,6 @@ func (m *ch2oMonitor) alert() {
 
 func (m *ch2oMonitor) display() {
 	var ch2o float64
-	m.dsp.Open()
 	opened := true
 	for {
 		select {
@@ -182,14 +181,14 @@ func (m *ch2oMonitor) display() {
 		}
 
 		if !opened {
-			m.dsp.Open()
+			m.dsp.On()
 			opened = true
 		}
 		text := "----"
 		if ch2o > 0 {
 			text = fmt.Sprintf("%.3f", ch2o)
 		}
-		m.dsp.Display(text)
+		m.dsp.DisplayText(text, 0, 0)
 		time.Sleep(3 * time.Second)
 	}
 }
