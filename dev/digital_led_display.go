@@ -125,16 +125,16 @@ func NewDigitalLedDisplay(dioPin, rclkPin, sclkPin uint8) *DigitalLedDisplay {
 	return d
 }
 
-// DisplayImage displays an image on the screen.
+// Image displays an image on the screen.
 // NOTE: Digital led display module can't be used to display an image.
 // It is here just for implementing the Display interface.
-func (d *DigitalLedDisplay) DisplayImage(img image.Image) error {
+func (d *DigitalLedDisplay) Image(img image.Image) error {
 	return errors.New("digital led display module can't be used to display an image")
 }
 
-// DisplayText display text on the screen.
+// Text display text on the screen.
 // NOTE: (x, y) never be used. They are here just for implementing the Display interface.
-func (d *DigitalLedDisplay) DisplayText(text string, x, y int) error {
+func (d *DigitalLedDisplay) Text(text string, x, y int) error {
 	d.chText <- text
 	return nil
 }
@@ -164,7 +164,7 @@ func (d *DigitalLedDisplay) Off() error {
 
 // Clear ...
 func (d *DigitalLedDisplay) Clear() error {
-	return d.DisplayText("", 0, 0)
+	return d.Text("", 0, 0)
 }
 
 // Close ...

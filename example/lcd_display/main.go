@@ -12,14 +12,14 @@ var celsiusChar = []byte{0xDF}
 var celsiusStr string = string(celsiusChar[:])
 
 func main() {
-	lcd, err := dev.NewLcdDisplay(16, 2)
+	display, err := dev.NewLcdDisplay(16, 2)
 	if err != nil {
 		log.Printf("failed to create an oled, error: %v", err)
 		return
 	}
-	defer lcd.Close()
+	defer display.Close()
 
-	if err := lcd.On(); err != nil {
+	if err := display.On(); err != nil {
 		log.Printf("failed to turn backlight on, error: %v", err)
 		return
 	}
@@ -32,14 +32,14 @@ func main() {
 	//   +----------------+
 	//
 	text := fmt.Sprintf("27.3%sC", celsiusStr) // 27.3'C
-	if err := lcd.DisplayText(text, 5, 0); err != nil {
+	if err := display.Text(text, 5, 0); err != nil {
 		log.Printf("failed to display time, error: %v", err)
 		return
 	}
 
 	for i := 0; i < 10; i++ {
 		t := time.Now().Format("15:04:05")
-		if err := lcd.DisplayText(t, 4, 1); err != nil {
+		if err := display.Text(t, 4, 1); err != nil {
 			log.Printf("failed to display time, error: %v", err)
 			break
 		}

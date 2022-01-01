@@ -184,7 +184,7 @@ func (h *homeAsst) display() {
 		}
 
 		for _, d := range cache {
-			h.dsp.DisplayText(d.displayText, d.displayX, d.displayY)
+			h.dsp.Text(d.displayText, d.displayX, d.displayY)
 		}
 		time.Sleep(1 * time.Second)
 	}

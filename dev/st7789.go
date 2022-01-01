@@ -44,8 +44,8 @@ func NewST7789(res, dc, blk uint8, width, height int) (*ST7789, error) {
 	return st, nil
 }
 
-// Display displays an image on the screen
-func (st *ST7789) DisplayImage(img image.Image) error {
+// Image displays an image on the screen
+func (st *ST7789) Image(img image.Image) error {
 	st.setwindow()
 	r := image.Rect(0, 0, st.width, st.height)
 	dst := image.NewRGBA(r)
@@ -63,10 +63,10 @@ func (st *ST7789) DisplayImage(img image.Image) error {
 	return nil
 }
 
-// Display displays the text on the screen.
+// Text displays the text on the screen.
 // NOTE: It isn't implemented. It is here just for implementing the Display interface.
 // Please draw your text to an image first, and then use DisplayImage()
-func (st *ST7789) DisplayText(text string, x, y int) error {
+func (st *ST7789) Text(text string, x, y int) error {
 	return errors.New("not implement")
 }
 
@@ -88,7 +88,7 @@ func (st *ST7789) Clear() error {
 	r := image.Rect(0, 0, st.width, st.height)
 	img := image.NewRGBA(r)
 	draw.Draw(img, r, image.Transparent, r.Min, draw.Src)
-	return st.DisplayImage(img)
+	return st.Image(img)
 }
 
 // Close closes the module

@@ -83,14 +83,14 @@ func NewLcdDisplay(width, height int) (*LcdDisplay, error) {
 	return lcd, nil
 }
 
-// DisplayImage displays an image on the screen.
+// Image displays an image on the screen.
 // NOTE: it isn't be implemented yet.
-func (lcd *LcdDisplay) DisplayImage(img image.Image) error {
+func (lcd *LcdDisplay) Image(img image.Image) error {
 	return errors.New("not implement")
 }
 
-// DisplayText display text on the screen
-func (lcd *LcdDisplay) DisplayText(text string, x, y int) error {
+// Text display text on the screen
+func (lcd *LcdDisplay) Text(text string, x, y int) error {
 	if x < 0 {
 		x = 0
 	}

@@ -44,8 +44,8 @@ type Detector interface {
 
 // Display ...
 type Display interface {
-	DisplayImage(img image.Image) error
-	DisplayText(text string, x, y int) error
+	Image(img image.Image) error
+	Text(text string, x, y int) error
 	On() error
 	Off() error
 	Clear() error

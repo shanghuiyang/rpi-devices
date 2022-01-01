@@ -188,7 +188,7 @@ func (m *ch2oMonitor) display() {
 		if ch2o > 0 {
 			text = fmt.Sprintf("%.3f", ch2o)
 		}
-		m.dsp.DisplayText(text, 0, 0)
+		m.dsp.Text(text, 0, 0)
 		time.Sleep(3 * time.Second)
 	}
 }

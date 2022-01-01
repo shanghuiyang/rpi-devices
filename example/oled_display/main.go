@@ -20,13 +20,13 @@ const (
 )
 
 func main() {
-	oled, err := dev.NewOledDisplay(width, height)
+	display, err := dev.NewOledDisplay(width, height)
 	if err != nil {
 		log.Printf("failed to create an oled, error: %v", err)
 		return
 	}
 
-	util.WaitQuit(func() { oled.Close() })
+	util.WaitQuit(func() { display.Close() })
 	for {
 		t := time.Now().Format("15:04:05")
 		img, err := drawImage(t, 19, 0, 25)
@@ -34,7 +34,7 @@ func main() {
 			log.Printf("failed to draw image, error: %v", err)
 			break
 		}
-		if err := oled.DisplayImage(img); err != nil {
+		if err := display.Image(img); err != nil {
 			log.Printf("failed to display time, error: %v", err)
 			break
 		}

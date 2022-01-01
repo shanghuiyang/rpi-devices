@@ -198,7 +198,7 @@ func (s *service) renderMap() {
 
 func (s *service) dispalyMap() {
 	for img := range s.chImage {
-		s.display.DisplayImage(img)
+		s.display.Image(img)
 	}
 }
 

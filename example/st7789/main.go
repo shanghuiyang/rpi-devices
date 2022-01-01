@@ -31,14 +31,14 @@ func main() {
 		return
 	}
 
-	st, err := dev.NewST7789(res, dc, blk, width, height)
+	display, err := dev.NewST7789(res, dc, blk, width, height)
 	if err != nil {
 		log.Printf("failed to create an st display, error: %v", err)
 		return
 	}
-	defer st.Close()
+	defer display.Close()
 
-	if err := st.DisplayImage(img); err != nil {
+	if err := display.Image(img); err != nil {
 		log.Fatal(err)
 	}
 }

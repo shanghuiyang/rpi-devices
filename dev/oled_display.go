@@ -64,8 +64,8 @@ func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
 	}, nil
 }
 
-// DisplayImage displays an image on the screen
-func (oled *OledDisplay) DisplayImage(img image.Image) error {
+// Image displays an image on the screen
+func (oled *OledDisplay) Image(img image.Image) error {
 	if err := oled.oled.SetImage(0, 0, img); err != nil {
 		return err
 	}
@@ -75,10 +75,10 @@ func (oled *OledDisplay) DisplayImage(img image.Image) error {
 	return nil
 }
 
-// Display displays the text on the screen.
+// Text displays the text on the screen.
 // NOTE: It isn't implemented. It is here just for implementing the Display interface.
 // Please draw your text to an image first, and then use DisplayImage()
-func (oled *OledDisplay) DisplayText(text string, x, y int) error {
+func (oled *OledDisplay) Text(text string, x, y int) error {
 	return errors.New("not implement")
 }
 
