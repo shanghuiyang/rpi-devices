@@ -65,7 +65,7 @@ func newService(cfg *Config) (*service, error) {
 	}
 	// logger := util.NewNoopLogger()
 
-	display, err := dev.NewST7789(cfg.Display.Res, cfg.Display.Dc, cfg.Display.Blk, cfg.Display.Width, cfg.Display.Height)
+	display, err := dev.NewST7789Display(cfg.Display.Res, cfg.Display.Dc, cfg.Display.Blk, cfg.Display.Width, cfg.Display.Height)
 	if err != nil {
 		log.Printf("[gpstracker]failed to new display, error: %v", err)
 		return nil, err

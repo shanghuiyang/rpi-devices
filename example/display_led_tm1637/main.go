@@ -17,7 +17,7 @@ const (
 )
 
 func main() {
-	display := dev.NewDigitalLedDisplay(dioPin, rclkPin, sclkPin)
+	display := dev.NewTM1637Display(dioPin, rclkPin, sclkPin)
 	display.On()
 	for {
 		fmt.Printf(">>input: ")

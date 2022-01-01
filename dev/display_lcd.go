@@ -1,13 +1,12 @@
-package dev
-
 /*
-LcdDisplay is a LCD Dispaly.
+LcdDisplay is a driver for LCD Dispaly.
+Please NOTE that I only test it on a 1602A lcd display module.
 
 Config Raspberry Pi:
 1. $ sudo apt-get install -y python-smbus
 2. $ sudo apt-get install -y i2c-tools
 3. $ sudo raspi-config
-4. 	-> [5 interface options] -> [P5 I2C] -> [yes] -> [ok]
+4. 	-> [5 Interface Options] -> [P5 I2C] -> [yes] -> [ok]
 5. $ sudo reboot now
 6. check: $ sudo i2cdetect -y 1
 	it works if you saw following message:
@@ -28,8 +27,10 @@ Connect to Raspberry Pi:
 - GND: any GND pin
 - SDA: GPIO-2 (SDA)
 - SCL: GPIO-3 (SCL)
-
 */
+
+package dev
+
 import (
 	"errors"
 	"image"
@@ -45,6 +46,7 @@ const (
 	lcdBacklightOff byte = 0x00
 )
 
+// LcdDisplay is a driver for LCD Dispaly.
 type LcdDisplay struct {
 	width  int
 	height int
@@ -52,6 +54,9 @@ type LcdDisplay struct {
 	dev    *i2c.Device
 }
 
+// NewLcdDisplay creates a driver for LCD display.
+// It is an implement of Display interface.
+// Please NOTE that I only test it on a 1602A lcd display module.
 func NewLcdDisplay(width, height int) (*LcdDisplay, error) {
 	dev, err := i2c.Open(&i2c.Devfs{Dev: lcdDev}, lcdAddr)
 	if err != nil {

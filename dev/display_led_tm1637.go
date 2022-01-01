@@ -1,5 +1,5 @@
 /*
-DigitalLedDisplay is a digital led display module used to primarily display digits driving by 74HC595 dirver.
+TM1637Display is a dirvier for digital led display module drived by TM1637 chip.
 Please note that I only test it on a 4-bit led digital module.
 And Only following chars were supported. Any char which didn't be spported will be displayed as '-'.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,8 +86,9 @@ var ledchars = map[byte]uint8{
 	' ': 0xFF,
 }
 
-// DigitalLedDisplay implements Display interface
-type DigitalLedDisplay struct {
+// TM1637Display is a dirvier for digital led display module drived by TM1637 chip.
+// It is an implement of Display interface.
+type TM1637Display struct {
 	dioPin  rpio.Pin
 	rclkPin rpio.Pin
 	sclkPin rpio.Pin
@@ -101,10 +102,10 @@ type DigitalLedDisplay struct {
 	opened bool
 }
 
-// NewDigitalLedDisplay ...
-// Please NOTE that I only test it on a 4-bit led digital module.
-func NewDigitalLedDisplay(dioPin, rclkPin, sclkPin uint8) *DigitalLedDisplay {
-	d := &DigitalLedDisplay{
+// NewTM1637Display creates a TM1637Display driver.
+// Please NOTE that I only test it on a 4-bit digital led module.
+func NewTM1637Display(dioPin, rclkPin, sclkPin uint8) *TM1637Display {
+	display := &TM1637Display{
 		dioPin:  rpio.Pin(dioPin),
 		rclkPin: rpio.Pin(rclkPin),
 		sclkPin: rpio.Pin(sclkPin),
@@ -113,99 +114,99 @@ func NewDigitalLedDisplay(dioPin, rclkPin, sclkPin uint8) *DigitalLedDisplay {
 		opened:  false,
 	}
 
-	d.dioPin.Output()
-	d.dioPin.Low()
+	display.dioPin.Output()
+	display.dioPin.Low()
 
-	d.rclkPin.Output()
-	d.rclkPin.Low()
+	display.rclkPin.Output()
+	display.rclkPin.Low()
 
-	d.sclkPin.Output()
-	d.sclkPin.Low()
+	display.sclkPin.Output()
+	display.sclkPin.Low()
 
-	return d
+	return display
 }
 
 // Image displays an image on the screen.
 // NOTE: Digital led display module can't be used to display an image.
 // It is here just for implementing the Display interface.
-func (d *DigitalLedDisplay) Image(img image.Image) error {
+func (display *TM1637Display) Image(img image.Image) error {
 	return errors.New("digital led display module can't be used to display an image")
 }
 
 // Text display text on the screen.
 // NOTE: (x, y) never be used. They are here just for implementing the Display interface.
-func (d *DigitalLedDisplay) Text(text string, x, y int) error {
-	d.chText <- text
+func (display *TM1637Display) Text(text string, x, y int) error {
+	display.chText <- text
 	return nil
 }
 
 // On ...
-func (d *DigitalLedDisplay) On() error {
-	if d.opened {
+func (display *TM1637Display) On() error {
+	if display.opened {
 		return nil
 	}
-	go d.display()
-	d.opened = true
+	go display.display()
+	display.opened = true
 	return nil
 }
 
 // Off ...
-func (d *DigitalLedDisplay) Off() error {
-	if !d.opened {
+func (display *TM1637Display) Off() error {
+	if !display.opened {
 		return nil
 	}
-	d.chText <- closedSignal
-	<-d.chDone
-	d.sendData(0xFF)
-	d.sendData(0xF0)
-	d.opened = false
+	display.chText <- closedSignal
+	<-display.chDone
+	display.send(0xFF)
+	display.send(0xF0)
+	display.opened = false
 	return nil
 }
 
 // Clear ...
-func (d *DigitalLedDisplay) Clear() error {
-	return d.Text("", 0, 0)
+func (display *TM1637Display) Clear() error {
+	return display.Text("", 0, 0)
 }
 
 // Close ...
-func (d *DigitalLedDisplay) Close() error {
-	return d.Off()
+func (display *TM1637Display) Close() error {
+	return display.Off()
 }
 
 // flushShcp Flush the Shcp pin
 // call after each individual data write
-func (d *DigitalLedDisplay) flushShcp() {
-	d.sclkPin.Write(d.state ^ 0x01)
-	d.sclkPin.Write(d.state)
+func (display *TM1637Display) flushShcp() {
+	display.sclkPin.Write(display.state ^ 0x01)
+	display.sclkPin.Write(display.state)
 }
 
 // flushStcp Flush the Stcp pin
 // call after data writes are done
-func (d *DigitalLedDisplay) flushStcp() {
-	d.rclkPin.Write(d.state ^ 0x01)
-	d.rclkPin.Write(d.state)
+func (display *TM1637Display) flushStcp() {
+	display.rclkPin.Write(display.state ^ 0x01)
+	display.rclkPin.Write(display.state)
 }
 
 // setBit sets an individual bit
-func (d *DigitalLedDisplay) setBit(bit rpio.State) {
-	d.dioPin.Write(bit)
-	d.flushShcp()
+func (display *TM1637Display) setBit(bit rpio.State) {
+	display.dioPin.Write(bit)
+	display.flushShcp()
 }
 
-// sendData sends the bytes to the shiftregister
-func (d *DigitalLedDisplay) sendData(data uint8) {
-	d.data = data
+// send sends the bytes to the shiftregister
+func (display *TM1637Display) send(data uint8) {
+	display.data = data
 	for i := uint(0); i < 8; i++ {
-		d.setBit(rpio.State((d.data >> i) & 0x01))
+		display.setBit(rpio.State((display.data >> i) & 0x01))
 	}
-	d.flushStcp()
+	display.flushStcp()
 }
 
-func (d *DigitalLedDisplay) display() {
+func (display *TM1637Display) display() {
 	text := "----"
 	for {
 		select {
-		case txt := <-d.chText:
+		case txt := <-display.chText:
 			text = reverse(txt)
 		default:
 			// do nothing, just use the latest text for displaying
@@ -226,10 +227,10 @@ func (d *DigitalLedDisplay) display() {
 				dot++
 			}
 			pos := uint8(0x80) >> uint(i-dot)
-			d.sendData(ledc)
-			d.sendData(pos)
+			display.send(ledc)
+			display.send(pos)
 			time.Sleep(refreshFrequency)
 		}
 	}
-	d.chDone <- true
+	display.chDone <- true
 }

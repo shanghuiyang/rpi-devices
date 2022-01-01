@@ -45,7 +45,7 @@ func main() {
 	}
 	led := dev.NewLedImp(pinLed)
 	bzr := dev.NewBuzzerImp(pinBzr, true)
-	dsp := dev.NewDigitalLedDisplay(dioPin, rclkPin, sclkPin)
+	dsp := dev.NewTM1637Display(dioPin, rclkPin, sclkPin)
 
 	cfg := &iot.Config{
 		Token: wsnToken,

@@ -1,11 +1,10 @@
 /*
-OledDisplay is an oled display module used to display text/image driving by ssd1306 driver.
-
+SSD1306Display is a driver for the oled display module drived by SSD1306 chip.
 Config Raspberry Pi:
 1. $ sudo apt-get install -y python-smbus
 2. $ sudo apt-get install -y i2c-tools
 3. $ sudo raspi-config
-4. 	-> [5 interface options] -> [P5 I2C] -> [yes] -> [ok]
+4. 	-> [5 Interface Options] -> [P5 I2C] -> [yes] -> [ok]
 5. $ sudo reboot now
 6. check: $ sudo i2cdetect -y 1
 	it works if you saw following message:
@@ -41,23 +40,23 @@ import (
 const (
 	oledDev  = "/dev/i2c-1"
 	oledAddr = 0x3c
-	fontFile = "casio-fx-9860gii.ttf"
 )
 
-// OledDisplay ...
-type OledDisplay struct {
+// SSD1306Display is a driver for the oled display module drived by SSD1306 chip.
+// It is an implement of Display interface.
+type SSD1306Display struct {
 	oled   *monochromeoled.OLED
 	width  int
 	height int
 }
 
-// NewOledDisplay ...
-func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
+// NewSSD1306Display creates a driver for the oled display module drived by SSD1306 chip
+func NewSSD1306Display(width, heigth int) (*SSD1306Display, error) {
 	oled, err := monochromeoled.Open(&i2c.Devfs{Dev: oledDev}, oledAddr, width, heigth)
 	if err != nil {
 		return nil, err
 	}
-	return &OledDisplay{
+	return &SSD1306Display{
 		oled:   oled,
 		width:  width,
 		height: heigth,
@@ -65,11 +64,11 @@ func NewOledDisplay(width, heigth int) (*OledDisplay, error) {
 }
 
 // Image displays an image on the screen
-func (oled *OledDisplay) Image(img image.Image) error {
-	if err := oled.oled.SetImage(0, 0, img); err != nil {
+func (display *SSD1306Display) Image(img image.Image) error {
+	if err := display.oled.SetImage(0, 0, img); err != nil {
 		return err
 	}
-	if err := oled.oled.Draw(); err != nil {
+	if err := display.oled.Draw(); err != nil {
 		return err
 	}
 	return nil
@@ -78,27 +77,27 @@ func (oled *OledDisplay) Image(img image.Image) error {
 // Text displays the text on the screen.
 // NOTE: It isn't implemented. It is here just for implementing the Display interface.
 // Please draw your text to an image first, and then use DisplayImage()
-func (oled *OledDisplay) Text(text string, x, y int) error {
+func (display *SSD1306Display) Text(text string, x, y int) error {
 	return errors.New("not implement")
 }
 
 // On ...
-func (oled *OledDisplay) On() error {
-	return oled.oled.On()
+func (display *SSD1306Display) On() error {
+	return display.oled.On()
 }
 
 // Off ...
-func (oled *OledDisplay) Off() error {
-	return oled.oled.Off()
+func (display *SSD1306Display) Off() error {
+	return display.oled.Off()
 }
 
 // Clear ...
-func (oled *OledDisplay) Clear() error {
-	return oled.oled.Clear()
+func (display *SSD1306Display) Clear() error {
+	return display.oled.Clear()
 }
 
 // Close ...
-func (oled *OledDisplay) Close() error {
-	_ = oled.oled.Clear()
-	return oled.oled.Close()
+func (display *SSD1306Display) Close() error {
+	_ = display.oled.Clear()
+	return display.oled.Close()
 }

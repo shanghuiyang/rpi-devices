@@ -5,7 +5,7 @@ Config Your Pi:
 1. $ sudo apt-get install -y python-smbus
 2. $ sudo apt-get install -y i2c-tools
 3. $ sudo raspi-config
-4. 	-> [5 interface options] -> [P5 i2c] -> [yes] -> [ok]
+4. 	-> [5 Interface Options] -> [P5 i2c] -> [yes] -> [ok]
 5. $ sudo reboot now
 6. check: $ sudo i2cdetect -y 1
 	it works if you saw following message:

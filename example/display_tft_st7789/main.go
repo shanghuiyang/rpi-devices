@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	display, err := dev.NewST7789(res, dc, blk, width, height)
+	display, err := dev.NewST7789Display(res, dc, blk, width, height)
 	if err != nil {
 		log.Printf("failed to create an st display, error: %v", err)
 		return

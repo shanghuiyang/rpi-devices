@@ -20,7 +20,7 @@ const (
 )
 
 func main() {
-	display, err := dev.NewOledDisplay(width, height)
+	display, err := dev.NewSSD1306Display(width, height)
 	if err != nil {
 		log.Printf("failed to create an oled, error: %v", err)
 		return
