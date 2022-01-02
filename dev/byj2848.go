@@ -16,6 +16,16 @@ import (
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
+type StepperMode int
+
+const (
+	FullMode StepperMode = iota
+	HalfMode
+	QuarterMode
+	EighthMode
+	SixteenthMode
+)
+
 const (
 	stepsPerDegree = float64(1.422222) // 512/360
 )
@@ -39,6 +49,7 @@ var (
 // BYJ2848 implements StepperMotor interface
 type BYJ2848 struct {
 	pins [4]rpio.Pin
+	mode StepperMode
 }
 
 // NewBYJ2848 ...
@@ -50,12 +61,19 @@ func NewBYJ2848(in1, in2, in3, in4 uint8) *BYJ2848 {
 			rpio.Pin(in3),
 			rpio.Pin(in4),
 		},
+		mode: FullMode,
 	}
 	for i := 0; i < 4; i++ {
 		byj.pins[i].Output()
 		byj.pins[i].Low()
 	}
 	return byj
+}
+
+// SetMode sets the stepping mode.
+// Please NOTE only FullMode is supported currently, and FullMode is used by default.
+func (byj *BYJ2848) SetMode(mode StepperMode) error {
+	return nil
 }
 
 // Step gets the motor rolls n steps.

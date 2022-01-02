@@ -120,16 +120,20 @@ type Relay interface {
 	Off(ch int)
 }
 
-// StepperMotor ...
-type StepperMotor interface {
+// Stepper ...
+type Stepper interface {
 	// Step gets the stepper motor rolls n steps in clockwise direction if angle > 0,
 	// or roll in counter-clockwise direction if n < 0,
 	// or motionless if n = 0.
 	Step(n int)
 	// Roll gets the stepper motor rolls angle dregee in clockwise direction if angle > 0,
 	// or roll in counter-clockwise direction if angle < 0,
-	// or motionless if angle = 0.
+	// motionless if angle = 0.
 	Roll(angle float64)
+	// SetMode sets sets the stepping mode.
+	// For example: Full, Half, Quarter, Eighth, Sixteenth.
+	// Please NOTE not all steppers support all modes. Some steppers only support one or two modes.
+	SetMode(mode StepperMode) error
 }
 
 // Thermometer ...
