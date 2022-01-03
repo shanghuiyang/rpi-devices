@@ -14,10 +14,8 @@ const (
 )
 
 func main() {
+	stepper := dev.NewBYJ2848(in1, in2, in3, in4)
 	var step int
-	var angle float64
-	motor := dev.NewBYJ2848(in1, in2, in3, in4)
-
 	for {
 		fmt.Printf(">>steps: ")
 		if n, err := fmt.Scanf("%d", &step); n != 1 || err != nil {
@@ -27,16 +25,6 @@ func main() {
 		if step == 0 {
 			break
 		}
-		motor.Step(step)
-
-		fmt.Printf(">>angle: ")
-		if n, err := fmt.Scanf("%f", &angle); n != 1 || err != nil {
-			fmt.Printf("invalid angle, error: %v", err)
-			continue
-		}
-		if angle == 0 {
-			break
-		}
-		motor.Roll(angle)
+		stepper.Step(step)
 	}
 }
