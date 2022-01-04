@@ -1,5 +1,5 @@
 /*
-A4988 is a driver for A4988 stepper motor drive board.
+A4988 is a driver for A4988 driver board used to drive stepper motor such as NAME.
 
 Connect to Pi:
  - vmot: 5v pin of rpi, or 5~35v power supply for motor

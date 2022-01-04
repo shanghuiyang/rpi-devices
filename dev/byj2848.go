@@ -1,5 +1,5 @@
 /*
-BYJ2848 is a driver for stepper motor using ULN2003 drive board with 4-phase and 5-wire.
+BYJ2848 is a driver for stepper motor using ULN2003 driver board with 4-phase and 5-wire.
 
 Connect to Pi:
  - vcc: any 5v pin
@@ -81,6 +81,7 @@ func (byj *BYJ2848) Step(n int) {
 			delayMs(2)
 		}
 	}
+	byj.reset()
 }
 
 // Roll gets the motor rolls angle degree.
@@ -96,4 +97,10 @@ func (byj *BYJ2848) Roll(angle float64) {
 // Please NOTE only FullMode is supported currently, and FullMode is used by default.
 func (byj *BYJ2848) SetMode(mode StepperMode) error {
 	return nil
+}
+
+func (byj *BYJ2848) reset() {
+	for i := 0; i < 4; i++ {
+		byj.pins[i].Low()
+	}
 }

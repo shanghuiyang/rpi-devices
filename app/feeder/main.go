@@ -32,6 +32,7 @@ func main() {
 	if n, err := fmt.Sscanf(feedAt, "%d:%d", &h, &m); n != 2 || err != nil {
 		log.Fatalf("parse feed time error: %v", err)
 	}
+	log.Printf("feed at: %02d:%02d", h, m)
 
 	total := 0
 	for {
