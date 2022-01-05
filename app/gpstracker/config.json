@@ -19,7 +19,7 @@
         "blk": 27,
         "width": 240,
         "height": 240,
-        "sleepAfterMin": 5
+        "sleepAfterMin": 10
     },
     "iot": {
         "enable": false,
