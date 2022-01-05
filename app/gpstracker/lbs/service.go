@@ -177,6 +177,7 @@ func (s *service) renderMap() {
 		}
 
 		updated = false
+		s.lastOpAt = time.Now()
 		s.curTileProvider.Attribution = s.statusBarText
 		marker := sm.NewMarker(
 			s2.LatLngFromDegrees(curPt.Lat, curPt.Lon),
@@ -208,8 +209,8 @@ func (s *service) dispalyMap() {
 func (s *service) detectSleep() {
 	for {
 		if s.sleep() {
-			// go to sleep
 			s.display.Off()
+			log.Print("sleep")
 		}
 		util.DelayMs(3000)
 	}
@@ -238,9 +239,9 @@ func (s *service) detectZoomInBtn() {
 	for {
 		if s.zoomInBtn.Pressed() {
 			if s.sleep() {
-				// wakeup
 				s.display.On()
 				s.lastOpAt = time.Now()
+				log.Print("wakeup")
 				util.DelayMs(500)
 				continue
 			}
@@ -274,9 +275,9 @@ func (s *service) detectZoomOutBtn() {
 	for {
 		if s.zoomOutBtn.Pressed() {
 			if s.sleep() {
-				// wakeup
 				s.display.On()
 				s.lastOpAt = time.Now()
+				log.Print("wakeup")
 				util.DelayMs(500)
 				continue
 			}
