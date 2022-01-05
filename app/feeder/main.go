@@ -10,26 +10,27 @@ import (
 )
 
 const (
-	in1 = 12
-	in2 = 16
-	in3 = 20
-	in4 = 21
-
-	feedAt      = "10:00"
-	onenetToken = "your_onenet_token"
-	onenetAPI   = "http://api.heclouds.com/devices/540381180/datapoints"
+	configJSON = "config.json"
 )
 
+var cloud iot.Cloud
+
 func main() {
-	cfg := &iot.Config{
-		Token: onenetToken,
-		API:   onenetAPI,
+	cfg, err := loadConfig(configJSON)
+	if err != nil {
+		log.Fatalf("failed to load config, error: %v", err)
+		panic(err)
 	}
-	onenet := iot.NewOnenet(cfg)
-	motor := dev.NewBYJ2848(in1, in2, in3, in4)
+
+	cloud = iot.NewNoop()
+	if cfg.Iot.Enable {
+		cloud = iot.NewOnenet(cfg.Iot.Onenet)
+	}
+
+	stepper := dev.NewBYJ2848(cfg.Stepper.In1, cfg.Stepper.In2, cfg.Stepper.In3, cfg.Stepper.In4)
 
 	var h, m int
-	if n, err := fmt.Sscanf(feedAt, "%d:%d", &h, &m); n != 2 || err != nil {
+	if n, err := fmt.Sscanf(cfg.FeedAt, "%d:%d", &h, &m); n != 2 || err != nil {
 		log.Fatalf("parse feed time error: %v", err)
 	}
 	log.Printf("feed at: %02d:%02d", h, m)
@@ -38,8 +39,8 @@ func main() {
 	for {
 		now := time.Now()
 		if now.Hour() == h && now.Minute() == m {
-			motor.Roll(360)
-			go push(onenet)
+			stepper.Roll(360)
+			go push()
 			total++
 			log.Printf("fed, total: %v", total)
 		}
@@ -47,7 +48,7 @@ func main() {
 	}
 }
 
-func push(cloud iot.Cloud) {
+func push() {
 	v := &iot.Value{
 		Device: "feeder",
 		Value:  1,
