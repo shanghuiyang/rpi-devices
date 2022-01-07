@@ -5,6 +5,7 @@
         "in3": 20,
         "in4": 21
     },
+    "button": 24,
     "feedAt": "10:00",
     "iot": {
         "enable": false,

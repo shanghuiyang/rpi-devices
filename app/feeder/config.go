@@ -8,12 +8,13 @@ import (
 )
 
 type config struct {
-	Stepper *stepper   `json:"stepper"`
-	FeedAt  string     `json:"feedAt"`
-	Iot     *iotConfig `json:"iot"`
+	Stepper *stepperConfig `json:"stepper"`
+	Button  uint8          `json:"button"`
+	FeedAt  string         `json:"feedAt"`
+	Iot     *iotConfig     `json:"iot"`
 }
 
-type stepper struct {
+type stepperConfig struct {
 	In1 uint8 `json:"in1"`
 	In2 uint8 `json:"in2"`
 	In3 uint8 `json:"in3"`

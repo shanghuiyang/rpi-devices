@@ -7,13 +7,19 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
+	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
 	configJSON = "config.json"
 )
 
-var cloud iot.Cloud
+var (
+	stepper dev.Stepper
+	button  dev.Button
+	cloud   iot.Cloud
+	total   int
+)
 
 func main() {
 	cfg, err := loadConfig(configJSON)
@@ -22,12 +28,12 @@ func main() {
 		panic(err)
 	}
 
+	stepper = dev.NewBYJ2848(cfg.Stepper.In1, cfg.Stepper.In2, cfg.Stepper.In3, cfg.Stepper.In4)
+	button = dev.NewButtonImp(cfg.Button)
 	cloud = iot.NewNoop()
 	if cfg.Iot.Enable {
 		cloud = iot.NewOnenet(cfg.Iot.Onenet)
 	}
-
-	stepper := dev.NewBYJ2848(cfg.Stepper.In1, cfg.Stepper.In2, cfg.Stepper.In3, cfg.Stepper.In4)
 
 	var h, m int
 	if n, err := fmt.Sscanf(cfg.FeedAt, "%d:%d", &h, &m); n != 2 || err != nil {
@@ -35,17 +41,32 @@ func main() {
 	}
 	log.Printf("feed at: %02d:%02d", h, m)
 
-	total := 0
+	go detectBtn()
 	for {
 		now := time.Now()
 		if now.Hour() == h && now.Minute() == m {
-			stepper.Roll(360)
-			go push()
-			total++
-			log.Printf("fed, total: %v", total)
+			go feed()
 		}
 		time.Sleep(time.Minute)
 	}
+}
+
+func detectBtn() {
+	for {
+		if button.Pressed() {
+			go feed()
+			util.DelayMs(1000)
+		}
+		util.DelayMs(100)
+	}
+}
+
+func feed() {
+	log.Printf("feeding")
+	stepper.Roll(360)
+	total++
+	log.Printf("fed, total: %v", total)
+	push()
 }
 
 func push() {
