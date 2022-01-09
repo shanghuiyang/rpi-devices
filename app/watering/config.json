@@ -1,0 +1,32 @@
+{
+    "pumps": [
+        {
+            "name": "No.1",
+            "pin": 25,
+            "wateringAt": "19:00",
+            "wateringSec": 10,
+            "button": 16
+        },
+        {
+            "name": "No.2",
+            "pin": 8,
+            "wateringAt": "19:01",
+            "wateringSec": 10,
+            "button": 20
+        },
+        {
+            "name": "No.3",
+            "pin": 7,
+            "wateringAt": "19:02",
+            "wateringSec": 10,
+            "button": 21
+        }
+    ],
+    "iot": {
+        "enable": false,
+        "onenet": {
+            "token": "your_onenet_token",
+            "api": "http://api.heclouds.com/devices/540381180/datapoints"
+        }
+    }
+}

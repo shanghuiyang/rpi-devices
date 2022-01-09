@@ -109,6 +109,13 @@ type MotorDriver interface {
 	SetSpeed(s uint32)
 }
 
+// Pump ...
+type Pump interface {
+	On()
+	Off()
+	Run(sec int)
+}
+
 // RFReciver is the interface of radio-frequency receiver
 type RFReceiver interface {
 	Received(ch int) bool
