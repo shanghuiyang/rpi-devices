@@ -15,10 +15,11 @@ const (
 )
 
 var (
-	stepper dev.Stepper
-	button  dev.Button
-	cloud   iot.Cloud
-	total   int
+	stepper   dev.Stepper
+	button    dev.Button
+	cloud     iot.Cloud
+	rollAngle float64 = 360
+	total     int
 )
 
 func main() {
@@ -39,7 +40,10 @@ func main() {
 	if n, err := fmt.Sscanf(cfg.FeedAt, "%d:%d", &h, &m); n != 2 || err != nil {
 		log.Fatalf("parse feed time error: %v", err)
 	}
-	log.Printf("feed at: %02d:%02d", h, m)
+	if cfg.RollAngle != 0 {
+		rollAngle = cfg.RollAngle
+	}
+	log.Printf("feed at: %02d:%02d, roll angle: %v", h, m, rollAngle)
 
 	go detectBtn()
 	for {
@@ -63,7 +67,7 @@ func detectBtn() {
 
 func feed() {
 	log.Printf("feeding")
-	stepper.Roll(360)
+	stepper.Roll(rollAngle)
 	total++
 	log.Printf("fed, total: %v", total)
 	push()

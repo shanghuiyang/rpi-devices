@@ -8,10 +8,11 @@ import (
 )
 
 type config struct {
-	Stepper *stepperConfig `json:"stepper"`
-	Button  uint8          `json:"button"`
-	FeedAt  string         `json:"feedAt"`
-	Iot     *iotConfig     `json:"iot"`
+	Stepper   *stepperConfig `json:"stepper"`
+	Button    uint8          `json:"button"`
+	FeedAt    string         `json:"feedAt"`
+	RollAngle float64        `json:"rollAngle"`
+	Iot       *iotConfig     `json:"iot"`
 }
 
 type stepperConfig struct {
