@@ -1,5 +1,5 @@
 /*
-LedImp is a led module.
+PumpImp is a driver for pump motor module.
 
 Connect to Raspberry Pi:
   - positive(the longer pin): 	any data pin
@@ -13,7 +13,7 @@ import (
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
-// PumpImp implements Led interface
+// PumpImp implements Pump interface
 type PumpImp struct {
 	pin rpio.Pin
 }
@@ -40,6 +40,6 @@ func (p *PumpImp) Off() {
 // Blink is let led blink n time, interval Millisecond each time
 func (p *PumpImp) Run(sec int) {
 	p.On()
-	delaySec(time.Duration(sec))
+	time.Sleep(time.Duration(sec) * time.Second)
 	p.Off()
 }

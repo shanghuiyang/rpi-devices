@@ -8,19 +8,20 @@ import (
 )
 
 type config struct {
-	Pumps []*pumpConfig `json:"pumps"`
-	Iot   *iotConfig    `json:"iot"`
+	Gardeners []*gardenercfg `json:"gardener"`
+	Button    uint8          `json:"button"`
+	Iot       *iotcfg        `json:"iot"`
 }
 
-type pumpConfig struct {
-	Name        string `json:"name"`
-	Pin         uint8  `json:"pin"`
-	WateringAt  string `json:"wateringAt"`
-	WateringSec int    `json:"wateringSec"`
-	Button      uint8  `json:"button"`
+type gardenercfg struct {
+	Name       string `json:"name"`
+	Pin        uint8  `json:"pin"`
+	WorkAt     string `json:"workAt"`
+	WorkingSec int    `json:"workingSec"`
+	Enabled    bool   `json:"enabled"`
 }
 
-type iotConfig struct {
+type iotcfg struct {
 	Enable bool        `json:"enable"`
 	Onenet *iot.Config `json:"onenet"`
 }
@@ -29,7 +30,6 @@ func loadConfig(file string) (*config, error) {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
-
 	}
 	var cfg config
 	if err := json.Unmarshal(data, &cfg); err != nil {

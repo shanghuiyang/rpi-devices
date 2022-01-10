@@ -1,27 +1,28 @@
 {
-    "pumps": [
+    "gardeners": [
         {
-            "name": "No.1",
+            "name": "gardener-01",
             "pin": 25,
-            "wateringAt": "19:00",
-            "wateringSec": 10,
-            "button": 16
+            "workAt": "19:00",
+            "workingSec": 10,
+            "enabled": true
         },
         {
-            "name": "No.2",
+            "name": "gardener-02",
             "pin": 8,
-            "wateringAt": "19:01",
-            "wateringSec": 10,
-            "button": 20
+            "workAt": "19:01",
+            "workingSec": 10,
+            "enabled": true
         },
         {
-            "name": "No.3",
+            "name": "gardener-03",
             "pin": 7,
-            "wateringAt": "19:02",
-            "wateringSec": 10,
-            "button": 21
+            "workAt": "19:02",
+            "workingSec": 10,
+            "enabled": true
         }
     ],
+    "button": 16,
     "iot": {
         "enable": false,
         "onenet": {
