@@ -15,8 +15,7 @@ const (
 
 type gardener struct {
 	name       string
-	workAtH    int
-	workAtM    int
+	workAt     string
 	workingSec int
 	working    bool
 	pump       dev.Pump
@@ -49,8 +48,7 @@ func main() {
 		}
 		gardeners = append(gardeners, &gardener{
 			name:       g.Name,
-			workAtH:    h,
-			workAtM:    m,
+			workAt:     g.WorkAt,
 			workingSec: g.WorkingSec,
 			pump:       dev.NewPumpImp(g.Pin),
 		})
@@ -64,10 +62,9 @@ func main() {
 func timewater() {
 	for {
 		now := time.Now()
-		h := now.Hour()
-		m := now.Minute()
+		hm := fmt.Sprintf("%d:%d", now.Hour(), now.Minute())
 		for _, g := range gardeners {
-			if g.workAtH == h && g.workAtM == m {
+			if g.workAt == hm {
 				go g.work()
 			}
 		}
