@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	p18 = 18
+	pin = 18
 )
 
 func main() {
-	sg := dev.NewSG90(p18)
+	sg := dev.NewSG90(pin)
 	var angle float64
 	for {
 		fmt.Printf(">>angle: ")

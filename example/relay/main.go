@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	ch1    = 0 // channel 1
-	ch2    = 1 // channel 2
-	ch1pin = 7 // pin for channel 1
-	ch2pin = 8 // pin for channel 1
+	ch1  = 0 // channel 1
+	ch2  = 1 // channel 2
+	pin1 = 7 // pin for channel 1
+	pin2 = 8 // pin for channel 1
 )
 
 func main() {
-	pins := []uint8{ch1pin, ch2pin}
+	pins := []uint8{pin1, pin2}
 	r := dev.NewRelayImp(pins)
 	var op string
 	for {

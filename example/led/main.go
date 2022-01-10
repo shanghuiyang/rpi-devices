@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	p12 = 26 // led
+	pin = 26
 )
 
 func main() {
 
-	led := dev.NewLedImp(p12)
+	led := dev.NewLedImp(pin)
 
 	for {
 		led.On()

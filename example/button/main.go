@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	pin    = 21
+	pinBtn = 21
 	pinLed = 26
 )
 
 func main() {
+	btn := dev.NewButtonImp(pinBtn)
 	led := dev.NewLedImp(pinLed)
-	btn := dev.NewButtonImp(pin)
 
 	on := false
 	for {

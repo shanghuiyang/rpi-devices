@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	pinTrig = 21
-	pinEcho = 26
+	trig = 21
+	echo = 26
 )
 
 func main() {
-	hcsr04 := dev.NewHCSR04(pinTrig, pinEcho)
+	hcsr04 := dev.NewHCSR04(trig, echo)
 	for {
 		d, err := hcsr04.Dist()
 		if err != nil {

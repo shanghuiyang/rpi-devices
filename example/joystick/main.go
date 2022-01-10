@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	swPin = 7
+	pin = 7
 )
 
 func main() {
-	j, err := dev.NewJoystickImp(swPin)
+	j, err := dev.NewJoystickImp(pin)
 	if err != nil {
 		log.Printf("failed to new joystick")
 		return

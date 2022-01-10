@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	pinIn1 = 17
-	pinIn2 = 23
-	pinIn3 = 27
-	pinIn4 = 22
-	pinENA = 13
-	pinENB = 19
+	in1 = 17
+	in2 = 23
+	in3 = 27
+	in4 = 22
+	ena = 13
+	enb = 19
 
 	// the hsv of a tennis
 	lh float64 = 33
@@ -37,7 +37,7 @@ const (
 var eng dev.MotorDriver
 
 func main() {
-	eng = dev.NewL298N(pinIn1, pinIn2, pinIn3, pinIn4, pinENA, pinENB)
+	eng = dev.NewL298N(in1, in2, in3, in4, ena, enb)
 	if eng == nil {
 		log.Fatal("failed to new a L298N as engine, a car can't without any engine")
 		os.Exit(1)

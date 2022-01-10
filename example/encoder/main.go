@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	pinEncoder = 6
+	pin = 6
 )
 
 func main() {
-	e := dev.NewEncoderImp(pinEncoder)
+	e := dev.NewEncoderImp(pin)
 	e.Start()
 	defer e.Stop()
 
