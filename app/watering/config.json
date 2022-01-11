@@ -2,23 +2,23 @@
     "gardeners": [
         {
             "name": "gardener-01",
-            "pin": 25,
-            "workAt": "19:00",
-            "workingSec": 10,
+            "relay": 26,
+            "workAt": "23:59",
+            "workingSec": 3,
             "enabled": true
         },
         {
             "name": "gardener-02",
-            "pin": 8,
-            "workAt": "19:01",
-            "workingSec": 10,
+            "relay": 26,
+            "workAt": "0:0",
+            "workingSec": 6,
             "enabled": true
         },
         {
             "name": "gardener-03",
-            "pin": 7,
-            "workAt": "19:02",
-            "workingSec": 10,
+            "relay": 26,
+            "workAt": "0:1",
+            "workingSec": 9,
             "enabled": true
         }
     ],

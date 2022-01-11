@@ -8,9 +8,9 @@ temperature sensor:
  - gnd: pin 9 or any gnd pin
 
 realy:
- - vcc: pin 2 or any 5v pin
- - in:  pin 26(gpio 7)
- - gnd: pin 34 or any gnd pin
+ - vcc: any 5v pin
+ - in:  gpio 7
+ - gnd: any gnd pin
  - on:  fan(+)
  - com: bettery(+)
 

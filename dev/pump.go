@@ -24,6 +24,7 @@ func NewPumpImp(pin uint8) *PumpImp {
 		pin: rpio.Pin(pin),
 	}
 	p.pin.Output()
+	p.pin.Low()
 	return p
 }
 

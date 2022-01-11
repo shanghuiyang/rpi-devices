@@ -18,7 +18,7 @@ type gardener struct {
 	workAt     string
 	workingSec int
 	working    bool
-	pump       dev.Pump
+	relay      dev.Relay
 }
 
 var (
@@ -37,22 +37,20 @@ func main() {
 	if cfg.Iot.Enable {
 		cloud = iot.NewOnenet(cfg.Iot.Onenet)
 	}
+
 	buttom = dev.NewButtonImp(cfg.Button)
 	for _, g := range cfg.Gardeners {
 		if !g.Enabled {
 			continue
 		}
-		var h, m int
-		if n, err := fmt.Sscanf(g.WorkAt, "%d:%d", &h, &m); n != 2 || err != nil {
-			log.Panicf("parse watering time error: %v", err)
-		}
 		gardeners = append(gardeners, &gardener{
 			name:       g.Name,
 			workAt:     g.WorkAt,
 			workingSec: g.WorkingSec,
-			pump:       dev.NewPumpImp(g.Pin),
+			relay:      dev.NewRelayImp([]uint8{g.Relay}),
 		})
 	}
+
 	go timewater()
 	go manwater()
 
@@ -63,6 +61,7 @@ func timewater() {
 	for {
 		now := time.Now()
 		hm := fmt.Sprintf("%d:%d", now.Hour(), now.Minute())
+		log.Printf("now: %v", hm)
 		for _, g := range gardeners {
 			if g.workAt == hm {
 				go g.work()
@@ -90,7 +89,7 @@ func toCloud(g *gardener) {
 		Value:  1,
 	}
 	if err := cloud.Push(v); err != nil {
-		log.Printf("push to clould error: %v", err)
+		log.Printf("push %v to clould error: %v", g.name, err)
 		return
 	}
 
@@ -100,19 +99,22 @@ func toCloud(g *gardener) {
 		Value:  0,
 	}
 	if err := cloud.Push(v); err != nil {
-		log.Printf("push to clould error: %v", err)
+		log.Printf("push %v to clould error: %v", g.name, err)
 		return
 	}
-	log.Printf("push to cloud successfully")
+	log.Printf("push %v to cloud successfully", g.name)
 }
 
 func (g *gardener) work() {
 	if g.working {
 		return
 	}
+	log.Printf("%v is watering", g.name)
 	g.working = true
-	g.pump.Run(g.workingSec)
+	g.relay.On(0)
+	time.Sleep(time.Duration(g.workingSec) * time.Second)
+	g.relay.Off(0)
 	g.working = false
-	toCloud(g)
 	log.Printf("%v watered duration %v sec", g.name, g.workingSec)
+	go toCloud(g)
 }

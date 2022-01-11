@@ -8,17 +8,17 @@ import (
 )
 
 type config struct {
-	Gardeners []*gardenercfg `json:"gardener"`
+	Gardeners []*gardenercfg `json:"gardeners"`
 	Button    uint8          `json:"button"`
 	Iot       *iotcfg        `json:"iot"`
 }
 
 type gardenercfg struct {
 	Name       string `json:"name"`
-	Pin        uint8  `json:"pin"`
 	WorkAt     string `json:"workAt"`
 	WorkingSec int    `json:"workingSec"`
 	Enabled    bool   `json:"enabled"`
+	Relay      uint8  `json:"relay"`
 }
 
 type iotcfg struct {
