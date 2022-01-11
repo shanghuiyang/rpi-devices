@@ -47,7 +47,7 @@ func main() {
 			name:       g.Name,
 			workAt:     g.WorkAt,
 			workingSec: g.WorkingSec,
-			relay:      dev.NewRelayImp([]uint8{g.Relay}),
+			relay:      dev.NewRelayImp(g.Relay),
 		})
 	}
 
@@ -61,7 +61,6 @@ func timewater() {
 	for {
 		now := time.Now()
 		hm := fmt.Sprintf("%d:%d", now.Hour(), now.Minute())
-		log.Printf("now: %v", hm)
 		for _, g := range gardeners {
 			if g.workAt == hm {
 				go g.work()
@@ -111,9 +110,9 @@ func (g *gardener) work() {
 	}
 	log.Printf("%v is watering", g.name)
 	g.working = true
-	g.relay.On(0)
+	g.relay.On()
 	time.Sleep(time.Duration(g.workingSec) * time.Second)
-	g.relay.Off(0)
+	g.relay.Off()
 	g.working = false
 	log.Printf("%v watered duration %v sec", g.name, g.workingSec)
 	go toCloud(g)

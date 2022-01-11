@@ -24,6 +24,7 @@ func NewLedImp(pin uint8) *LedImp {
 		pin: rpio.Pin(pin),
 	}
 	led.pin.Output()
+	led.pin.Low()
 	return led
 }
 

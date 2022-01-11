@@ -3,22 +3,22 @@
         {
             "name": "gardener-01",
             "relay": 26,
-            "workAt": "23:59",
+            "workAt": "0:13",
             "workingSec": 3,
             "enabled": true
         },
         {
             "name": "gardener-02",
             "relay": 26,
-            "workAt": "0:0",
-            "workingSec": 6,
+            "workAt": "0:14",
+            "workingSec": 5,
             "enabled": true
         },
         {
             "name": "gardener-03",
             "relay": 26,
-            "workAt": "0:1",
-            "workingSec": 9,
+            "workAt": "0:15",
+            "workingSec": 7,
             "enabled": true
         }
     ],

@@ -17,34 +17,25 @@ import (
 
 // RelayImp ...
 type RelayImp struct {
-	pins []rpio.Pin
+	pin rpio.Pin
 }
 
 // NewRelayImp ...
-func NewRelayImp(pins []uint8) *RelayImp {
-	p := make([]rpio.Pin, len(pins))
-	for i, pin := range pins {
-		p[i] = rpio.Pin(pin)
-		p[i].Output()
-	}
+func NewRelayImp(pin uint8) *RelayImp {
 	r := &RelayImp{
-		pins: p,
+		pin: rpio.Pin(pin),
 	}
+	r.pin.Output()
+	r.pin.Low()
 	return r
 }
 
 // On ...
-func (r *RelayImp) On(ch int) {
-	if ch < 0 || ch >= len(r.pins) {
-		return
-	}
-	r.pins[ch].High()
+func (r *RelayImp) On() {
+	r.pin.High()
 }
 
 // Off ...
-func (r *RelayImp) Off(ch int) {
-	if ch < 0 || ch >= len(r.pins) {
-		return
-	}
-	r.pins[ch].Low()
+func (r *RelayImp) Off() {
+	r.pin.Low()
 }

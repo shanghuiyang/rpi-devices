@@ -59,7 +59,6 @@ import (
 
 const (
 	relayPin           = 7
-	relayCh            = 0
 	intervalTime       = 1 * time.Minute
 	triggerTemperature = 27.3
 )
@@ -71,7 +70,7 @@ func main() {
 		return
 	}
 
-	r := dev.NewRelayImp([]uint8{relayPin})
+	r := dev.NewRelayImp(relayPin)
 	if r == nil {
 		log.Printf("[autofan]failed to new a relay")
 		return
@@ -109,9 +108,9 @@ func (f *autoFan) start() {
 }
 
 func (f *autoFan) on() {
-	f.relay.On(relayCh)
+	f.relay.On()
 }
 
 func (f *autoFan) off() {
-	f.relay.Off(relayCh)
+	f.relay.Off()
 }

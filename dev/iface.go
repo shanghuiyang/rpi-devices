@@ -123,8 +123,8 @@ type RFReceiver interface {
 
 // Relay ...
 type Relay interface {
-	On(ch int)
-	Off(ch int)
+	On()
+	Off()
 }
 
 // Stepper ...
