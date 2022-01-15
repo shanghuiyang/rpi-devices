@@ -51,8 +51,15 @@ func main() {
 		})
 	}
 
+	fmt.Println("----------------------------")
+	for _, g := range gardeners {
+		fmt.Printf("%v\t%v\t%vs\n", g.name, g.workAt, g.workingSec)
+	}
+	fmt.Println("----------------------------")
+
 	go timewater()
 	go manwater()
+	log.Print("gardenders are ready to work")
 
 	select {}
 }
@@ -73,12 +80,14 @@ func timewater() {
 func manwater() {
 	for {
 		if buttom.Pressed() {
+			log.Print("buttom is pressed")
 			for _, g := range gardeners {
 				go g.work()
-				time.Sleep(time.Minute)
+				time.Sleep(time.Duration(g.workingSec+5) * time.Second)
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 		}
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 

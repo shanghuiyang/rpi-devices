@@ -2,27 +2,27 @@
     "gardeners": [
         {
             "name": "gardener-01",
-            "relay": 26,
-            "workAt": "0:13",
-            "workingSec": 3,
+            "relay": 16,
+            "workAt": "20:40",
+            "workingSec": 8,
             "enabled": true
         },
         {
             "name": "gardener-02",
-            "relay": 26,
-            "workAt": "0:14",
-            "workingSec": 5,
+            "relay": 20,
+            "workAt": "20:41",
+            "workingSec": 20,
             "enabled": true
         },
         {
             "name": "gardener-03",
-            "relay": 26,
-            "workAt": "0:15",
-            "workingSec": 7,
+            "relay": 21,
+            "workAt": "20:42",
+            "workingSec": 3,
             "enabled": true
         }
     ],
-    "button": 16,
+    "button": 17,
     "iot": {
         "enable": false,
         "onenet": {
