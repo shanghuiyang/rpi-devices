@@ -11,7 +11,7 @@ func StopMotion() error {
 	if _, err := exec.Command("bash", "-c", cmd).CombinedOutput(); err != nil {
 		return err
 	}
-	DelayMs(1000)
+	DelaySec(1)
 	return nil
 }
 
@@ -26,6 +26,6 @@ func StartMotion(config ...string) error {
 	if _, err := exec.Command("bash", "-c", cmd).CombinedOutput(); err != nil {
 		return err
 	}
-	DelayMs(1000)
+	DelaySec(1)
 	return nil
 }

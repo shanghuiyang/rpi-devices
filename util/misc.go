@@ -70,9 +70,24 @@ func WaitQuit(beforeQuitFunc func()) {
 	}()
 }
 
+// DelayUs ...
+func DelayUs(d time.Duration) {
+	time.Sleep(d * time.Microsecond)
+}
+
 // DelayMs ...
 func DelayMs(d time.Duration) {
 	time.Sleep(d * time.Millisecond)
+}
+
+// DelaySec ...
+func DelaySec(d time.Duration) {
+	time.Sleep(d * time.Second)
+}
+
+// DelayMin ...
+func DelayMin(d time.Duration) {
+	time.Sleep(d * time.Minute)
 }
 
 // IncludedAngle caculates the included angle betweet fromAngle to toAngle

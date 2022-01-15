@@ -23,7 +23,7 @@ type Button interface {
 type Buzzer interface {
 	On()
 	Off()
-	Beep(n int, intervalInMS int)
+	Beep(n int, intervalMs int)
 }
 
 // camera ...
@@ -88,7 +88,7 @@ type Joystick interface {
 type Led interface {
 	On()
 	Off()
-	Blink(n int, intervalInMs int)
+	Blink(n int, intervalMs int)
 }
 
 // Motor ...

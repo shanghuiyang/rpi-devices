@@ -7,6 +7,7 @@ import (
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
+	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
@@ -73,7 +74,7 @@ func timewater() {
 				go g.work()
 			}
 		}
-		time.Sleep(time.Minute)
+		util.DelayMin(1)
 	}
 }
 
@@ -83,11 +84,11 @@ func manwater() {
 			log.Print("buttom is pressed")
 			for _, g := range gardeners {
 				go g.work()
-				time.Sleep(time.Duration(g.workingSec+5) * time.Second)
+				util.DelaySec(time.Duration(g.workingSec + 5))
 			}
-			time.Sleep(1000 * time.Millisecond)
+			util.DelaySec(1)
 		}
-		time.Sleep(100 * time.Millisecond)
+		util.DelayMs(100)
 	}
 }
 
@@ -101,7 +102,7 @@ func toCloud(g *gardener) {
 		return
 	}
 
-	time.Sleep(time.Duration(g.workingSec) * time.Second)
+	util.DelaySec(time.Duration(g.workingSec))
 	v = &iot.Value{
 		Device: g.name,
 		Value:  0,
@@ -120,7 +121,7 @@ func (g *gardener) work() {
 	log.Printf("%v is watering", g.name)
 	g.working = true
 	g.relay.On()
-	time.Sleep(time.Duration(g.workingSec) * time.Second)
+	util.DelaySec(time.Duration(g.workingSec))
 	g.relay.Off()
 	g.working = false
 	log.Printf("%v watered duration %v sec", g.name, g.workingSec)

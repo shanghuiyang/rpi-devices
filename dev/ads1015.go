@@ -35,7 +35,6 @@ package dev
 
 import (
 	"errors"
-	"time"
 
 	"golang.org/x/exp/io/i2c"
 )
@@ -185,7 +184,7 @@ func (m *ADS1015) Read(channel int) (float64, error) {
 		return 0, err
 	}
 
-	time.Sleep(100 * time.Microsecond)
+	delayUs(100)
 	data := make([]byte, 2)
 	if err := m.dev.ReadReg(ConversionRegiserPointer, data); err != nil {
 		return 0, err

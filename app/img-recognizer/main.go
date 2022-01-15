@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 
 	"github.com/shanghuiyang/imgr"
 	"github.com/shanghuiyang/oauth"
@@ -71,7 +70,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		time.Sleep(10 * time.Second)
+		util.DelaySec(10)
 	}
 }
 

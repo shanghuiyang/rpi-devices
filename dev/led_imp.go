@@ -39,13 +39,13 @@ func (led *LedImp) Off() {
 }
 
 // Blink is let led blink n time, interval Millisecond each time
-func (led *LedImp) Blink(n int, interval int) {
-	d := time.Duration(interval) * time.Millisecond
+func (led *LedImp) Blink(n int, intervalMs int) {
+	d := time.Duration(intervalMs)
 	for i := 0; i < n; i++ {
 		led.On()
-		time.Sleep(d)
+		delayMs(d)
 		led.Off()
-		time.Sleep(d)
+		delayMs(d)
 	}
 }
 

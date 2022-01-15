@@ -212,7 +212,7 @@ func (s *service) detectSleep() {
 			s.display.Off()
 			log.Print("sleep")
 		}
-		util.DelayMs(3000)
+		util.DelaySec(3)
 	}
 }
 
@@ -250,7 +250,7 @@ func (s *service) detectZoomInBtn() {
 				// toggle tile type when keep pressing the button in 3s
 				s.toggleTileProvider()
 				n = 0
-				util.DelayMs(3000)
+				util.DelaySec(3)
 				continue
 			}
 			if n > 0 {

@@ -94,7 +94,7 @@ func (h *homeAsst) getData() {
 			temp, humi, err := h.getTempHumi()
 			if err != nil {
 				log.Printf("[homeasst]failed to get temp and humi, error: %v", err)
-				time.Sleep(5 * time.Second)
+				util.DelaySec(5)
 				return
 			}
 			log.Printf("[homeasst]temp: %v, humi: %v", temp, humi)
@@ -140,7 +140,7 @@ func (h *homeAsst) getData() {
 		// 	// h.chAlert <- v
 		// }()
 
-		time.Sleep(60 * time.Second)
+		util.DelayMin(1)
 	}
 }
 
@@ -157,7 +157,7 @@ func (h *homeAsst) display() {
 				displayY:    1,
 			}
 			h.chDisplay <- d
-			time.Sleep(1 * time.Second)
+			util.DelaySec(1)
 		}
 	}()
 
@@ -186,7 +186,7 @@ func (h *homeAsst) display() {
 		for _, d := range cache {
 			h.dsp.Text(d.displayText, d.displayX, d.displayY)
 		}
-		time.Sleep(1 * time.Second)
+		util.DelaySec(1)
 	}
 }
 

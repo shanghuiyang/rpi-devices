@@ -24,7 +24,7 @@ func main() {
 	})
 
 	for {
-		util.DelayMs(1000)
+		util.DelaySec(1)
 		params := map[string]interface{}{
 			"datastream_id": "light",
 			"limit":         1,

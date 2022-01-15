@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
 	"github.com/shanghuiyang/rpi-devices/iot"
@@ -84,13 +83,13 @@ func (r *rlight) toggledByRF() {
 			go light.toggle()
 			continue
 		}
-		time.Sleep(300 * time.Millisecond)
+		util.DelayMs(300)
 	}
 }
 
 func (r *rlight) toggledByCloud() {
 	for {
-		util.DelayMs(1000)
+		util.DelaySec(1)
 		params := map[string]interface{}{
 			"datastream_id": "light",
 			"limit":         1,

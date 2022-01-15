@@ -54,12 +54,12 @@ func (b *BuzzerImp) Off() {
 }
 
 // Beep beeps [n] times with an interval in [interval] millisecond
-func (b *BuzzerImp) Beep(n int, intervalInMS int) {
-	d := time.Duration(intervalInMS) * time.Millisecond
+func (b *BuzzerImp) Beep(n int, intervalMs int) {
+	d := time.Duration(intervalMs)
 	for i := 0; i < n; i++ {
 		b.On()
-		time.Sleep(d)
+		delayMs(d)
 		b.Off()
-		time.Sleep(d)
+		delayMs(d)
 	}
 }

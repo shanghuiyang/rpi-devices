@@ -32,7 +32,6 @@ package dev
 
 import (
 	"errors"
-	"time"
 
 	"golang.org/x/exp/io/i2c"
 )
@@ -70,7 +69,7 @@ func (hdc *HDC1080) TempHumidity() (temp, humi float64, err error) {
 	for i := 0; i < maxRetry; i++ {
 		data := make([]byte, 4)
 		if err := hdc.dev.Read(data); err != nil {
-			time.Sleep(1 * time.Millisecond)
+			delayMs(1)
 			continue
 		}
 		t16 := uint16(data[0])<<8 | uint16(data[1])

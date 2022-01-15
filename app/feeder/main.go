@@ -51,7 +51,7 @@ func main() {
 		if now.Hour() == h && now.Minute() == m {
 			go feed()
 		}
-		time.Sleep(time.Minute)
+		util.DelayMin(1)
 	}
 }
 
@@ -59,7 +59,7 @@ func detectBtn() {
 	for {
 		if button.Pressed() {
 			go feed()
-			util.DelayMs(1000)
+			util.DelaySec(1)
 		}
 		util.DelayMs(100)
 	}
@@ -83,7 +83,7 @@ func push() {
 		return
 	}
 
-	time.Sleep(10 * time.Second)
+	util.DelaySec(10)
 	v = &iot.Value{
 		Device: "feeder",
 		Value:  0,

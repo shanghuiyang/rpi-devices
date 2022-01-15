@@ -129,7 +129,7 @@ func (s *SpeechDrivingImp) Start() {
 		case roll:
 			fwd = false
 			s.car.Left()
-			util.DelayMs(3000)
+			util.DelaySec(3)
 			chOp <- stop
 			continue
 		case stop:

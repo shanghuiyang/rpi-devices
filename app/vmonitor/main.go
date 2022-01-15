@@ -285,7 +285,7 @@ func (v *videoServer) beep(n int, interval int) {
 
 func (v *videoServer) detectConnecting() {
 	for {
-		time.Sleep(5 * time.Second)
+		util.DelaySec(5)
 		n, err := v.getConCount()
 		if err != nil {
 			log.Printf("[vmonitor]failed to get users count, err: %v", err)
@@ -299,7 +299,7 @@ func (v *videoServer) alert() {
 	conCount := 0
 	for {
 		if v.mode == babyMode {
-			time.Sleep(1 * time.Second)
+			util.DelaySec(1)
 			continue
 		}
 		select {
@@ -315,7 +315,7 @@ func (v *videoServer) alert() {
 		if conCount > 0 {
 			v.led.Blink(1, 1000)
 		}
-		time.Sleep(1 * time.Second)
+		util.DelaySec(1)
 	}
 }
 
@@ -336,7 +336,7 @@ func (v *videoServer) getConCount() (int, error) {
 
 func (v *videoServer) detectServing() {
 	for {
-		time.Sleep(15 * time.Second)
+		util.DelaySec(15)
 		if v.mode == babyMode {
 			// keep serving in baby monitor mode
 			continue
@@ -376,7 +376,7 @@ func (v *videoServer) detectingMode() {
 			count = 0
 		}
 		if count < 5 {
-			time.Sleep(500 * time.Millisecond)
+			util.DelayMs(500)
 			continue
 		}
 
@@ -390,7 +390,7 @@ func (v *videoServer) detectingMode() {
 			v.mode = normalMode
 		} else {
 			// make a dalay detecting
-			time.Sleep(1 * time.Second)
+			util.DelaySec(1)
 			continue
 		}
 		if err := v.loadHomePage(); err != nil {

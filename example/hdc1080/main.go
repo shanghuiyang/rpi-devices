@@ -16,7 +16,7 @@ func main() {
 
 	util.WaitQuit(func() { hdc.Close() })
 	for {
-		util.DelayMs(1000)
+		util.DelaySec(1)
 		t, h, err := hdc.TempHumidity()
 		if err != nil {
 			log.Printf("failed to get temp & humi, error: %v", err)

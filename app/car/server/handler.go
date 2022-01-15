@@ -274,7 +274,7 @@ func (s *service) selfTrackingOffHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	s.selftracking.Stop()
-	util.DelayMs(1000)
+	util.DelaySec(1)
 	if err := util.StartMotion(); err != nil {
 		log.Printf("[%v]failed to start motion server", logHandlerTag)
 		w.WriteHeader(http.StatusInternalServerError)

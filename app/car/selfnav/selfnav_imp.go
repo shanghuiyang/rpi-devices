@@ -66,7 +66,7 @@ func (s *SelfNavImp) Start(dest *geo.Point) {
 		lat, lon, err := s.gps.Loc()
 		if err != nil {
 			log.Printf("[%v]gps sensor is not ready", logTag)
-			util.DelayMs(1000)
+			util.DelaySec(1)
 			continue
 		}
 		pt := &geo.Point{
@@ -103,7 +103,7 @@ func (s *SelfNavImp) Start(dest *geo.Point) {
 	log.Printf("[%v]turn points(lat,lon): %v", logTag, str)
 
 	s.car.Forward()
-	util.DelayMs(1000)
+	util.DelaySec(1)
 	for i, p := range turnPts {
 		if err := s.navTo(p); err != nil {
 			log.Printf("[%v]failed to nav to (%v), error: %v", logTag, p, err)
@@ -135,7 +135,7 @@ func (s *SelfNavImp) navTo(dest *geo.Point) error {
 		if err != nil {
 			s.car.Stop()
 			log.Printf("[%v]gps sensor is not ready", logTag)
-			util.DelayMs(1000)
+			util.DelaySec(1)
 			continue
 		}
 		loc := &geo.Point{
@@ -145,7 +145,7 @@ func (s *SelfNavImp) navTo(dest *geo.Point) error {
 		if !s.mapBBox.IsInside(loc) {
 			s.car.Stop()
 			log.Printf("[%v]current loc(%v) isn't in bbox(%v)", logTag, loc, s.mapBBox)
-			util.DelayMs(1000)
+			util.DelaySec(1)
 			continue
 		}
 
@@ -158,7 +158,7 @@ func (s *SelfNavImp) navTo(dest *geo.Point) error {
 			s.car.Stop()
 			log.Printf("[%v]bad gps signal, waiting for better gps signal", logTag)
 			retry++
-			util.DelayMs(1000)
+			util.DelaySec(1)
 			continue
 		}
 
@@ -187,7 +187,7 @@ func (s *SelfNavImp) navTo(dest *geo.Point) error {
 			// do nothing
 		}
 		s.car.Forward()
-		util.DelayMs(1000)
+		util.DelaySec(1)
 		s.lastLoc = loc
 	}
 	s.car.Stop()

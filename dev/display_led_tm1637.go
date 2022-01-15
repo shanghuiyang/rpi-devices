@@ -22,14 +22,13 @@ package dev
 import (
 	"errors"
 	"image"
-	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
 const (
-	refreshFrequency = 3 * time.Millisecond
-	closedSignal     = "*.*.*.*"
+	refreshFrequencyMs = 3
+	closedSignal       = "*.*.*.*"
 )
 
 var ledchars = map[byte]uint8{
@@ -229,7 +228,7 @@ func (display *TM1637Display) display() {
 			pos := uint8(0x80) >> uint(i-dot)
 			display.send(ledc)
 			display.send(pos)
-			time.Sleep(refreshFrequency)
+			delayMs(refreshFrequencyMs)
 		}
 	}
 	display.chDone <- true

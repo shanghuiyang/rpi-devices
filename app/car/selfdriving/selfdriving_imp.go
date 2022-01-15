@@ -117,7 +117,7 @@ func (s *SelfDrivingImp) Start() {
 		}
 	}
 	s.car.Stop()
-	util.DelayMs(1000)
+	util.DelaySec(1)
 	close(chOp)
 }
 

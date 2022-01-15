@@ -41,6 +41,6 @@ func (p *PumpImp) Off() {
 // Blink is let led blink n time, interval Millisecond each time
 func (p *PumpImp) Run(sec int) {
 	p.On()
-	time.Sleep(time.Duration(sec) * time.Second)
+	delaySec(time.Duration(sec))
 	p.Off()
 }
