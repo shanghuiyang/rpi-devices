@@ -109,7 +109,7 @@ func newService(cfg *Config) (*service, error) {
 		log.Panicf("[%v]failed to new sg90", logTag)
 	}
 
-	us100, err := dev.NewUS100Uart(cfg.US100.Dev, cfg.US100.Baud)
+	us100, err := dev.NewUS100UART(cfg.US100.Dev, cfg.US100.Baud)
 	if err != nil {
 		log.Panicf("[%v]new us100 error: %v", logTag, err)
 	}

@@ -6,21 +6,20 @@ import (
 	"time"
 )
 
+type InterfaceType int
+type rpiModel string
+
 const (
 	// voice speed in cm/s
 	voiceSpeed = 34000.0
 )
 
-// ComMode ...
-type ComMode int
-
-type rpiModel string
-
 const (
-	// UartMode ...
-	UartMode ComMode = iota
-	// TTLMode ...
-	TTLMode
+	GPIO InterfaceType = iota
+	I2C
+	SPI
+	UART
+	USB
 )
 
 const (

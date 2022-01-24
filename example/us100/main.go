@@ -29,9 +29,9 @@ func main() {
 		return
 	}
 
-	// ttl mode
+	// gpio interface
 	if mode == 1 {
-		u, err := dev.NewUS100TTL(trig, echo)
+		u, err := dev.NewUS100GPIO(trig, echo)
 		if err != nil {
 			log.Fatalf("new us100 error: %v", err)
 		}
@@ -46,8 +46,8 @@ func main() {
 		}
 	}
 
-	// uart mode
-	u, err := dev.NewUS100Uart(us100Dev, baud)
+	// uart interface
+	u, err := dev.NewUS100UART(us100Dev, baud)
 	if err != nil {
 		log.Fatalf("new us100 error: %v", err)
 	}

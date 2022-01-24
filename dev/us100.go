@@ -44,8 +44,8 @@ var (
 
 // US100 ...
 type US100 struct {
-	mode ComMode
-	buf  [4]byte
+	iface InterfaceType
+	buf   [4]byte
 
 	// ttl mode
 	trig rpio.Pin
@@ -55,12 +55,12 @@ type US100 struct {
 	port *serial.Port
 }
 
-// NewUS100TTL creates US100 using TTL mode
-func NewUS100TTL(trig, echo uint8) (*US100, error) {
+// NewUS100GPIO creates US100 using GPOI interface
+func NewUS100GPIO(trig, echo uint8) (*US100, error) {
 	us := &US100{
-		mode: TTLMode,
-		trig: rpio.Pin(trig),
-		echo: rpio.Pin(echo),
+		iface: GPIO,
+		trig:  rpio.Pin(trig),
+		echo:  rpio.Pin(echo),
 	}
 	us.trig.Output()
 	us.trig.Low()
@@ -68,8 +68,8 @@ func NewUS100TTL(trig, echo uint8) (*US100, error) {
 	return us, nil
 }
 
-// NewUS100Uart creates US100 using Uart mode
-func NewUS100Uart(dev string, baud int) (*US100, error) {
+// NewUS100UART creates US100 using UART interface
+func NewUS100UART(dev string, baud int) (*US100, error) {
 	cfg := &serial.Config{
 		Name:        dev,
 		Baud:        baud,
@@ -80,20 +80,20 @@ func NewUS100Uart(dev string, baud int) (*US100, error) {
 		return nil, err
 	}
 	return &US100{
-		mode: UartMode,
-		port: port,
+		iface: UART,
+		port:  port,
 	}, nil
 }
 
 // Value returns the distance in cm to objects
 func (us *US100) Dist() (float64, error) {
-	if us.mode == UartMode {
-		return us.distFromUart()
+	if us.iface == UART {
+		return us.distFromUART()
 	}
-	return us.distFromTTL()
+	return us.distFromGPIO()
 }
 
-func (us *US100) distFromUart() (float64, error) {
+func (us *US100) distFromUART() (float64, error) {
 	if err := us.port.Flush(); err != nil {
 		return 0, fmt.Errorf("flush port error: %w", err)
 	}
@@ -121,7 +121,7 @@ func (us *US100) distFromUart() (float64, error) {
 	return float64((uint16(us.buf[0])<<8)|uint16(us.buf[1])) / 10.0, nil
 }
 
-func (us *US100) distFromTTL() (float64, error) {
+func (us *US100) distFromGPIO() (float64, error) {
 	us.trig.Low()
 	delayUs(1)
 	us.trig.High()
@@ -146,7 +146,7 @@ func (us *US100) distFromTTL() (float64, error) {
 
 // Close ...
 func (us *US100) Close() error {
-	if us.mode == UartMode {
+	if us.iface == UART {
 		return us.port.Close()
 	}
 	return nil
