@@ -6,12 +6,20 @@ import (
 	"time"
 )
 
-type InterfaceType int
-type rpiModel string
+type (
+	LogicLevel    int
+	InterfaceType int
+	rpiModel      string
+)
 
 const (
 	// voice speed in cm/s
 	voiceSpeed = 34000.0
+)
+
+const (
+	Low  LogicLevel = 0
+	High LogicLevel = 1
 )
 
 const (

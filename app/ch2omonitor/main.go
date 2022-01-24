@@ -44,7 +44,7 @@ func main() {
 		log.Fatalf("new ze08ch2o error: %v", err)
 	}
 	led := dev.NewLedImp(pinLed)
-	bzr := dev.NewBuzzerImp(pinBzr, true)
+	bzr := dev.NewBuzzerImp(pinBzr, dev.High)
 	dsp := dev.NewTM1637Display(dioPin, rclkPin, sclkPin)
 
 	cfg := &iot.Config{

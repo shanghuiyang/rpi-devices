@@ -51,7 +51,7 @@ var (
 
 func main() {
 	cam := dev.NewMotionCamera()
-	bzr := dev.NewBuzzerImp(pinBzr, true)
+	bzr := dev.NewBuzzerImp(pinBzr, dev.High)
 	led := dev.NewLedImp(pinLed)
 	btn := dev.NewButtonImp(pinBtn)
 	hcsr04 := dev.NewHCSR04(pinTrig, pinEcho)

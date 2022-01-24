@@ -13,7 +13,7 @@ const (
 
 func main() {
 
-	buz := dev.NewBuzzerImp(pin, true)
+	buz := dev.NewBuzzerImp(pin, dev.High)
 
 	var op string
 	for {

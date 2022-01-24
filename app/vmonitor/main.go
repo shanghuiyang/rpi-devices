@@ -75,7 +75,7 @@ func main() {
 		log.Printf("[vmonitor]failed to new a led, will run the monitor without led")
 	}
 
-	bzr := dev.NewBuzzerImp(pinBzr, true)
+	bzr := dev.NewBuzzerImp(pinBzr, dev.High)
 	if bzr == nil {
 		log.Printf("[vmonitor]failed to new a buzzer, will run the monitor without buzzer")
 	}

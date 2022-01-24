@@ -94,7 +94,7 @@ func newService(cfg *Config) (*service, error) {
 		return nil, errors.New("failed to new L298N")
 	}
 
-	buz := dev.NewBuzzerImp(cfg.BuzzerPin, true)
+	buz := dev.NewBuzzerImp(cfg.BuzzerPin, dev.High)
 	if buz == nil {
 		return nil, errors.New("failed to new buzzer")
 	}
