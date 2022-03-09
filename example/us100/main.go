@@ -18,7 +18,7 @@ const (
 
 func main() {
 	var mode int
-	fmt.Printf("Please choose mode: 1: TTL, 2: Uart\n")
+	fmt.Printf("choose interface type: 1: GPIO, 2: UART\n")
 	fmt.Printf("mode: ")
 	if n, err := fmt.Scanf("%d", &mode); n != 1 || err != nil {
 		log.Printf("invalid operator, error: %v", err)

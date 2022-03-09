@@ -2,8 +2,8 @@
 LedImp is a led module.
 
 Connect to Raspberry Pi:
-  - positive(the longer pin): 	any data pin
-  - negative(she shorter pin): 	any gnd pin
+  - gcc(the longer pin):  any data pin
+  - gnd(the shorter pin): any gnd pin
 */
 package dev
 

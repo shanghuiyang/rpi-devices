@@ -7,8 +7,8 @@ Connect to Raspberry Pi for a 3-pin buzzer mobule:
  - i/o: any data pin
 
 Connect to Raspberry Pi for a 2-pin buzzer mobule:
- - port-1: any 3.3v pin
- - port-2: any data pin
+  - vcc(the longer pin):  any data pin
+  - gnd(the shorter pin): any gnd pin
 */
 
 package dev
@@ -32,6 +32,7 @@ func NewBuzzerImp(pin uint8, trigBy LogicLevel) *BuzzerImp {
 		trigBy: trigBy,
 	}
 	b.pin.Output()
+	b.Off()
 	return b
 }
 
