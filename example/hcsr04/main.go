@@ -23,6 +23,6 @@ func main() {
 			continue
 		}
 		fmt.Printf("%.2f cm\n", d)
-		time.Sleep(1 * time.Second)
+		time.Sleep(100 * time.Millisecond)
 	}
 }

@@ -53,17 +53,17 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 // Value returns distance in cm to objects
 func (hc *HCSR04) Dist() (float64, error) {
 	hc.trig.Low()
-	delayUs(100)
+	delayUs(1)
 	hc.trig.High()
-	delayUs(15)
+	delayUs(1)
 
 	for n := 0; n < timeout && hc.echo.Read() != rpio.High; n++ {
-		delayUs(1)
+		delayNs(10)
 	}
 	start := time.Now()
 
 	for n := 0; n < timeout && hc.echo.Read() != rpio.Low; n++ {
-		delayUs(1)
+		delayNs(10)
 	}
 	return time.Since(start).Seconds() * voiceSpeed / 2.0, nil
 }

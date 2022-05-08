@@ -40,6 +40,10 @@ const (
 	rpi4       rpiModel = "Raspberry Pi 4 Model"
 )
 
+func delayNs(d time.Duration) {
+	time.Sleep(d * time.Nanosecond)
+}
+
 func delayUs(d time.Duration) {
 	time.Sleep(d * time.Microsecond)
 }

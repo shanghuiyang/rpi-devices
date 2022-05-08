@@ -31,7 +31,7 @@ const (
 	hs float64 = 255
 	hv float64 = 255
 
-	url = ":8088/stracking"
+	url = ":8088/tracking"
 )
 
 var eng dev.MotorDriver
