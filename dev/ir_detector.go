@@ -15,19 +15,19 @@ import (
 
 // IRDetector implements Detector interface
 type IRDetector struct {
-	pin rpio.Pin
+	out rpio.Pin
 }
 
 // NewIRDetector ...
-func NewIRDetector(pin uint8) *IRDetector {
+func NewIRDetector(out uint8) *IRDetector {
 	ir := &IRDetector{
-		pin: rpio.Pin(pin),
+		out: rpio.Pin(out),
 	}
-	ir.pin.Input()
+	ir.out.Input()
 	return ir
 }
 
 // Detected ...
 func (ir *IRDetector) Detected() bool {
-	return ir.pin.Read() == rpio.Low
+	return ir.out.Read() == rpio.Low
 }

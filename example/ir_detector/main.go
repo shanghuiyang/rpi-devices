@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	pin = 18
+	out = 18
 )
 
 func main() {
-	ir := dev.NewIRDetector(pin)
+	ir := dev.NewIRDetector(out)
 	for {
 		detectedObj := ir.Detected()
 		if detectedObj {
