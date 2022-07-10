@@ -8,27 +8,17 @@ import (
 )
 
 const (
-	pinBtn = 21
-	pinLed = 26
+	pin = 21
 )
 
 func main() {
-	btn := dev.NewButtonImp(pinBtn)
-	led := dev.NewLedImp(pinLed)
-
-	on := false
+	btn := dev.NewButtonImp(pin)
 	for {
-		pressed := btn.Pressed()
-		if pressed {
-			log.Printf("the button was pressed")
-			if on {
-				on = false
-				led.Off()
-			} else {
-				led.On()
-				on = true
-			}
+		if !btn.Pressed() {
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
-		time.Sleep(300 * time.Millisecond)
+		log.Printf("the button was pressed")
+		time.Sleep(1 * time.Second)
 	}
 }

@@ -14,10 +14,11 @@ const (
 func main() {
 	c := dev.NewCollisionSwitch(pin)
 	for {
-		collided := c.Detected()
-		if collided {
-			log.Printf("collided")
+		if !c.Detected() {
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
-		time.Sleep(10 * time.Millisecond)
+		log.Printf("collided")
+		time.Sleep(1 * time.Second)
 	}
 }

@@ -14,9 +14,11 @@ const (
 func main() {
 	h := dev.NewHumidityDetector(pin)
 	for {
-		if h.Detected() {
-			log.Printf("detected humidity")
+		if !h.Detected() {
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
-		time.Sleep(1 * time.Second)
+		log.Printf("detected humidity")
+		time.Sleep(5 * time.Second)
 	}
 }

@@ -50,8 +50,10 @@ func (sg *SG90) Roll(angle float64) {
 	}
 	duty := uint32(10.0 - angle/15.0)
 	if sg.rpi == rpi4 {
-		// Rpi4 uses a BCM 2711, which is different from the early rpi like rpi3, rpi2, rpiA and rpi0
-		duty = uint32(22.5 - 39*float32(angle)/180)
+		// Rpi4 uses a BCM 2711,
+		// which is different from
+		// the early rpi like rpi3, rpi2, rpiA and rpi0
+		duty = uint32(23.5 - 0.155*float64(angle))
 	}
 	sg.pin.DutyCycle(uint32(duty), 100)
 }

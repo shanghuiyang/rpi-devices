@@ -14,12 +14,11 @@ const (
 func main() {
 	sw := dev.NewSW420(pin)
 	for {
-		shaked := sw.Detected()
-		if shaked {
-			log.Printf("shaked")
-			time.Sleep(1 * time.Second)
+		if !sw.Detected() {
+			time.Sleep(100 * time.Millisecond)
 			continue
 		}
-		time.Sleep(100 * time.Millisecond)
+		log.Printf("shaking")
+		time.Sleep(1 * time.Second)
 	}
 }

@@ -25,16 +25,6 @@ import (
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
-type StepperMode int
-
-const (
-	FullMode StepperMode = iota
-	HalfMode
-	QuarterMode
-	EighthMode
-	SixteenthMode
-)
-
 // the degree per step for nema stepper
 var degreePerStepForNema = map[StepperMode]float64{
 	FullMode:      1.8,

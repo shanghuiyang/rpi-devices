@@ -14,12 +14,11 @@ const (
 func main() {
 	ir := dev.NewIRDetector(out)
 	for {
-		detectedObj := ir.Detected()
-		if detectedObj {
-			log.Printf("detected an object")
-		} else {
-			log.Printf("didn't detect any objects")
+		if !ir.Detected() {
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
+		log.Printf("detected")
 		time.Sleep(1 * time.Second)
 	}
 }

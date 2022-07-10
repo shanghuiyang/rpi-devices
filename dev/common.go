@@ -12,6 +12,16 @@ type (
 	rpiModel      string
 )
 
+type StepperMode int
+
+const (
+	FullMode StepperMode = iota
+	HalfMode
+	QuarterMode
+	EighthMode
+	SixteenthMode
+)
+
 const (
 	// voice speed in cm/s
 	voiceSpeed = 34000.0

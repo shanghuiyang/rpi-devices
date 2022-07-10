@@ -8,17 +8,17 @@ import (
 )
 
 const (
-	do = 25
+	out = 25
 )
 
 func main() {
-	mq7 := dev.NewMQ7(do)
+	ld := dev.NewLD2410(out)
 	for {
-		if !mq7.Detected() {
-			time.Sleep(100 * time.Millisecond)
+		if !ld.Detected() {
+			time.Sleep(1 * time.Second)
 			continue
 		}
-		log.Printf("detect CO")
+		log.Printf("there is human")
 		time.Sleep(10 * time.Second)
 	}
 }

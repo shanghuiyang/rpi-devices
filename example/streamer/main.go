@@ -1,3 +1,4 @@
+//go:build gocv
 // +build gocv
 
 package main
