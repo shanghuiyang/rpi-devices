@@ -238,9 +238,10 @@ func (s *SpeechDrivingImp) recognize() error {
 		log.Printf("[%v]failed to take phote, error: %v", logTag, err)
 		return err
 	}
-	util.PlayWav(letMeThinkWav)
+	go util.PlayWav(letMeThinkWav)
 
 	log.Printf("[%v]recognize image", logTag)
+	util.DelaySec(1)
 	objname, err := s.imgr.Recognize(img)
 	if err != nil {
 		log.Printf("[%v]failed to recognize image, error: %v", logTag, err)

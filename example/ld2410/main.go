@@ -18,7 +18,7 @@ func main() {
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		log.Printf("there is human")
-		time.Sleep(10 * time.Second)
+		log.Printf("detected")
+		time.Sleep(15 * time.Second)
 	}
 }
