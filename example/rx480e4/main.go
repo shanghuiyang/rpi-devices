@@ -24,7 +24,7 @@ const (
 func main() {
 	r := dev.NewRX480E4(d0, d1, d2, d3)
 	led := dev.NewLedImp(ledPin)
-	
+
 	defer func() {
 		led.Off()
 	}()

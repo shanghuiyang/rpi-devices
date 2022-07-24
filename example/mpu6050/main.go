@@ -14,8 +14,8 @@ func main() {
 		return
 	}
 
-	defer func() { 
-		m.Close() 
+	defer func() {
+		m.Close()
 	}()
 
 	for {

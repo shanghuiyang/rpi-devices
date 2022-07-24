@@ -25,8 +25,8 @@ func main() {
 		return
 	}
 
-	defer func() { 
-		display.Close() 
+	defer func() {
+		display.Close()
 	}()
 
 	for {

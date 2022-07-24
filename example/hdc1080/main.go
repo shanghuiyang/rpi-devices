@@ -14,12 +14,12 @@ func main() {
 		return
 	}
 
-	defer func() { 
-		hdc.Close() 
+	defer func() {
+		hdc.Close()
 	}()
 
 	for {
-		time.Sleep(1*time.Second)
+		time.Sleep(1 * time.Second)
 		t, h, err := hdc.TempHumidity()
 		if err != nil {
 			log.Printf("failed to get temp & humi, error: %v", err)
