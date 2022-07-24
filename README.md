@@ -1,13 +1,13 @@
 ![](img/go-devices.png)
 
-# rpi-devices 
+## rpi-devices 
 [![ci](https://github.com/shanghuiyang/rpi-devices/actions/workflows/ci.yml/badge.svg)](https://github.com/shanghuiyang/rpi-devices/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/shanghuiyang/rpi-devices/blob/master/LICENSE)
 [![GoDoc](https://godoc.org/github.com/shanghuiyang/rpi-devices?status.svg)](https://godoc.org/github.com/shanghuiyang/rpi-devices)
 
-rpi-devices implements drivers for various kinds of sensors or devices based on raspberry pi in pure golang.
+rpi-devices implements drivers for various kinds of sensors or devices based on [raspberry pi](https://www.raspberrypi.org/) in pure Golang.
 
-## Usage
+### Usage
 ```go
 package main
 
@@ -17,20 +17,20 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
-const (
-	pin = 26
-)
+const pin = 26
 
 func main() {
 	led := dev.NewLedImp(pin)
-
-	led.On()
-	time.Sleep(3 * time.Second)
-	led.Off()
+	for {
+		led.On()
+		time.Sleep(1 * time.Second)
+		led.Off()
+		time.Sleep(1 * time.Second)
+	}
 }
 ```
 
-## Currently Implemented Drivers
+### Currently Implemented Drivers
 
 |Sensors|Image|Description|Example|Projects|
 |-------|-----|-----|-------|---|

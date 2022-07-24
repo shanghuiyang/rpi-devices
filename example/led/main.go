@@ -6,18 +6,14 @@ import (
 	"github.com/shanghuiyang/rpi-devices/dev"
 )
 
-const (
-	pin = 26
-)
+const pin = 26
 
 func main() {
-
 	led := dev.NewLedImp(pin)
-
 	for {
 		led.On()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		led.Off()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 	}
 }
