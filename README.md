@@ -69,3 +69,6 @@ func main() {
 |Voice Detector|![](img/voice.jpg)|Voice detector|N/A|N/A|
 |ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ze08ch2o/main.go)|[ch2o-monitor](https://github.com/shanghuiyang/rpi-projects/tree/main/projects/ch2omonitor)|
 |ZP16|![](img/zp16.jpg)|Gas detector|[example](/example/zp16/main.go)|[home-asst](https://github.com/shanghuiyang/rpi-projects/tree/main/projects/homeasst)|
+
+### Projects
+See my another repo [rpi-projects](https://github.com/shanghuiyang/rpi-projects) for all projects that I developed them using this libaray.
