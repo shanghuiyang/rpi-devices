@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 func main() {
@@ -15,7 +14,10 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(func() { m.Close() })
+	defer func() { 
+		m.Close() 
+	}()
+
 	for {
 		gx, gy, gz := m.GetAcc()
 		log.Printf("gx=%v, gy=%v, gz=%v", gx, gy, gz)

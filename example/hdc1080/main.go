@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 func main() {
@@ -14,9 +14,12 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(func() { hdc.Close() })
+	defer func() { 
+		hdc.Close() 
+	}()
+
 	for {
-		util.DelaySec(1)
+		time.Sleep(1*time.Second)
 		t, h, err := hdc.TempHumidity()
 		if err != nil {
 			log.Printf("failed to get temp & humi, error: %v", err)

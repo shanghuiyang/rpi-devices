@@ -16,15 +16,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17
-        
-    - name: Install Dependencies
-      run: |
-        export GOPATH=$(go env GOPATH)
-        go mod download
-        pushd $GOPATH/pkg/mod/gocv.io/x/gocv@v0.23.0
-        make install
-        popd
+        go-version: 1.18
           
     - name: Build
       run: go build -v ./...

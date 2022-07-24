@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
@@ -25,9 +24,10 @@ const (
 func main() {
 	r := dev.NewRX480E4(d0, d1, d2, d3)
 	led := dev.NewLedImp(ledPin)
-	util.WaitQuit(func() {
+	
+	defer func() {
 		led.Off()
-	})
+	}()
 
 	ledOn := false
 	chA := make(chan bool)

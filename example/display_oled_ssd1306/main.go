@@ -10,7 +10,6 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/shanghuiyang/rpi-devices/dev"
-	"github.com/shanghuiyang/rpi-devices/util"
 )
 
 const (
@@ -26,7 +25,10 @@ func main() {
 		return
 	}
 
-	util.WaitQuit(func() { display.Close() })
+	defer func() { 
+		display.Close() 
+	}()
+
 	for {
 		t := time.Now().Format("15:04:05")
 		img, err := drawImage(t, 19, 0, 25)
