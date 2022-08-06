@@ -60,8 +60,8 @@ func (hc *HCSR04) Dist() (float64, error) {
 	for n := 0; n < timeout && hc.echo.Read() != rpio.High; n++ {
 		delayNs(10)
 	}
-	start := time.Now()
 
+	start := time.Now()
 	for n := 0; n < timeout && hc.echo.Read() != rpio.Low; n++ {
 		delayNs(10)
 	}

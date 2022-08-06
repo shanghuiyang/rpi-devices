@@ -37,12 +37,16 @@ func NewSG90(pin uint8) *SG90 {
 // angle > 0: roll clockwise
 // e.g.
 //
-//     -30  0   30
-//       \  |  /
-//        \ | /
-//         \|/
-//          *
-//         eye
+//       -30  0   30
+//         \  |  /
+//          \ | /
+//           \|/
+//   -90 ---- * ---- 90
+//         +-----+
+//         |     |
+//         |     | sg90
+//         | (*) |
+//         +-----+
 //
 func (sg *SG90) Roll(angle float64) {
 	if angle < -90 || angle > 90 {

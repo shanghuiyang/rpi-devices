@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	devName = "/dev/ttyUSB0"
+	devName = "/dev/ttyAMA0"
 	baud    = 115200
 )
 
