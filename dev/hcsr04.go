@@ -1,5 +1,7 @@
 /*
 HC-SR04 is an ultrasonic distance meter used to measure the distance to objects.
+min distance: 2cm
+max distance: 600cm
 
 Spec:
   - power supply:	+5V DC
@@ -29,7 +31,8 @@ import (
 )
 
 const (
-	timeout = 3600
+	hcsr04Timeout = 18000000 // Nanosecond, 612m
+	hcsr04MaxDist = 600      // cm
 )
 
 // HCSR04 implements DistanceMeter interface
@@ -57,13 +60,19 @@ func (hc *HCSR04) Dist() (float64, error) {
 	hc.trig.High()
 	delayUs(1)
 
-	for n := 0; n < timeout && hc.echo.Read() != rpio.High; n++ {
-		delayNs(10)
+	for i := 0; hc.echo.Read() != rpio.High; i++ {
+		if i >= hcsr04Timeout {
+			return hcsr04MaxDist, nil
+		}
+		delayNs(1)
 	}
 
 	start := time.Now()
-	for n := 0; n < timeout && hc.echo.Read() != rpio.Low; n++ {
-		delayNs(10)
+	for i := 0; hc.echo.Read() != rpio.Low; i++ {
+		if i >= hcsr04Timeout {
+			return hcsr04MaxDist, nil
+		}
+		delayNs(1)
 	}
 	return time.Since(start).Seconds() * voiceSpeed / 2.0, nil
 }
