@@ -10,7 +10,7 @@ Spec:
           |                                         |
           |_________________________________________|
               |   |   |     |   |   |   |   |   |
-             12v GND  5V   EN1 IN1 IN2 IN3 IN4 EN2
+             12v GND  5V   ENA IN1 IN2 IN3 IN4 ENB
 
 Pins:
  - OUT1: dc motor A+

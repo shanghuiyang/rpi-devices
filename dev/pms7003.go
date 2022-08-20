@@ -27,21 +27,9 @@ package dev
 
 import (
 	"errors"
-	"fmt"
-	"math"
 	"time"
 
 	"github.com/tarm/serial"
-)
-
-const (
-	maxDeltaPM25       = 150
-	pms7003HistorySize = 10
-)
-
-var (
-	mockData = []uint16{50, 110, 150, 110, 50}
-	mockIdx  = 0
 )
 
 // PMS7003 ...
@@ -49,9 +37,6 @@ type PMS7003 struct {
 	port  *serial.Port
 	buf   [128]byte
 	retry int
-
-	history []int
-	next    int
 }
 
 // NewPMS7003 ...
@@ -65,15 +50,10 @@ func NewPMS7003(dev string, baud int) (*PMS7003, error) {
 	if err != nil {
 		return nil, err
 	}
-	history := make([]int, pms7003HistorySize)
-	for i := range history {
-		history[i] = -1
-	}
+
 	return &PMS7003{
-		port:    port,
-		retry:   10,
-		history: history,
-		next:    0,
+		port:  port,
+		retry: 10,
 	}, nil
 }
 
@@ -87,7 +67,7 @@ func (pms *PMS7003) Get() (uint16, uint16, error) {
 		for a < 32 {
 			n, err := pms.port.Read(pms.buf[a:])
 			if err != nil {
-				return 0, 0, fmt.Errorf("error on read from port, error: %v. try to open serial again", err)
+				return 0, 0, err
 			}
 			a += n
 		}
@@ -108,58 +88,12 @@ func (pms *PMS7003) Get() (uint16, uint16, error) {
 
 		pm25 := (uint16(pms.buf[6]) << 8) | uint16(pms.buf[7])
 		pm10 := (uint16(pms.buf[8]) << 8) | uint16(pms.buf[9])
-		if !pms.validate(pm25) {
-			continue
-		}
 		return pm25, pm10, nil
 	}
-	return 0, 0, fmt.Errorf("psm7003 is invalid currently")
-}
-
-// MockGet mocks Get()
-func (pms *PMS7003) MockGet() (uint16, uint16, error) {
-	n := len(mockData)
-	if n == 0 {
-		return 0, 0, errors.New("without data")
-	}
-	if mockIdx >= n {
-		mockIdx = 0
-	}
-	pm25 := mockData[mockIdx]
-	pm10 := mockData[mockIdx]
-	mockIdx++
-
-	return pm25, pm10, nil
+	return 0, 0, errors.New("psm7003 is busy, please try agian later")
 }
 
 // Close ...
 func (pms *PMS7003) Close() error {
 	return pms.port.Close()
-}
-
-func (pms *PMS7003) validate(pm25 uint16) bool {
-	if len(pms.history) == 0 {
-		pms.history[0] = int(pm25)
-		pms.next++
-		return true
-	}
-	var sum float64
-	n := 0
-	for _, v := range pms.history {
-		if v < 0 {
-			break
-		}
-		sum += float64(v)
-		n++
-	}
-	avg := sum / float64(n)
-	if math.Abs(avg-float64(pm25)) < maxDeltaPM25 {
-		pms.history[pms.next] = int(pm25)
-		pms.next++
-		if pms.next >= pms7003HistorySize {
-			pms.next = 0
-		}
-		return true
-	}
-	return false
 }
