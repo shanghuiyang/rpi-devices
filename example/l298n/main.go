@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/shanghuiyang/rpi-devices/dev"
@@ -18,32 +16,16 @@ const (
 )
 
 func main() {
-
 	l298n := dev.NewL298N(in1, in2, in3, in4, ena, enb)
-	l298n.SetSpeed(30)
-	var op string
-	for {
-		fmt.Printf(">>op: ")
-		if n, err := fmt.Scanf("%s", &op); n != 1 || err != nil {
-			log.Printf("invalid operator, error: %v", err)
-			continue
-		}
-		switch op {
-		case "f":
-			l298n.Forward()
-		case "b":
-			l298n.Backward()
-		case "l":
-			l298n.Left()
-		case "r":
-			l298n.Right()
-		case "q":
-			log.Printf("quit\n")
-			return
-		default:
-			fmt.Printf("invalid operator, should be: f(forward), b(backward), l(left), r(right) or q(quit)\n")
-		}
-		time.Sleep(1 * time.Second)
-		l298n.Stop()
-	}
+	motorA := dev.NewDCMotor(l298n.MotorA)
+	motorB := dev.NewDCMotor(l298n.MotorB)
+
+	motorA.SetSpeed(30)
+	motorB.SetSpeed(60)
+
+	motorA.Forward()
+	motorB.Backward()
+	time.Sleep(5 * time.Second)
+	motorA.Stop()
+	motorB.Stop()
 }

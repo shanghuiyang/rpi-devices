@@ -36,83 +36,60 @@ import (
 
 // L298N implements MotorDriver interface
 type L298N struct {
+	MotorA MotorDriver
+	MotorB MotorDriver
+}
+
+type l298nMotorDriver struct {
 	in1 rpio.Pin
 	in2 rpio.Pin
-	in3 rpio.Pin
-	in4 rpio.Pin
-	ena rpio.Pin
-	enb rpio.Pin
+	en  rpio.Pin
 }
 
 // NewL298N ...
 func NewL298N(in1, in2, in3, in4, ena, enb uint8) *L298N {
 	l := &L298N{
-		in1: rpio.Pin(in1),
-		in2: rpio.Pin(in2),
-		in3: rpio.Pin(in3),
-		in4: rpio.Pin(in4),
-		ena: rpio.Pin(ena),
-		enb: rpio.Pin(enb),
+		MotorA: newL298NMotorDriver(in1, in2, ena),
+		MotorB: newL298NMotorDriver(in3, in4, enb),
 	}
-	l.in1.Output()
-	l.in2.Output()
-	l.in3.Output()
-	l.in4.Output()
-	l.in1.Low()
-	l.in2.Low()
-	l.in3.Low()
-	l.in4.Low()
-	l.ena.Pwm()
-	l.enb.Pwm()
-	l.ena.Freq(50 * 100)
-	l.enb.Freq(50 * 100)
 	return l
 }
 
+func newL298NMotorDriver(in1, in2, en uint8) *l298nMotorDriver {
+	m := &l298nMotorDriver{
+		in1: rpio.Pin(in1),
+		in2: rpio.Pin(in2),
+		en:  rpio.Pin(en),
+	}
+	m.in1.Output()
+	m.in2.Output()
+	m.in1.Low()
+	m.in2.Low()
+	m.en.Pwm()
+	m.en.Freq(50 * 100)
+	return m
+}
+
 // Forward ...
-func (l *L298N) Forward() {
-	l.in1.High()
-	l.in2.Low()
-	l.in3.High()
-	l.in4.Low()
+func (m *l298nMotorDriver) Forward() {
+	m.in1.High()
+	m.in2.Low()
 }
 
 // Backward ...
-func (l *L298N) Backward() {
-	l.in1.Low()
-	l.in2.High()
-	l.in3.Low()
-	l.in4.High()
-}
-
-// Left ...
-func (l *L298N) Left() {
-	l.in1.Low()
-	l.in2.High()
-	l.in3.High()
-	l.in4.Low()
-}
-
-// Right ...
-func (l *L298N) Right() {
-	l.in1.High()
-	l.in2.Low()
-	l.in3.Low()
-	l.in4.High()
+func (m *l298nMotorDriver) Backward() {
+	m.in1.Low()
+	m.in2.High()
 }
 
 // Stop ...
-func (l *L298N) Stop() {
-	l.in1.Low()
-	l.in2.Low()
-	l.in3.Low()
-	l.in4.Low()
+func (m *l298nMotorDriver) Stop() {
+	m.in1.Low()
+	m.in2.Low()
 }
 
 // Speed ...
-func (l *L298N) SetSpeed(s uint32) {
-	l.ena.DutyCycle(0, 100)
-	l.enb.DutyCycle(0, 100)
-	l.ena.DutyCycle(s, 100)
-	l.enb.DutyCycle(s, 100)
+func (m *l298nMotorDriver) SetSpeed(s uint32) {
+	m.en.DutyCycle(0, 100)
+	m.en.DutyCycle(s, 100)
 }
