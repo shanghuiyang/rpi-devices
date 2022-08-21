@@ -1,9 +1,9 @@
 /*
-PumpImp is a driver for pump motor module.
+PumpImp is a driver for ~3.3v pump motor module.
 
 Connect to Raspberry Pi:
-  - positive(the longer pin): 	any data pin
-  - negative(she shorter pin): 	any gnd pin
+  - vcc(red line)  : any data pin(~3.3v)
+  - gnd(black line): any gnd pin
 */
 package dev
 
@@ -38,7 +38,7 @@ func (p *PumpImp) Off() {
 	p.pin.Low()
 }
 
-// Blink is let led blink n time, interval Millisecond each time
+// Run lets the pump keep running in sec time
 func (p *PumpImp) Run(sec int) {
 	p.On()
 	delaySec(time.Duration(sec))

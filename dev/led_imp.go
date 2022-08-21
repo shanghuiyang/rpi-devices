@@ -1,8 +1,8 @@
 /*
-LedImp is a led module.
+LedImp is led light diodes module.
 
 Connect to Raspberry Pi:
-  - gcc(the longer pin):  any data pin
+  - vcc(the longer pin) :  any data pin(~3.3v)
   - gnd(the shorter pin): any gnd pin
 */
 package dev

@@ -7,7 +7,7 @@ Connect to Raspberry Pi for a 3-pin buzzer mobule:
  - i/o: any data pin
 
 Connect to Raspberry Pi for a 2-pin buzzer mobule:
-  - vcc(the longer pin):  any data pin
+  - vcc(the longer pin):  any data pin(~3.3v)
   - gnd(the shorter pin): any gnd pin
 */
 

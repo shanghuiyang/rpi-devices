@@ -2,8 +2,8 @@
 Fan is a fan module using 3.3v power source.
 
 Connect to Raspberry Pi:
-  - gcc(the longer pin):  any data pin
-  - gnd(the shorter pin): any gnd pin
+  - vcc(red line)  : any data pin(~3.3v)
+  - gnd(black line): any gnd pin
 */
 package dev
 
