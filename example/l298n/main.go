@@ -9,10 +9,10 @@ import (
 const (
 	in1 = 17
 	in2 = 23
-	in3 = 24
+	in3 = 27
 	in4 = 22
-	ena = 18
-	enb = 13
+	ena = 13
+	enb = 19
 )
 
 func main() {
@@ -20,12 +20,12 @@ func main() {
 	motorA := dev.NewDCMotor(l298n.MotorA)
 	motorB := dev.NewDCMotor(l298n.MotorB)
 
-	motorA.SetSpeed(30)
-	motorB.SetSpeed(60)
+	motorA.SetSpeed(25)
+	motorB.SetSpeed(25)
 
 	motorA.Forward()
-	motorB.Backward()
-	time.Sleep(5 * time.Second)
+	motorB.Forward()
+	time.Sleep(2 * time.Second)
 	motorA.Stop()
 	motorB.Stop()
 }

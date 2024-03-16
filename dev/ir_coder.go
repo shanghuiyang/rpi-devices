@@ -32,6 +32,8 @@ import (
 	"github.com/tarm/serial"
 )
 
+var irCodeBuf = make([]byte, 32)
+
 // IRCoder ...
 type IRCoder struct {
 	port *serial.Port
@@ -66,6 +68,18 @@ func (ir *IRCoder) Send(data []byte) error {
 	}
 
 	return nil
+}
+
+func (ir *IRCoder) Read() ([]byte, error) {
+	if err := ir.port.Flush(); err != nil {
+		return nil, err
+	}
+
+	n, err := ir.port.Read(irCodeBuf)
+	if err != nil {
+		return nil, err
+	}
+	return irCodeBuf[0:n], nil
 }
 
 // Close ...
