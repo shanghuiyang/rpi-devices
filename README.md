@@ -67,6 +67,7 @@ func main() {
 |SW-420|![](img/sw-420.jpg)|Shaking sensor|[example](/example/sw420/main.go)|[auto-air-out](https://github.com/shanghuiyang/rpi-projects/tree/main/projects/autoairout)|
 |US-100|![](img/us-100.jpg)|Ultrasonic distance meter|[example](/example/us100/main.go)|[car](https://github.com/shanghuiyang/rpi-projects/tree/main/projects/car)|
 |Voice Detector|![](img/voice.jpg)|Voice detector|N/A|N/A|
+|Water Flow Sensor|![](img/water_flow_sensor.jpg)|Water flow sensor|[example](/example/water_flow_sensor/main.go)|N/A|
 |ZE08-CH2O|![](img/ze08-ch2o.jpg)|CH2O sensor|[example](/example/ze08ch2o/main.go)|[ch2o-monitor](https://github.com/shanghuiyang/rpi-projects/tree/main/projects/ch2omonitor)|
 |ZP16|![](img/zp16.jpg)|Gas detector|[example](/example/zp16/main.go)|[home-asst](https://github.com/shanghuiyang/rpi-projects/tree/main/projects/homeasst)|
 

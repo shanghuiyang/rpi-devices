@@ -164,3 +164,7 @@ type Wireless interface {
 	Wakeup()
 	Close() error
 }
+
+type FlowSensor interface {
+	Flowing() bool
+}
