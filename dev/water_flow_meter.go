@@ -2,20 +2,20 @@ package dev
 
 import "github.com/stianeikeland/go-rpio/v4"
 
-// WaterFlowSensor implements FlowSensor interface
-type WaterFlowSensor struct {
+// WaterFlowMeter implements Detector interface
+type WaterFlowMeter struct {
 	pin rpio.Pin
 }
 
 // NewWaterFlowMeter ...
-func NewWaterFlowSensor(pin uint8) *WaterFlowSensor {
-	w := &WaterFlowSensor{
+func NewWaterFlowMeter(pin uint8) *WaterFlowMeter {
+	w := &WaterFlowMeter{
 		pin: rpio.Pin(pin),
 	}
 	w.pin.Input()
 	return w
 }
 
-func (w *WaterFlowSensor) Flowing() bool {
+func (w *WaterFlowMeter) Detected() bool {
 	return w.pin.Read() == rpio.High
 }

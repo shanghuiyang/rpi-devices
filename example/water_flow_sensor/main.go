@@ -10,11 +10,11 @@ import (
 const pulsesPerLiter float32 = 450
 
 func main() {
-	w := dev.NewWaterFlowSensor(17)
+	w := dev.NewWaterFlowMeter(17)
 	var numberOfPulsesCounted int = 0
 
 	for {
-		if w.Flowing() {
+		if w.Detected() {
 			numberOfPulsesCounted++
 			fmt.Printf("MiliLiters Flowed: %f", (float32(1000*numberOfPulsesCounted) / pulsesPerLiter))
 			continue
