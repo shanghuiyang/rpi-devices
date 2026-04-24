@@ -1,13 +1,20 @@
 /*
 relay is an electrically operated switch module.
 
-Connect to Raspberry Pi:
- - vcc: any 5v pin
- - gnd: any gnd pin
- - in:  any data pin
- - on:  the outside device
- - com: the bettery
+		           ___________________________
+	   VCC/DC+ ---|                           |--- NC
+	              |                           |
+	   GND/DC- ---|          RELAY            |--- COM ------[+]Load[-]---------------------+
+	              |                           |                                             |
+	       IN  ---|                           |--- NO ------------------ [+]Bettery[-]------+
+		           ---------------------------
 
+Connect to Raspberry Pi:
+  - vcc(dc+): any 5v pin
+  - gnd(dc-): any gnd pin
+  - in:  any data pin
+  - on:  the outside device+
+  - com: the bettery+
 */
 package dev
 
