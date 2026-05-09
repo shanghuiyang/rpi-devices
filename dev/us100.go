@@ -5,40 +5,41 @@ min distance: 2cm
 max distance: 450cm
 
 Config Raspberry Pi:
-1. $ sudo vim /boot/config.txt
-	add following new line:
-	~~~~~~~~~~~~~~~~~
-	enable_uart=1
-	~~~~~~~~~~~~~~~~~
-2. $ sudo vim /boot/cmdline.txt
-	remove following contexts:
-	~~~~~~~~~~~~~~~~~~~~~~~~~~
-	console=serial0,115200
-	~~~~~~~~~~~~~~~~~~~~~~~~~~
-3. $ sudo reboot now
-4. $ sudo cat /dev/ttyAMA0
-	should see somethings output
+ 1. $ sudo vim /boot/config.txt
+    add following new line:
+    ~~~~~~~~~~~~~~~~~
+    enable_uart=1
+    ~~~~~~~~~~~~~~~~~
+ 2. $ sudo vim /boot/cmdline.txt
+    remove following contexts:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    console=serial0,115200
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 3. $ sudo reboot now
+ 4. $ sudo cat /dev/ttyAMA0
+    should see somethings output
 
 Connect to Raspberry Pi:
 GPIO Interface:
- - VCC: any 3.3v or 5v pin
- - GND: any gnd pin
- - Trig: any gnd pin
- - Echo: any gnd pin
+  - VCC: any 3.3v or 5v pin
+  - GND: any gnd pin
+  - Trig: any gnd pin
+  - Echo: any gnd pin
 
-  UART Interface:
- - VCC: any 3.3v or 5v pin
- - GND: any gnd pin
- - ...............................................
- - !!! NOTE: TX->TXD, RX-RXD, NOT TX->RXD, RX-TXD
- - ...............................................
- - TX: must connect to GPIO-14 (TXD)
- - RX: must connect to GPIO-15 (RXD)
+    UART Interface:
+  - VCC: any 3.3v or 5v pin
+  - GND: any gnd pin
+  - ...............................................
+  - !!! NOTE: TX->TXD, RX-RXD, NOT TX->RXD, RX-TXD
+  - ...............................................
+  - TX: must connect to GPIO-14 (TXD)
+  - RX: must connect to GPIO-15 (RXD)
 
 */
 package dev
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -47,8 +48,8 @@ import (
 )
 
 const (
-	us100Timeout = 14000000 // Nanosecond, 476m
-	us100MaxDist = 450      // cm
+	us100Timeout    = 1000 // Nanosecond
+	us100MaxRetries = 10
 )
 
 var (
@@ -103,7 +104,13 @@ func (us *US100) Dist() (float64, error) {
 	if us.iface == UART {
 		return us.distFromUART()
 	}
-	return us.distFromGPIO()
+	for i := 0; i < us100MaxRetries; i++ {
+		if dist, err := us.distFromGPIO(); err == nil {
+			return dist, nil
+		}
+		time.Sleep(100 * time.Microsecond)
+	}
+	return 0, errors.New("timeout")
 }
 
 func (us *US100) distFromUART() (float64, error) {
@@ -144,16 +151,15 @@ func (us *US100) distFromGPIO() (float64, error) {
 	us.echo.Detect(rpio.RiseEdge)
 	for i := 0; !us.echo.EdgeDetected(); i++ {
 		if i >= us100Timeout {
-			return us100MaxDist, nil
+			return 0, errors.New("timeout")
 		}
 		delayNs(1)
 	}
-
 	start := time.Now()
 	us.echo.Detect(rpio.FallEdge)
 	for i := 0; !us.echo.EdgeDetected(); i++ {
 		if i >= us100Timeout {
-			return us100MaxDist, nil
+			return 0, errors.New("timeout")
 		}
 		delayNs(1)
 	}

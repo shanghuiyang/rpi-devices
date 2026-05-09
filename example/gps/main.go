@@ -27,6 +27,6 @@ func main() {
 			log.Printf("failed, error: %v", err)
 			continue
 		}
-		log.Printf("%v, %v", lat, lon)
+		log.Printf("%.6f, %.6f", lat, lon)
 	}
 }

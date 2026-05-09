@@ -7,13 +7,13 @@ Spec:
   - power supply:	+5V DC
   - range:			2 - 450cm
   - resolution:		0.3cm
-	 ___________________________
+    ___________________________
     |                           |
     |          HC-SR04          |
     |                           |
     |___________________________|
-         |     |     |     |
-        vcc  trig   echo  gnd
+    |     |     |     |
+    vcc  trig   echo  gnd
 
 Connect to Raspberry Pi:
   - vcc:	any 5v pin
@@ -25,14 +25,15 @@ Connect to Raspberry Pi:
 package dev
 
 import (
+	"errors"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
 const (
-	hcsr04Timeout = 18000000 // Nanosecond, 612m
-	hcsr04MaxDist = 600      // cm
+	hcsr04Timeout    = 1000 // Nanosecond, 612m
+	hcsr04MaxRetries = 10
 )
 
 // HCSR04 implements DistanceMeter interface
@@ -55,6 +56,16 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 
 // Value returns distance in cm to objects
 func (hc *HCSR04) Dist() (float64, error) {
+	for i := 0; i < hcsr04MaxRetries; i++ {
+		if dist, err := hc.dist(); err == nil {
+			return dist, nil
+		}
+		time.Sleep(100 * time.Microsecond)
+	}
+	return 0, errors.New("timeout")
+}
+
+func (hc *HCSR04) dist() (float64, error) {
 	hc.trig.Low()
 	delayUs(1)
 	hc.trig.High()
@@ -62,7 +73,7 @@ func (hc *HCSR04) Dist() (float64, error) {
 
 	for i := 0; hc.echo.Read() != rpio.High; i++ {
 		if i >= hcsr04Timeout {
-			return hcsr04MaxDist, nil
+			return 0, errors.New("timeout")
 		}
 		delayNs(1)
 	}
@@ -70,7 +81,7 @@ func (hc *HCSR04) Dist() (float64, error) {
 	start := time.Now()
 	for i := 0; hc.echo.Read() != rpio.Low; i++ {
 		if i >= hcsr04Timeout {
-			return hcsr04MaxDist, nil
+			return 0, errors.New("timeout")
 		}
 		delayNs(1)
 	}
