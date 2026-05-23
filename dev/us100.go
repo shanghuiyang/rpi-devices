@@ -41,6 +41,7 @@ package dev
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -48,8 +49,10 @@ import (
 )
 
 const (
-	us100Timeout    = 1000 // Nanosecond
-	us100MaxRetries = 10
+	us100MaxDistance = 699  // cm
+	us100Timeout     = 1000 // Nanosecond
+	us100MaxRetries  = 5
+	us100Trim        = 1
 )
 
 var (
@@ -104,13 +107,29 @@ func (us *US100) Dist() (float64, error) {
 	if us.iface == UART {
 		return us.distFromUART()
 	}
+
+	values := make([]float64, 0, hcsr04MaxRetries)
 	for i := 0; i < us100MaxRetries; i++ {
-		if dist, err := us.distFromGPIO(); err == nil {
-			return dist, nil
+		dist, err := us.distFromGPIO()
+		if err != nil {
+			time.Sleep(1 * time.Microsecond)
+			continue
 		}
-		time.Sleep(100 * time.Microsecond)
+		values = append(values, dist)
+		time.Sleep(1 * time.Microsecond)
 	}
-	return 0, errors.New("timeout")
+
+	if len(values) <= us100Trim*2 {
+		return 0, errors.New("device not ready")
+	}
+
+	sort.Float64s(values)
+	trimmed := values[us100Trim : len(values)-us100Trim]
+	var sum float64
+	for _, v := range trimmed {
+		sum += v
+	}
+	return sum / float64(len(trimmed)), nil
 }
 
 func (us *US100) distFromUART() (float64, error) {
@@ -151,7 +170,7 @@ func (us *US100) distFromGPIO() (float64, error) {
 	us.echo.Detect(rpio.RiseEdge)
 	for i := 0; !us.echo.EdgeDetected(); i++ {
 		if i >= us100Timeout {
-			return 0, errors.New("timeout")
+			return us100MaxDistance, nil
 		}
 		delayNs(1)
 	}
@@ -159,7 +178,7 @@ func (us *US100) distFromGPIO() (float64, error) {
 	us.echo.Detect(rpio.FallEdge)
 	for i := 0; !us.echo.EdgeDetected(); i++ {
 		if i >= us100Timeout {
-			return 0, errors.New("timeout")
+			return us100MaxDistance, nil
 		}
 		delayNs(1)
 	}

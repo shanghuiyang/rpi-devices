@@ -26,14 +26,17 @@ package dev
 
 import (
 	"errors"
+	"sort"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
 const (
-	hcsr04Timeout    = 1000 // Nanosecond, 612m
-	hcsr04MaxRetries = 10
+	hcsr04MaxDistance = 699  // cm
+	hcsr04Timeout     = 1000 // Nanosecond, 612m
+	hcsr04MaxRetries  = 5
+	hcsr04Trim        = 1
 )
 
 // HCSR04 implements DistanceMeter interface
@@ -54,15 +57,30 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 	return hc
 }
 
-// Value returns distance in cm to objects
+// Dist returns distance in cm to objects.
+// It takes 10 measurements, drops the 2 largest and 2 smallest, and averages the rest.
 func (hc *HCSR04) Dist() (float64, error) {
+	values := make([]float64, 0, hcsr04MaxRetries)
 	for i := 0; i < hcsr04MaxRetries; i++ {
-		if dist, err := hc.dist(); err == nil {
-			return dist, nil
+		dist, err := hc.dist()
+		if err != nil {
+			time.Sleep(1 * time.Microsecond)
+			continue
 		}
-		time.Sleep(100 * time.Microsecond)
+		values = append(values, dist)
+		time.Sleep(1 * time.Microsecond)
 	}
-	return 0, errors.New("timeout")
+	if len(values) <= hcsr04Trim*2 {
+		return 0, errors.New("device not ready")
+	}
+
+	sort.Float64s(values)
+	trimmed := values[hcsr04Trim : len(values)-hcsr04Trim]
+	var sum float64
+	for _, v := range trimmed {
+		sum += v
+	}
+	return sum / float64(len(trimmed)), nil
 }
 
 func (hc *HCSR04) dist() (float64, error) {
@@ -73,7 +91,7 @@ func (hc *HCSR04) dist() (float64, error) {
 
 	for i := 0; hc.echo.Read() != rpio.High; i++ {
 		if i >= hcsr04Timeout {
-			return 0, errors.New("timeout")
+			return hcsr04MaxDistance, nil
 		}
 		delayNs(1)
 	}
@@ -81,7 +99,7 @@ func (hc *HCSR04) dist() (float64, error) {
 	start := time.Now()
 	for i := 0; hc.echo.Read() != rpio.Low; i++ {
 		if i >= hcsr04Timeout {
-			return 0, errors.New("timeout")
+			return hcsr04MaxDistance, nil
 		}
 		delayNs(1)
 	}
