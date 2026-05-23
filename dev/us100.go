@@ -21,27 +21,35 @@ Config Raspberry Pi:
 
 Connect to Raspberry Pi:
 GPIO Interface:
+
   - VCC: any 3.3v or 5v pin
+
   - GND: any gnd pin
+
   - Trig: any gnd pin
+
   - Echo: any gnd pin
 
     UART Interface:
-  - VCC: any 3.3v or 5v pin
-  - GND: any gnd pin
-  - ...............................................
-  - !!! NOTE: TX->TXD, RX-RXD, NOT TX->RXD, RX-TXD
-  - ...............................................
-  - TX: must connect to GPIO-14 (TXD)
-  - RX: must connect to GPIO-15 (RXD)
 
+  - VCC: any 3.3v or 5v pin
+
+  - GND: any gnd pin
+
+  - ...............................................
+
+  - !!! NOTE: TX->TXD, RX-RXD, NOT TX->RXD, RX-TXD
+
+  - ...............................................
+
+  - TX: must connect to GPIO-14 (TXD)
+
+  - RX: must connect to GPIO-15 (RXD)
 */
 package dev
 
 import (
-	"errors"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
@@ -49,10 +57,9 @@ import (
 )
 
 const (
-	us100MaxDistance = 699  // cm
+	us100MaxDistance = 999  // cm
 	us100Timeout     = 1000 // Nanosecond
-	us100MaxRetries  = 5
-	us100Trim        = 1
+	us100Retry       = 5    // must >= 3
 )
 
 var (
@@ -108,28 +115,21 @@ func (us *US100) Dist() (float64, error) {
 		return us.distFromUART()
 	}
 
-	values := make([]float64, 0, hcsr04MaxRetries)
-	for i := 0; i < us100MaxRetries; i++ {
-		dist, err := us.distFromGPIO()
-		if err != nil {
-			time.Sleep(1 * time.Microsecond)
-			continue
+	max, min, sum := -9999.0, 9999.0, 0.0
+	for i := 0; i < us100Retry; i++ {
+		d, _ := us.distFromGPIO()
+		if d > max {
+			max = d
 		}
-		values = append(values, dist)
+		if d < min {
+			min = d
+		}
+
+		sum += d
 		time.Sleep(1 * time.Microsecond)
 	}
 
-	if len(values) <= us100Trim*2 {
-		return 0, errors.New("device not ready")
-	}
-
-	sort.Float64s(values)
-	trimmed := values[us100Trim : len(values)-us100Trim]
-	var sum float64
-	for _, v := range trimmed {
-		sum += v
-	}
-	return sum / float64(len(trimmed)), nil
+	return (sum - max - min) / (us100Retry - 2), nil
 }
 
 func (us *US100) distFromUART() (float64, error) {

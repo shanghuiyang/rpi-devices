@@ -20,23 +20,19 @@ Connect to Raspberry Pi:
   - gnd:	any gnd pin
   - trig:	any data pin
   - echo:	any data pin
-
 */
 package dev
 
 import (
-	"errors"
-	"sort"
 	"time"
 
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
 const (
-	hcsr04MaxDistance = 699  // cm
+	hcsr04MaxDistance = 999  // cm
 	hcsr04Timeout     = 1000 // Nanosecond, 612m
-	hcsr04MaxRetries  = 5
-	hcsr04Trim        = 1
+	hcsr04Rety        = 5    // must >= 3
 )
 
 // HCSR04 implements DistanceMeter interface
@@ -60,27 +56,21 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 // Dist returns distance in cm to objects.
 // It takes 10 measurements, drops the 2 largest and 2 smallest, and averages the rest.
 func (hc *HCSR04) Dist() (float64, error) {
-	values := make([]float64, 0, hcsr04MaxRetries)
-	for i := 0; i < hcsr04MaxRetries; i++ {
-		dist, err := hc.dist()
-		if err != nil {
-			time.Sleep(1 * time.Microsecond)
-			continue
+	max, min, sum := -9999.0, 9999.0, 0.0
+	for i := 0; i < hcsr04Rety; i++ {
+		d, _ := hc.dist()
+
+		if d > max {
+			max = d
 		}
-		values = append(values, dist)
+		if d < min {
+			min = d
+		}
+
+		sum += d
 		time.Sleep(1 * time.Microsecond)
 	}
-	if len(values) <= hcsr04Trim*2 {
-		return 0, errors.New("device not ready")
-	}
-
-	sort.Float64s(values)
-	trimmed := values[hcsr04Trim : len(values)-hcsr04Trim]
-	var sum float64
-	for _, v := range trimmed {
-		sum += v
-	}
-	return sum / float64(len(trimmed)), nil
+	return (sum - max - min) / (us100Retry - 2), nil
 }
 
 func (hc *HCSR04) dist() (float64, error) {
