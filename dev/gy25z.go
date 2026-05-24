@@ -26,17 +26,21 @@ package dev
 
 import (
 	"errors"
-	// "fmt"
+	"sort"
 	"time"
 
 	"github.com/tarm/serial"
 )
 
 const (
-	gy25zBufSize   = 11
 	gy25zDataHead  = 0x5A
 	gy25zAngleData = 0x10
 	gy25zDataLen   = 0x06
+
+	gy25zBufSize      = 16
+	gy25zMeasureCount = 5
+	gy25zMaxRetry     = 10
+	gy25zTrim         = 1
 )
 
 // GY25ZMode ...
@@ -90,6 +94,39 @@ func (gy *GY25Z) SetMode(mode GY25ZMode) error {
 
 // Angles ...
 func (gy *GY25Z) Angles() (yaw, pitch, roll float64, err error) {
+	yaws := make([]float64, 0, gy25zMeasureCount)
+	pitches := make([]float64, 0, gy25zMeasureCount)
+	rolls := make([]float64, 0, gy25zMeasureCount)
+
+	retry := 0
+	var lastErr error
+	for len(yaws) < gy25zMeasureCount {
+		if retry >= gy25zMaxRetry {
+			return 0, 0, 0, lastErr
+		}
+
+		retry++
+		y, p, r, er := gy.angles()
+		if er != nil {
+			lastErr = er
+			continue
+		}
+
+		yaws = append(yaws, y)
+		pitches = append(pitches, p)
+		rolls = append(rolls, r)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	return gy.trimMean(yaws), gy.trimMean(pitches), gy.trimMean(rolls), nil
+}
+
+// Close ...
+func (gy *GY25Z) Close() error {
+	return gy.port.Close()
+}
+
+func (gy *GY25Z) angles() (yaw, pitch, roll float64, err error) {
 	if err := gy.port.Flush(); err != nil {
 		return 0, 0, 0, err
 	}
@@ -123,7 +160,11 @@ func (gy *GY25Z) Angles() (yaw, pitch, roll float64, err error) {
 	return float64(y) / 100, float64(p) / 100, float64(r) / 100, nil
 }
 
-// Close ...
-func (gy *GY25Z) Close() error {
-	return gy.port.Close()
+func (gy *GY25Z) trimMean(values []float64) float64 {
+	sort.Float64s(values)
+	sum := 0.0
+	for _, v := range values[gy25zTrim : len(values)-gy25zTrim] {
+		sum += v
+	}
+	return sum / float64(len(values)-2*gy25zTrim)
 }

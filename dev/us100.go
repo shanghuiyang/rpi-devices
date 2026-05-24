@@ -57,9 +57,9 @@ import (
 )
 
 const (
-	us100MaxDistance = 999  // cm
-	us100Timeout     = 1000 // Nanosecond
-	us100Retry       = 5    // must >= 3
+	us100MaxDistance  = 999  // cm
+	us100Timeout      = 1000 // Nanosecond
+	us100MeasureCount = 5    // must >= 3
 )
 
 var (
@@ -116,7 +116,7 @@ func (us *US100) Dist() (float64, error) {
 	}
 
 	max, min, sum := -9999.0, 9999.0, 0.0
-	for i := 0; i < us100Retry; i++ {
+	for i := 0; i < us100MeasureCount; i++ {
 		d, _ := us.distFromGPIO()
 		if d > max {
 			max = d
@@ -126,10 +126,10 @@ func (us *US100) Dist() (float64, error) {
 		}
 
 		sum += d
-		time.Sleep(1 * time.Microsecond)
+		time.Sleep(1 * time.Millisecond)
 	}
 
-	return (sum - max - min) / (us100Retry - 2), nil
+	return (sum - max - min) / (us100MeasureCount - 2), nil
 }
 
 func (us *US100) distFromUART() (float64, error) {

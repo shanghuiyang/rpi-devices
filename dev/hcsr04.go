@@ -30,9 +30,9 @@ import (
 )
 
 const (
-	hcsr04MaxDistance = 999  // cm
-	hcsr04Timeout     = 1000 // Nanosecond, 612m
-	hcsr04Rety        = 5    // must >= 3
+	hcsr04MaxDistance  = 999  // cm
+	hcsr04Timeout      = 1000 // Nanosecond, 612m
+	hcsr04MeasureCount = 5    // must >= 3
 )
 
 // HCSR04 implements DistanceMeter interface
@@ -57,7 +57,7 @@ func NewHCSR04(trig int8, echo int8) *HCSR04 {
 // It takes 10 measurements, drops the 2 largest and 2 smallest, and averages the rest.
 func (hc *HCSR04) Dist() (float64, error) {
 	max, min, sum := -9999.0, 9999.0, 0.0
-	for i := 0; i < hcsr04Rety; i++ {
+	for i := 0; i < hcsr04MeasureCount; i++ {
 		d, _ := hc.dist()
 
 		if d > max {
@@ -68,9 +68,9 @@ func (hc *HCSR04) Dist() (float64, error) {
 		}
 
 		sum += d
-		time.Sleep(1 * time.Microsecond)
+		time.Sleep(1 * time.Millisecond)
 	}
-	return (sum - max - min) / (us100Retry - 2), nil
+	return (sum - max - min) / (hcsr04MeasureCount - 2), nil
 }
 
 func (hc *HCSR04) dist() (float64, error) {

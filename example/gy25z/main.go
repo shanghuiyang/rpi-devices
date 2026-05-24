@@ -32,6 +32,6 @@ func main() {
 			log.Printf("failed to gent angles, error: %v", err)
 			continue
 		}
-		fmt.Printf("yaw: %v, pitch: %v, roll: %v\n", yaw, pitch, roll)
+		fmt.Printf("yaw: %.2f, pitch: %.2f, roll: %.2f\n", yaw, pitch, roll)
 	}
 }
